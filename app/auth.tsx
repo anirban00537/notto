@@ -1,37 +1,29 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
 } from "react-native";
-import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
+import auth from "@react-native-firebase/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 GoogleSignin.configure({
-  webClientId: "YOUR_GOOGLE_CLIENT_ID",
+  webClientId:
+    "76560488756-faqq3rpb2t6v5rj0q827un1kvv9cunmo.apps.googleusercontent.com",
   scopes: ["profile", "email"],
 });
 
 const AuthComponent = () => {
-  const [loggedIn, setLoggedIn] = useState(false);
-  const [initializing, setInitializing] = useState(true);
-  const [user, setUser] = useState<FirebaseAuthTypes.User | null>();
   const [loading, setLoading] = useState(false);
-
-  function onAuthStateChanged(user: FirebaseAuthTypes.User | null) {
-    setUser(user);
-    if (user) setLoggedIn(true);
-    else setLoggedIn(false);
-    if (initializing) setInitializing(false);
-  }
+  const [error, setError] = useState<string | null>(null);
 
   async function onGoogleButtonPress() {
     try {
       setLoading(true);
+      setError(null);
       await GoogleSignin.signOut();
       await GoogleSignin.hasPlayServices({
         showPlayServicesUpdateDialog: true,
@@ -40,54 +32,13 @@ const AuthComponent = () => {
       const googleCredential = auth.GoogleAuthProvider.credential(
         googleSignInResult.data?.idToken ?? null
       );
-      return await auth().signInWithCredential(googleCredential);
+      await auth().signInWithCredential(googleCredential);
     } catch (error) {
       console.error(error);
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
-  }
-
-  useEffect(() => {
-    const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
-    return subscriber;
-  }, []);
-
-  const handleSignOut = () => {
-    auth()
-      .signOut()
-      .then(() => console.log("User signed out!"));
-    setLoggedIn(false);
-  };
-
-  if (initializing) {
-    return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color="#4285F4" />
-      </View>
-    );
-  }
-
-  if (loggedIn) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.profileContainer}>
-          {user?.photoURL && (
-            <Image
-              source={{ uri: user.photoURL }}
-              style={styles.profileImage}
-            />
-          )}
-          <Text style={styles.welcomeText}>Welcome, {user?.displayName}!</Text>
-          <TouchableOpacity
-            style={styles.signOutButton}
-            onPress={handleSignOut}
-          >
-            <Text style={styles.signOutText}>Sign Out</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
   }
 
   return (
@@ -115,6 +66,8 @@ const AuthComponent = () => {
             </>
           )}
         </TouchableOpacity>
+
+        {error && <Text style={styles.errorText}>{error}</Text>}
       </View>
     </View>
   );
@@ -163,34 +116,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  profileContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 20,
-  },
-  welcomeText: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: "#1a1a1a",
-    marginBottom: 30,
-  },
-  signOutButton: {
-    backgroundColor: "#f44336",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  signOutText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+  errorText: {
+    color: "#f44336",
+    marginTop: 20,
+    textAlign: "center",
   },
 });
 

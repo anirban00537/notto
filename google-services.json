@@ -7,12 +7,25 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:76560488756:android:d044bad3a1ddeb0141ad61",
+        "mobilesdk_app_id": "1:76560488756:android:54acf345f98b7dd041ad61",
         "android_client_info": {
-          "package_name": "com.notto.app"
+          "package_name": "com.nottoai.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "76560488756-vlkqo28ihi87hgi1r2cbn3kk9052i5af.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nottoai.app",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "76560488756-faqq3rpb2t6v5rj0q827un1kvv9cunmo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBzJIQ6IaMOGZFMHS0232vuFFUGss_3IBw"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "76560488756-faqq3rpb2t6v5rj0q827un1kvv9cunmo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
