@@ -17,6 +17,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import { Modalize } from "react-native-modalize";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { Link } from "expo-router";
 import AuthComponent from "./auth";
 
 interface Note {
@@ -171,7 +172,10 @@ export default function App() {
     return `${months[date.getMonth()]} ${date.getDate()} ${date.getFullYear()}`;
   };
 
-  const filteredNotes = notes;
+  const filteredNotes =
+    selectedFolderId === "all"
+      ? notes
+      : notes.filter((note) => note.folderId === selectedFolderId);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -278,16 +282,26 @@ export default function App() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => (
-            <TouchableOpacity style={styles.noteCard}>
-              {renderNoteIcon(item.icon)}
-              <View style={styles.noteContent}>
-                <Text style={styles.noteTitle}>{item.title}</Text>
-                <Text style={styles.notePreview} numberOfLines={1}>
-                  {item.content}
+            <Link
+              href={{
+                pathname: "/note/[id]",
+                params: { id: item.id },
+              }}
+              asChild
+            >
+              <TouchableOpacity style={styles.noteCard}>
+                {renderNoteIcon(item.icon)}
+                <View style={styles.noteContent}>
+                  <Text style={styles.noteTitle}>{item.title}</Text>
+                  <Text style={styles.notePreview} numberOfLines={1}>
+                    {item.content}
+                  </Text>
+                </View>
+                <Text style={styles.noteDate}>
+                  {formatDate(item.createdAt)}
                 </Text>
-              </View>
-              <Text style={styles.noteDate}>{formatDate(item.createdAt)}</Text>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            </Link>
           )}
         />
 

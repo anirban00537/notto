@@ -1,0 +1,198 @@
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Platform,
+  Linking,
+  Alert,
+} from "react-native";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context"; // Use this for better edge handling
+
+// Import the new components
+import NoteDetailHeader from "../../components/NoteDetailHeader";
+import YouTubePreview from "../../components/YouTubePreview";
+import ActionButtons from "../../components/ActionButtons";
+import NoteTitleSection from "../../components/NoteTitleSection";
+import ContentTabs from "../../components/ContentTabs";
+
+// Mock data - replace with actual data fetching based on id
+const getNoteDetails = (id: string) => {
+  // In a real app, fetch data based on id
+  return {
+    id: "youtube-1",
+    title: "Top UI Kits for Modern App Development",
+    content: `In this video, the speaker emphasizes the critical importance of packaging and design in product success, drawing parallels between high-end perfume branding and software UI design. The speaker argues that the visual appeal and professionalism of your product's interface should not be an afterthought but a priority from the beginning. They highlight several UI kits that facilitate the creation of appealing products without starting from scratch, including:
+
+1. Untitled UI - A comprehensive UI kit designed for Figma, featuring over 3,000 components and hundreds of templates.`,
+    lastModified: "04-03-2025 - 23:41",
+    icon: "palette", // Or derive from note type
+    youtubeUrl:
+      "https://www.youtube.com/watch?v=QN1y8FgONBo&ab_channel=ThisIsYourAverageDev",
+    thumbnailUrl:
+      "https://via.placeholder.com/400x200.png/000000/FFFFFF?text=Video+Thumbnail", // Placeholder thumbnail
+  };
+};
+
+// Helper function to get icon details (optional, adjust as needed)
+const getIconProps = (iconType?: string) => {
+  switch (iconType) {
+    case "pdf":
+      return { name: "file-pdf-box", color: "#D32F2F", bgColor: "#FFEBEE" };
+    case "audio":
+      return {
+        name: "file-music-outline",
+        color: "#1976D2",
+        bgColor: "#E3F2FD",
+      };
+    case "youtube":
+      return { name: "youtube", color: "#FF0000", bgColor: "#FFEBEE" };
+    case "palette":
+      return { name: "palette", color: "#EB6C3E", bgColor: "#FFF5EC" };
+    default:
+      return { name: "note-text-outline", color: "#888", bgColor: "#f0f0f0" }; // Default icon
+  }
+};
+
+export default function NoteDetailScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
+  const note = getNoteDetails(id || "unknown"); // Handle case where id might be undefined
+
+  if (!note) {
+    // Optional: Add a loading state or not found component
+    return <Text>Note not found</Text>;
+  }
+
+  // State for the content tab (Note/Transcript/Summary)
+  const [activeContentTab, setActiveContentTab] = React.useState<
+    "note" | "transcript" | "summary" // Added 'summary'
+  >("note");
+
+  const iconProps = getIconProps(note.icon);
+
+  // Placeholder handlers for buttons
+  const handleOptionsPress = () => console.log("Options pressed");
+
+  // Update handleWatchPress to use Linking
+  const handleWatchPress = async () => {
+    const supported = await Linking.canOpenURL(note.youtubeUrl);
+    if (supported) {
+      try {
+        await Linking.openURL(note.youtubeUrl);
+      } catch (error) {
+        Alert.alert(`Don't know how to open this URL: ${note.youtubeUrl}`);
+      }
+    } else {
+      Alert.alert(`Don't know how to open this URL: ${note.youtubeUrl}`);
+    }
+  };
+
+  const handleNoteToolsPress = () => console.log("Note Tools pressed");
+  const handleEditNotePress = () => console.log("Edit Note pressed");
+
+  return (
+    <SafeAreaView style={styles.safeArea} edges={["bottom", "left", "right"]}>
+      {/* Custom Header */}
+      <Stack.Screen options={{ headerShown: false }} />
+
+      {/* Use NoteDetailHeader component */}
+      <NoteDetailHeader
+        title="Note Detail"
+        onBackPress={() => router.back()}
+        onOptionsPress={handleOptionsPress}
+      />
+
+      {/* Use ContentTabs component */}
+      <ContentTabs
+        activeTab={activeContentTab}
+        onTabPress={setActiveContentTab}
+      />
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContentContainer}
+      >
+        {/* Conditional Content based on active tab */}
+        {activeContentTab === "note" && (
+          <>
+            {/* Use YouTubePreview component */}
+            <YouTubePreview
+              thumbnailUrl={note.thumbnailUrl}
+              videoTitle={note.title} // Pass full title, component handles truncation
+              onWatchPress={handleWatchPress}
+            />
+
+            {/* Use ActionButtons component */}
+            <ActionButtons
+              onNoteToolsPress={handleNoteToolsPress}
+              onEditNotePress={handleEditNotePress}
+            />
+
+            {/* Use NoteTitleSection component */}
+            <NoteTitleSection
+              title={note.title}
+              lastModified={note.lastModified}
+              iconName={iconProps.name as any} // Cast needed if type complex
+              iconColor={iconProps.color}
+              iconBackgroundColor={iconProps.bgColor}
+            />
+
+            {/* Note Text Content (Only for Note Tab) */}
+            <View style={styles.textContentPadding}>
+              {" "}
+              // Add padding view
+              <Text style={styles.noteContentText}>{note.content}</Text>
+            </View>
+          </>
+        )}
+
+        {activeContentTab === "transcript" && (
+          <View style={styles.textContentPadding}>
+            {" "}
+            // Add padding view
+            <Text style={styles.noteContentText}>
+              Transcript content would go here...
+            </Text>
+          </View>
+        )}
+
+        {activeContentTab === "summary" && (
+          <View style={styles.textContentPadding}>
+            {" "}
+            // Add padding view
+            <Text style={styles.noteContentText}>
+              Summary content would go here...
+            </Text>
+          </View>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  scrollContentContainer: {
+    paddingBottom: 20,
+  },
+  textContentPadding: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  noteContentText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: "#333",
+  },
+});
