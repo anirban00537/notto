@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -12,6 +12,8 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
+import { Modalize } from "react-native-modalize";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import AuthComponent from "./auth";
 
 interface Note {
@@ -35,11 +37,22 @@ export default function App() {
       icon: "palette",
     },
   ]);
+  const modalizeRef = useRef<Modalize>(null);
 
   useEffect(() => {
     const subscriber = auth().onAuthStateChanged(setUser);
     return subscriber;
   }, []);
+
+  const onOpen = () => {
+    modalizeRef.current?.open();
+  };
+
+  const handleOptionPress = (option: string) => {
+    console.log(`Selected option: ${option}`);
+    modalizeRef.current?.close();
+    // TODO: Implement logic for each option (PDF, Audio, YouTube)
+  };
 
   if (!user) {
     return <AuthComponent />;
@@ -75,98 +88,157 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Notto</Text>
-        <TouchableOpacity style={styles.proButton}>
-          <MaterialCommunityIcons name="rocket-launch" size={16} color="#fff" />
-          <Text style={styles.proText}>PRO</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.profileButton}>
-          <MaterialCommunityIcons name="account" size={22} color="#555" />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.tabContainer}>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === "notes" && styles.activeTab]}
-          onPress={() => setActiveTab("notes")}
-        >
-          <MaterialCommunityIcons
-            name="pencil"
-            size={18}
-            color={activeTab === "notes" ? "#222" : "#888"}
-          />
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "notes" && styles.activeTabText,
-            ]}
-          >
-            All Notes
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, activeTab === "folders" && styles.activeTab]}
-          onPress={() => setActiveTab("folders")}
-        >
-          <MaterialCommunityIcons
-            name="folder-outline"
-            size={18}
-            color={activeTab === "folders" ? "#222" : "#888"}
-          />
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === "folders" && styles.activeTabText,
-            ]}
-          >
-            Folders
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.sectionTitle}>Notes</Text>
-
-      <FlatList
-        data={notes}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.noteCard}>
-            {renderNoteIcon(item.icon)}
-            <View style={styles.noteContent}>
-              <Text style={styles.noteTitle}>{item.title}</Text>
-              <Text style={styles.notePreview} numberOfLines={1}>
-                {item.content}
-              </Text>
-            </View>
-            <Text style={styles.noteDate}>{formatDate(item.createdAt)}</Text>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Notto</Text>
+          <TouchableOpacity style={styles.proButton}>
+            <MaterialCommunityIcons
+              name="rocket-launch"
+              size={16}
+              color="#fff"
+            />
+            <Text style={styles.proText}>PRO</Text>
           </TouchableOpacity>
-        )}
-      />
+          <TouchableOpacity style={styles.profileButton}>
+            <MaterialCommunityIcons name="account" size={22} color="#555" />
+          </TouchableOpacity>
+        </View>
 
-      <View style={styles.bottomActions}>
-        <TouchableOpacity style={styles.recordButton} activeOpacity={0.8}>
-          <MaterialCommunityIcons
-            name="record-circle"
-            size={24}
-            color="#f44336"
-          />
-          <Text style={styles.recordButtonText}>Record</Text>
-        </TouchableOpacity>
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "notes" && styles.activeTab]}
+            onPress={() => setActiveTab("notes")}
+          >
+            <MaterialCommunityIcons
+              name="pencil"
+              size={18}
+              color={activeTab === "notes" ? "#222" : "#888"}
+            />
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "notes" && styles.activeTabText,
+              ]}
+            >
+              All Notes
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "folders" && styles.activeTab]}
+            onPress={() => setActiveTab("folders")}
+          >
+            <MaterialCommunityIcons
+              name="folder-outline"
+              size={18}
+              color={activeTab === "folders" ? "#222" : "#888"}
+            />
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === "folders" && styles.activeTabText,
+              ]}
+            >
+              Folders
+            </Text>
+          </TouchableOpacity>
+        </View>
 
-        <TouchableOpacity style={styles.newNoteButton} activeOpacity={0.8}>
-          <MaterialCommunityIcons name="pencil-plus" size={24} color="#222" />
-          <Text style={[styles.actionButtonText, { color: "#222" }]}>
-            New Note
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+        <Text style={styles.sectionTitle}>Notes</Text>
+
+        <FlatList
+          data={notes}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.noteCard}>
+              {renderNoteIcon(item.icon)}
+              <View style={styles.noteContent}>
+                <Text style={styles.noteTitle}>{item.title}</Text>
+                <Text style={styles.notePreview} numberOfLines={1}>
+                  {item.content}
+                </Text>
+              </View>
+              <Text style={styles.noteDate}>{formatDate(item.createdAt)}</Text>
+            </TouchableOpacity>
+          )}
+        />
+
+        <View style={styles.bottomActions}>
+          <TouchableOpacity style={styles.recordButton} activeOpacity={0.8}>
+            <MaterialCommunityIcons
+              name="record-circle"
+              size={24}
+              color="#f44336"
+            />
+            <Text style={styles.recordButtonText}>Record</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.newNoteButton}
+            activeOpacity={0.8}
+            onPress={onOpen}
+          >
+            <MaterialCommunityIcons name="pencil-plus" size={24} color="#111" />
+            <Text style={[styles.actionButtonText, { color: "#111" }]}>
+              New Note
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+
+      <Modalize
+        ref={modalizeRef}
+        adjustToContentHeight
+        HeaderComponent={
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalHeaderText}>Create New Note</Text>
+          </View>
+        }
+      >
+        <View style={styles.modalContent}>
+          <TouchableOpacity
+            style={styles.modalOption}
+            onPress={() => handleOptionPress("PDF")}
+          >
+            <MaterialCommunityIcons
+              name="file-pdf-box"
+              size={24}
+              color="#d32f2f"
+              style={styles.modalOptionIcon}
+            />
+            <Text style={styles.modalOptionText}>Import PDF</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.modalOption}
+            onPress={() => handleOptionPress("Audio")}
+          >
+            <MaterialCommunityIcons
+              name="microphone"
+              size={24}
+              color="#1976d2"
+              style={styles.modalOptionIcon}
+            />
+            <Text style={styles.modalOptionText}>Start Recording</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.modalOption}
+            onPress={() => handleOptionPress("YouTube")}
+          >
+            <MaterialCommunityIcons
+              name="youtube"
+              size={24}
+              color="#ff0000"
+              style={styles.modalOptionIcon}
+            />
+            <Text style={styles.modalOptionText}>Add YouTube Video</Text>
+          </TouchableOpacity>
+        </View>
+      </Modalize>
+    </GestureHandlerRootView>
   );
 }
 
@@ -343,5 +415,32 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#fff",
+  },
+  modalHeader: {
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+    alignItems: "center",
+  },
+  modalHeaderText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+  },
+  modalContent: {
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+  },
+  modalOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 15,
+  },
+  modalOptionIcon: {
+    marginRight: 16,
+  },
+  modalOptionText: {
+    fontSize: 16,
+    color: "#333",
   },
 });
