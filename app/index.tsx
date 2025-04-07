@@ -9,6 +9,7 @@ import {
   StatusBar,
   Image,
   Platform,
+  ScrollView,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
@@ -22,11 +23,24 @@ interface Note {
   content: string;
   createdAt: Date;
   icon?: string;
+  folderId?: string;
+}
+
+interface Folder {
+  id: string;
+  name: string;
 }
 
 export default function App() {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
-  const [activeTab, setActiveTab] = useState<"notes" | "folders">("notes");
+  const [selectedFolderId, setSelectedFolderId] = useState<string>("all");
+  const [folders, setFolders] = useState<Folder[]>([
+    { id: "work", name: "Work" },
+    { id: "personal", name: "Personal" },
+    { id: "ideas", name: "Ideas" },
+    { id: "travel", name: "Travel" },
+    { id: "recipes", name: "Recipes" },
+  ]);
   const [notes, setNotes] = useState<Note[]>([
     {
       id: "pdf-1",
@@ -34,6 +48,7 @@ export default function App() {
       content: "Review of the company performance, financial statements...",
       createdAt: new Date(2024, 11, 15),
       icon: "pdf",
+      folderId: "work",
     },
     {
       id: "audio-1",
@@ -42,6 +57,7 @@ export default function App() {
         "Discussion on project milestones, next steps, team assignments...",
       createdAt: new Date(2024, 11, 10),
       icon: "audio",
+      folderId: "work",
     },
     {
       id: "youtube-1",
@@ -50,6 +66,7 @@ export default function App() {
         "Learn how to implement engaging animations in React Native apps...",
       createdAt: new Date(2024, 11, 5),
       icon: "youtube",
+      folderId: "ideas",
     },
   ]);
   const modalizeRef = useRef<Modalize>(null);
@@ -67,6 +84,11 @@ export default function App() {
     console.log(`Selected option: ${option}`);
     modalizeRef.current?.close();
     // TODO: Implement logic for each option (PDF, Audio, YouTube)
+  };
+
+  const handleAddFolderPress = () => {
+    console.log("Add folder pressed");
+    // TODO: Implement logic to show a modal/input for adding a new folder
   };
 
   if (!user) {
@@ -130,6 +152,8 @@ export default function App() {
     return `${months[date.getMonth()]} ${date.getDate()} ${date.getFullYear()}`;
   };
 
+  const filteredNotes = notes;
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
@@ -150,49 +174,87 @@ export default function App() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === "notes" && styles.activeTab]}
-            onPress={() => setActiveTab("notes")}
+        <View style={styles.foldersScrollViewContainer}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingHorizontal: 16,
+              alignItems: "center",
+            }}
           >
-            <MaterialCommunityIcons
-              name="pencil"
-              size={18}
-              color={activeTab === "notes" ? "#222" : "#888"}
-            />
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === "notes" && styles.activeTabText,
-              ]}
+            <TouchableOpacity
+              style={styles.folderItemContainer}
+              onPress={handleAddFolderPress}
             >
-              All Notes
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === "folders" && styles.activeTab]}
-            onPress={() => setActiveTab("folders")}
-          >
-            <MaterialCommunityIcons
-              name="folder-outline"
-              size={18}
-              color={activeTab === "folders" ? "#222" : "#888"}
-            />
-            <Text
-              style={[
-                styles.tabText,
-                activeTab === "folders" && styles.activeTabText,
-              ]}
+              <View style={styles.addFolderIconCircle}>
+                <MaterialCommunityIcons name="plus" size={28} color="#555" />
+              </View>
+              <Text style={styles.folderName}>Add</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.folderItemContainer}
+              onPress={() => setSelectedFolderId("all")}
             >
-              Folders
-            </Text>
-          </TouchableOpacity>
+              <View
+                style={[
+                  styles.folderIconCircle,
+                  selectedFolderId === "all" && styles.folderIconCircleSelected,
+                ]}
+              >
+                <MaterialCommunityIcons
+                  name="format-list-bulleted"
+                  size={26}
+                  color={selectedFolderId === "all" ? "#fff" : "#555"}
+                />
+              </View>
+              <Text
+                style={[
+                  styles.folderName,
+                  selectedFolderId === "all" && styles.folderNameSelected,
+                ]}
+              >
+                All
+              </Text>
+            </TouchableOpacity>
+
+            {folders.map((folder) => (
+              <TouchableOpacity
+                key={folder.id}
+                style={styles.folderItemContainer}
+                onPress={() => setSelectedFolderId(folder.id)}
+              >
+                <View
+                  style={[
+                    styles.folderIconCircle,
+                    selectedFolderId === folder.id &&
+                      styles.folderIconCircleSelected,
+                  ]}
+                >
+                  <MaterialCommunityIcons
+                    name="folder-outline"
+                    size={26}
+                    color={selectedFolderId === folder.id ? "#fff" : "#555"}
+                  />
+                </View>
+                <Text
+                  style={[
+                    styles.folderName,
+                    selectedFolderId === folder.id && styles.folderNameSelected,
+                  ]}
+                >
+                  {folder.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
 
         <Text style={styles.sectionTitle}>Notes</Text>
 
         <FlatList
-          data={notes}
+          data={filteredNotes}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
@@ -328,43 +390,46 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#eee",
   },
-  tabContainer: {
-    flexDirection: "row",
-    marginHorizontal: 24,
-    borderRadius: 30,
-    padding: 4,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: "#eee",
+  foldersScrollViewContainer: {
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
-  tab: {
-    flex: 1,
-    flexDirection: "row",
+  folderItemContainer: {
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 10,
-    borderRadius: 26,
+    marginHorizontal: 8,
+    minWidth: 60,
   },
-  activeTab: {
+  folderIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: "#f5f5f5",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
-      },
-      android: {
-        elevation: 1,
-      },
-    }),
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 6,
   },
-  tabText: {
-    marginLeft: 6,
-    fontSize: 16,
-    color: "#aaa",
+  folderIconCircleSelected: {
+    backgroundColor: "#111",
   },
-  activeTabText: {
+  addFolderIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "transparent",
+    borderWidth: 2,
+    borderColor: "#e0e0e0",
+    borderStyle: "dashed",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 6,
+  },
+  folderName: {
+    fontSize: 12,
+    color: "#555",
+    textAlign: "center",
+  },
+  folderNameSelected: {
     color: "#111",
     fontWeight: "600",
   },
