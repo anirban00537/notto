@@ -3,13 +3,11 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 interface NoteDetailHeaderProps {
-  title: string;
   onBackPress: () => void;
   onOptionsPress: () => void;
 }
 
 export default function NoteDetailHeader({
-  title,
   onBackPress,
   onOptionsPress,
 }: NoteDetailHeaderProps) {
@@ -18,7 +16,6 @@ export default function NoteDetailHeader({
       <TouchableOpacity onPress={onBackPress} style={styles.headerButton}>
         <MaterialCommunityIcons name="chevron-left" size={30} color="#333" />
       </TouchableOpacity>
-      <Text style={styles.headerTitle}>{title}</Text>
       <TouchableOpacity onPress={onOptionsPress} style={styles.headerButton}>
         <MaterialCommunityIcons name="dots-horizontal" size={28} color="#333" />
       </TouchableOpacity>
@@ -32,9 +29,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 10,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    paddingVertical: 2,
     backgroundColor: "#fff",
   },
   headerButton: {

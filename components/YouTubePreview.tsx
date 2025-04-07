@@ -1,36 +1,61 @@
-import React from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import React, { useState, useCallback } from "react";
+import { View, StyleSheet, Alert, Text } from "react-native";
+import YoutubeIframe from "react-native-youtube-iframe";
 
 interface YouTubePreviewProps {
-  thumbnailUrl: string;
-  videoTitle: string;
-  onWatchPress: () => void;
+  directPlayableUrl: string;
 }
 
 export default function YouTubePreview({
-  thumbnailUrl,
-  videoTitle,
-  onWatchPress,
+  directPlayableUrl,
 }: YouTubePreviewProps) {
-  // Extracting the truncated title logic here if needed, or pass truncated title as prop
-  const displayTitle =
-    videoTitle.length > 25 ? videoTitle.substring(0, 25) + " ..." : videoTitle;
+  const [playing, setPlaying] = useState(false);
+
+  // Extract YouTube video ID from the URL
+  const getYouTubeVideoId = (url: string) => {
+    if (!url) return null;
+
+    // Regular expression to extract YouTube video ID from different URL formats
+    const regExp =
+      /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+
+    return match && match[2].length === 11 ? match[2] : null;
+  };
+
+  const videoId = getYouTubeVideoId(directPlayableUrl);
+
+  // Handle playback state changes
+  const onStateChange = useCallback((state: string) => {
+    if (state === "ended") {
+      setPlaying(false);
+    }
+  }, []);
+
+  // Handle errors
+  const onError = useCallback((error: any) => {
+    Alert.alert("YouTube Player Error", error);
+  }, []);
+
+  if (!videoId) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>
+          {!directPlayableUrl ? "Missing Video URL" : "Invalid YouTube URL"}
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.youtubePreviewContainer}>
-      <Image source={{ uri: thumbnailUrl }} style={styles.youtubeThumbnail} />
-      <View style={styles.thumbnailOverlay} />
-      <Text style={styles.videoTitle}>{displayTitle}</Text>
-      <TouchableOpacity style={styles.watchButton} onPress={onWatchPress}>
-        <MaterialCommunityIcons
-          name="youtube"
-          size={20}
-          color="#FF0000"
-          style={{ marginRight: 6 }}
-        />
-        <Text style={styles.watchButtonText}>Watch on YouTube</Text>
-      </TouchableOpacity>
+      <YoutubeIframe
+        height={225}
+        play={playing}
+        videoId={videoId}
+        onChangeState={onStateChange}
+        onError={onError}
+      />
     </View>
   );
 }
@@ -40,42 +65,17 @@ const styles = StyleSheet.create({
     margin: 16,
     borderRadius: 16,
     overflow: "hidden",
-    position: "relative",
     backgroundColor: "#000",
   },
-  youtubeThumbnail: {
-    width: "100%",
-    height: 200,
-    resizeMode: "cover",
-  },
-  thumbnailOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
+  errorContainer: {
+    margin: 16,
     borderRadius: 16,
-  },
-  videoTitle: {
-    position: "absolute",
-    top: 16,
-    left: 16,
-    right: 16,
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  watchButton: {
-    position: "absolute",
-    bottom: 16,
-    right: 16,
-    flexDirection: "row",
+    backgroundColor: "#f0f0f0",
+    aspectRatio: 16 / 9,
+    justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
   },
-  watchButtonText: {
-    color: "#000",
-    fontWeight: "600",
-    fontSize: 14,
+  errorText: {
+    color: "#555",
   },
 });

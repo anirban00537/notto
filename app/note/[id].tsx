@@ -31,7 +31,7 @@ const getNoteDetails = (id: string) => {
     lastModified: "04-03-2025 - 23:41",
     icon: "palette", // Or derive from note type
     youtubeUrl:
-      "https://www.youtube.com/watch?v=QN1y8FgONBo&ab_channel=ThisIsYourAverageDev",
+      "https://www.youtube.com/watch?v=P0dhkRaOceI&ab_channel=ComicVerse",
     thumbnailUrl:
       "https://via.placeholder.com/400x200.png/000000/FFFFFF?text=Video+Thumbnail", // Placeholder thumbnail
   };
@@ -60,37 +60,21 @@ const getIconProps = (iconType?: string) => {
 export default function NoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const note = getNoteDetails(id || "unknown"); // Handle case where id might be undefined
+  const note = getNoteDetails(id || "unknown");
 
   if (!note) {
-    // Optional: Add a loading state or not found component
     return <Text>Note not found</Text>;
   }
 
-  // State for the content tab (Note/Transcript/Summary)
+  // Update state type to include new tabs
   const [activeContentTab, setActiveContentTab] = React.useState<
-    "note" | "transcript" | "summary" // Added 'summary'
+    "note" | "transcript" | "summary" | "flashcard" | "quizzes"
   >("note");
 
   const iconProps = getIconProps(note.icon);
 
   // Placeholder handlers for buttons
   const handleOptionsPress = () => console.log("Options pressed");
-
-  // Update handleWatchPress to use Linking
-  const handleWatchPress = async () => {
-    const supported = await Linking.canOpenURL(note.youtubeUrl);
-    if (supported) {
-      try {
-        await Linking.openURL(note.youtubeUrl);
-      } catch (error) {
-        Alert.alert(`Don't know how to open this URL: ${note.youtubeUrl}`);
-      }
-    } else {
-      Alert.alert(`Don't know how to open this URL: ${note.youtubeUrl}`);
-    }
-  };
-
   const handleNoteToolsPress = () => console.log("Note Tools pressed");
   const handleEditNotePress = () => console.log("Edit Note pressed");
 
@@ -101,12 +85,11 @@ export default function NoteDetailScreen() {
 
       {/* Use NoteDetailHeader component */}
       <NoteDetailHeader
-        title="Note Detail"
         onBackPress={() => router.back()}
         onOptionsPress={handleOptionsPress}
       />
 
-      {/* Use ContentTabs component */}
+      {/* Use ContentTabs component (already handles scrolling) */}
       <ContentTabs
         activeTab={activeContentTab}
         onTabPress={setActiveContentTab}
@@ -116,15 +99,11 @@ export default function NoteDetailScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContentContainer}
       >
-        {/* Conditional Content based on active tab */}
+        {/* Note Tab Content */}
         {activeContentTab === "note" && (
           <>
-            {/* Use YouTubePreview component */}
-            <YouTubePreview
-              thumbnailUrl={note.thumbnailUrl}
-              videoTitle={note.title} // Pass full title, component handles truncation
-              onWatchPress={handleWatchPress}
-            />
+            {/* Use YouTubePreview component with correct prop name */}
+            <YouTubePreview directPlayableUrl={note.youtubeUrl} />
 
             {/* Use ActionButtons component */}
             <ActionButtons
@@ -143,29 +122,43 @@ export default function NoteDetailScreen() {
 
             {/* Note Text Content (Only for Note Tab) */}
             <View style={styles.textContentPadding}>
-              {" "}
-              // Add padding view
               <Text style={styles.noteContentText}>{note.content}</Text>
             </View>
           </>
         )}
 
+        {/* Transcript Tab Content */}
         {activeContentTab === "transcript" && (
           <View style={styles.textContentPadding}>
-            {" "}
-            // Add padding view
             <Text style={styles.noteContentText}>
               Transcript content would go here...
             </Text>
           </View>
         )}
 
+        {/* Summary Tab Content */}
         {activeContentTab === "summary" && (
           <View style={styles.textContentPadding}>
-            {" "}
-            // Add padding view
             <Text style={styles.noteContentText}>
               Summary content would go here...
+            </Text>
+          </View>
+        )}
+
+        {/* Flashcard Tab Content */}
+        {activeContentTab === "flashcard" && (
+          <View style={styles.textContentPadding}>
+            <Text style={styles.noteContentText}>
+              Flashcard content would go here...
+            </Text>
+          </View>
+        )}
+
+        {/* Quizzes Tab Content */}
+        {activeContentTab === "quizzes" && (
+          <View style={styles.textContentPadding}>
+            <Text style={styles.noteContentText}>
+              Quizzes content would go here...
             </Text>
           </View>
         )}
@@ -177,13 +170,17 @@ export default function NoteDetailScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#f5f5f5", // Match the background color with tabs
   },
   scrollView: {
     flex: 1,
     backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    marginTop: -10,
   },
   scrollContentContainer: {
+    paddingTop: 20, // Add padding to account for the curved top
     paddingBottom: 20,
   },
   textContentPadding: {
