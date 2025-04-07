@@ -85,19 +85,22 @@ export default function NoteDetailScreen() {
 
       {/* Use NoteDetailHeader component */}
       <NoteDetailHeader
+        title={note.title}
         onBackPress={() => router.back()}
         onOptionsPress={handleOptionsPress}
       />
 
-      {/* Use ContentTabs component (already handles scrolling) */}
+      {/* Render ContentTabs *outside* the main ScrollView */}
       <ContentTabs
         activeTab={activeContentTab}
         onTabPress={setActiveContentTab}
       />
 
+      {/* Main ScrollView now only contains the content *below* the tabs */}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContentContainer}
+        showsVerticalScrollIndicator={false} // Optional: Hide scrollbar
       >
         {/* Note Tab Content */}
         {activeContentTab === "note" && (
@@ -170,17 +173,13 @@ export default function NoteDetailScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#f5f5f5", // Match the background color with tabs
+    backgroundColor: "#f7f7f7",
   },
   scrollView: {
     flex: 1,
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    marginTop: -10,
+    backgroundColor: "#f7f7f7",
   },
   scrollContentContainer: {
-    paddingTop: 20, // Add padding to account for the curved top
     paddingBottom: 20,
   },
   textContentPadding: {

@@ -19,6 +19,8 @@ import { Modalize } from "react-native-modalize";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Link } from "expo-router";
 import AuthComponent from "./auth";
+import FolderModals from "../components/FolderModals";
+import NoteCard from "../components/NoteCard";
 
 interface Note {
   id: string;
@@ -121,63 +123,6 @@ export default function App() {
     return <AuthComponent />;
   }
 
-  const renderNoteIcon = (icon?: string) => {
-    let iconName: keyof typeof MaterialCommunityIcons.glyphMap | null = null;
-    let iconColor: string | null = null;
-    let backgroundColor: string | null = null;
-
-    switch (icon) {
-      case "pdf":
-        iconName = "file-pdf-box";
-        iconColor = "#D32F2F"; // Red
-        backgroundColor = "#FFEBEE"; // Light Red
-        break;
-      case "audio":
-        iconName = "file-music-outline";
-        iconColor = "#1976D2"; // Blue
-        backgroundColor = "#E3F2FD"; // Light Blue
-        break;
-      case "youtube":
-        iconName = "youtube";
-        iconColor = "#FF0000"; // Red (YouTube Brand)
-        backgroundColor = "#FFEBEE"; // Light Red
-        break;
-      // Keep the palette case or remove if no longer needed
-      case "palette":
-        iconName = "palette";
-        iconColor = "#EB6C3E";
-        backgroundColor = "#FFF5EC";
-        break;
-    }
-
-    if (iconName && iconColor && backgroundColor) {
-      return (
-        <View style={[styles.iconContainer, { backgroundColor }]}>
-          <MaterialCommunityIcons name={iconName} size={24} color={iconColor} />
-        </View>
-      );
-    }
-    return null;
-  };
-
-  const formatDate = (date: Date) => {
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    return `${months[date.getMonth()]} ${date.getDate()} ${date.getFullYear()}`;
-  };
-
   const selectedFolder =
     selectedFolderId === "all"
       ? { id: "all", name: "All Notes" }
@@ -246,18 +191,14 @@ export default function App() {
               }}
               asChild
             >
-              <TouchableOpacity style={styles.noteCard}>
-                {renderNoteIcon(item.icon)}
-                <View style={styles.noteContent}>
-                  <Text style={styles.noteTitle}>{item.title}</Text>
-                  <Text style={styles.notePreview} numberOfLines={1}>
-                    {item.content}
-                  </Text>
-                </View>
-                <Text style={styles.noteDate}>
-                  {formatDate(item.createdAt)}
-                </Text>
-              </TouchableOpacity>
+              <NoteCard
+                id={item.id}
+                title={item.title}
+                content={item.content}
+                createdAt={item.createdAt}
+                icon={item.icon}
+                onPress={() => {}}
+              />
             </Link>
           )}
         />
@@ -334,110 +275,17 @@ export default function App() {
         </View>
       </Modalize>
 
-      <Modalize
-        ref={folderDrawerRef}
-        adjustToContentHeight
-        HeaderComponent={
-          <View style={styles.drawerHeader}>
-            <Text style={styles.drawerTitle}>Select Folder</Text>
-          </View>
-        }
-      >
-        <View style={styles.drawerContent}>
-          <TouchableOpacity
-            style={[
-              styles.folderItem,
-              selectedFolderId === "all" && styles.selectedFolderItem,
-            ]}
-            onPress={() => {
-              setSelectedFolderId("all");
-              folderDrawerRef.current?.close();
-            }}
-          >
-            <MaterialCommunityIcons
-              name="format-list-bulleted"
-              size={22}
-              color={selectedFolderId === "all" ? "#fff" : "#555"}
-              style={styles.folderItemIcon}
-            />
-            <Text
-              style={[
-                styles.folderItemText,
-                selectedFolderId === "all" && styles.selectedFolderText,
-              ]}
-            >
-              All Notes
-            </Text>
-          </TouchableOpacity>
-
-          <FlatList
-            data={folders}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[
-                  styles.folderItem,
-                  selectedFolderId === item.id && styles.selectedFolderItem,
-                ]}
-                onPress={() => {
-                  setSelectedFolderId(item.id);
-                  folderDrawerRef.current?.close();
-                }}
-              >
-                <MaterialCommunityIcons
-                  name="folder-outline"
-                  size={22}
-                  color={selectedFolderId === item.id ? "#fff" : "#555"}
-                  style={styles.folderItemIcon}
-                />
-                <Text
-                  style={[
-                    styles.folderItemText,
-                    selectedFolderId === item.id && styles.selectedFolderText,
-                  ]}
-                >
-                  {item.name}
-                </Text>
-              </TouchableOpacity>
-            )}
-          />
-
-          <TouchableOpacity
-            style={styles.addFolderButton}
-            onPress={openCreateDrawer}
-          >
-            <MaterialCommunityIcons name="plus" size={22} color="#555" />
-            <Text style={styles.addFolderText}>Create New Folder</Text>
-          </TouchableOpacity>
-        </View>
-      </Modalize>
-
-      <Modalize
-        ref={createFolderModalRef}
-        adjustToContentHeight
-        HeaderComponent={
-          <View style={styles.drawerHeader}>
-            <Text style={styles.drawerTitle}>Create New Folder</Text>
-          </View>
-        }
-      >
-        <View style={styles.createFolderModalContent}>
-          <TextInput
-            style={styles.createFolderInput}
-            placeholder="Enter folder name"
-            value={newFolderName}
-            onChangeText={setNewFolderName}
-            autoFocus={true}
-            onSubmitEditing={handleCreateFolder}
-          />
-          <TouchableOpacity
-            style={styles.saveFolderButton}
-            onPress={handleCreateFolder}
-          >
-            <Text style={styles.saveFolderButtonText}>Save Folder</Text>
-          </TouchableOpacity>
-        </View>
-      </Modalize>
+      <FolderModals
+        listModalRef={folderDrawerRef}
+        createModalRef={createFolderModalRef}
+        folders={folders}
+        selectedFolderId={selectedFolderId}
+        newFolderName={newFolderName}
+        setNewFolderName={setNewFolderName}
+        onFolderSelect={setSelectedFolderId}
+        onOpenCreateModal={openCreateDrawer}
+        onCreateFolder={handleCreateFolder}
+      />
     </GestureHandlerRootView>
   );
 }
@@ -445,14 +293,14 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#f7f7f7",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 18,
     paddingHorizontal: 24,
-    backgroundColor: "#fff",
+    backgroundColor: "#f7f7f7",
   },
   headerTitle: {
     fontSize: 28,
@@ -496,54 +344,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: 24,
   },
-  noteCard: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: 16,
-    padding: 16,
-    borderRadius: 14,
-    backgroundColor: "#fff",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 5,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: "#FFF5EC",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
-  },
-  noteContent: {
-    flex: 1,
-    paddingRight: 8,
-  },
-  noteTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#222",
-    marginBottom: 5,
-    letterSpacing: -0.3,
-  },
-  notePreview: {
-    fontSize: 14,
-    color: "#777",
-    lineHeight: 20,
-  },
-  noteDate: {
-    fontSize: 12,
-    color: "#aaa",
-  },
   bottomActions: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -552,7 +352,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: "#f0f0f0",
-    backgroundColor: "#fff",
+    backgroundColor: "#f7f7f7",
   },
   recordButton: {
     flexDirection: "row",
@@ -625,7 +425,7 @@ const styles = StyleSheet.create({
   folderButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fafafa",
+    backgroundColor: "#fff",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
@@ -638,83 +438,5 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#555",
     marginLeft: 10,
-  },
-  drawerHeader: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-  drawerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-    textAlign: "center",
-  },
-  drawerContent: {
-    paddingVertical: 8,
-    paddingBottom: Platform.OS === "ios" ? 30 : 20,
-  },
-  folderItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    marginVertical: 2,
-    borderRadius: 8,
-    marginHorizontal: 16,
-  },
-  selectedFolderItem: {
-    backgroundColor: "#555",
-  },
-  folderItemIcon: {
-    marginRight: 16,
-  },
-  folderItemText: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#333",
-  },
-  selectedFolderText: {
-    color: "#fff",
-  },
-  addFolderButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 16,
-    marginHorizontal: 16,
-    marginTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-  },
-  addFolderText: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#555",
-    marginLeft: 8,
-  },
-  createFolderModalContent: {
-    paddingHorizontal: 24,
-    paddingVertical: 30,
-    paddingBottom: Platform.OS === "ios" ? 40 : 30,
-  },
-  createFolderInput: {
-    fontSize: 16,
-    padding: 12,
-    borderColor: "#ddd",
-    borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 20,
-  },
-  saveFolderButton: {
-    backgroundColor: "#111",
-    paddingVertical: 14,
-    borderRadius: 28,
-    alignItems: "center",
-  },
-  saveFolderButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
   },
 });

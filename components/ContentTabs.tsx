@@ -13,8 +13,6 @@ import Reanimated, {
   useAnimatedStyle,
   withTiming,
   interpolateColor,
-  useDerivedValue,
-  withSpring,
 } from "react-native-reanimated";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
@@ -43,39 +41,23 @@ const AnimatedIcon = Reanimated.createAnimatedComponent(MaterialCommunityIcons);
 // Define styles before components that use them
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#fff",
-    // Add subtle shadow for elevation
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.08,
-        shadowRadius: 2,
-      },
-      android: {
-        elevation: 2,
-        // Keep a subtle border on Android if elevation alone isn't enough
-        // Note: Sometimes direct border styles might conflict with elevation, test carefully
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: "rgba(0,0,0,0.1)",
-      },
-    }),
+    backgroundColor: "transparent",
   },
   scrollContent: {
     paddingVertical: 16,
     paddingHorizontal: 16,
   },
   tab: {
-    marginHorizontal: 4, // Slightly reduce horizontal margin
-    borderRadius: 8, // Add slight rounding
-    overflow: "hidden", // Ensure background clips to rounded corners
+    marginHorizontal: 4,
+    borderRadius: 8,
+    overflow: "hidden",
   },
   tabContent: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10, // Reduce vertical padding
-    paddingHorizontal: 20, // Reduce horizontal padding slightly
+    paddingVertical: 10,
+    paddingHorizontal: 20,
   },
   tabIcon: {
     marginRight: 8,
@@ -106,56 +88,34 @@ const TabItem: React.FC<TabItemProps> = ({
   onPress,
   onLayout,
 }) => {
-  // Shared value for animation progress (0: inactive, 1: active)
   const progress = useSharedValue(0);
 
-  // Update progress with animation when isActive changes
   useEffect(() => {
-    progress.value = withTiming(isActive ? 1 : 0, { duration: 250 });
+    progress.value = withTiming(isActive ? 1 : 0, { duration: 150 });
   }, [isActive, progress]);
 
-  // Animated style for tab background
   const tabAnimatedStyle = useAnimatedStyle(() => {
     const backgroundColor = interpolateColor(
       progress.value,
       [0, 1],
-      ["transparent", "#111"] // Inactive: transparent, Active: black
+      ["transparent", "#111"]
     );
-    return {
-      backgroundColor,
-    };
+    return { backgroundColor };
   });
 
-  // Animated style for icon color
   const iconAnimatedStyle = useAnimatedStyle(() => {
-    const color = interpolateColor(
-      progress.value,
-      [0, 1],
-      ["#888", "#fff"] // Lighter inactive gray, Active: white
-    );
-    return {
-      color,
-    };
+    const color = interpolateColor(progress.value, [0, 1], ["#888", "#fff"]);
+    return { color };
   });
 
-  // Animated style for text color
   const textAnimatedStyle = useAnimatedStyle(() => {
-    const color = interpolateColor(
-      progress.value,
-      [0, 1],
-      ["#888", "#fff"] // Lighter inactive gray, Active: white
-    );
-    return {
-      color,
-    };
+    const color = interpolateColor(progress.value, [0, 1], ["#888", "#fff"]);
+    return { color };
   });
 
-  // Animated style for subtle slide-up translation
   const translateAnimatedStyle = useAnimatedStyle(() => {
-    const translateY = withTiming(isActive ? -2 : 0, { duration: 200 }); // Slightly less translation
-    return {
-      transform: [{ translateY }],
-    };
+    const translateY = withTiming(isActive ? -2 : 0, { duration: 100 });
+    return { transform: [{ translateY }] };
   });
 
   return (
@@ -164,7 +124,7 @@ const TabItem: React.FC<TabItemProps> = ({
       style={styles.tab}
       onPress={onPress}
       onLayout={onLayout}
-      activeOpacity={0.7} // Increase touch feedback visibility
+      activeOpacity={0.7}
     >
       <Reanimated.View style={[styles.tabContent, tabAnimatedStyle]}>
         <Reanimated.View
@@ -188,6 +148,7 @@ export default function ContentTabs({
   activeTab,
   onTabPress,
 }: ContentTabsProps) {
+  const scrollViewRef = useRef<ScrollView>(null);
   const [tabLayouts, setTabLayouts] = useState<
     Record<TabName, { x: number; width: number } | null>
   >({
@@ -197,27 +158,20 @@ export default function ContentTabs({
     flashcard: null,
     quizzes: null,
   });
-  const scrollViewRef = useRef<ScrollView>(null);
 
-  // Function to update layout state when a tab renders/changes layout
   const handleLayout = (event: LayoutChangeEvent, name: TabName) => {
     const { x, width } = event.nativeEvent.layout;
     setTabLayouts((prev) => ({ ...prev, [name]: { x, width } }));
   };
 
-  // Auto-scroll effect: runs when activeTab or tabLayouts change
   useEffect(() => {
     const layout = tabLayouts[activeTab];
     if (layout && scrollViewRef.current) {
-      // Calculate the target scroll position to center the tab (adjust offset as needed)
-      // Center calculation: tab's starting point (layout.x) - half the scrollview padding + half the tab width - half the screen/view width (approximated here as 100, adjust if needed)
       const scrollTargetX =
         layout.x -
         styles.scrollContent.paddingHorizontal +
         layout.width / 2 -
-        100;
-
-      // Scroll to the calculated position, ensuring it doesn't go below 0
+        50;
       scrollViewRef.current.scrollTo({
         x: Math.max(0, scrollTargetX),
         animated: true,
@@ -228,12 +182,12 @@ export default function ContentTabs({
   return (
     <View style={styles.container}>
       <ScrollView
+        ref={scrollViewRef}
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
-        ref={scrollViewRef}
       >
-        {TABS.map((tab, index) => {
+        {TABS.map((tab) => {
           const isActive = activeTab === tab.name;
           return (
             <TabItem
