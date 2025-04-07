@@ -29,12 +29,27 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<"notes" | "folders">("notes");
   const [notes, setNotes] = useState<Note[]>([
     {
-      id: "1",
-      title: "Top UI Kits for Modern App Development",
+      id: "pdf-1",
+      title: "Annual Report Q4",
+      content: "Review of the company performance, financial statements...",
+      createdAt: new Date(2024, 11, 15),
+      icon: "pdf",
+    },
+    {
+      id: "audio-1",
+      title: "Meeting Notes - Project Alpha",
       content:
-        "In this video, the speaker emphasizes the importance of modern UI design...",
-      createdAt: new Date(2025, 3, 3),
-      icon: "palette",
+        "Discussion on project milestones, next steps, team assignments...",
+      createdAt: new Date(2024, 11, 10),
+      icon: "audio",
+    },
+    {
+      id: "youtube-1",
+      title: "React Native Tutorial: Animations",
+      content:
+        "Learn how to implement engaging animations in React Native apps...",
+      createdAt: new Date(2024, 11, 5),
+      icon: "youtube",
     },
   ]);
   const modalizeRef = useRef<Modalize>(null);
@@ -59,10 +74,38 @@ export default function App() {
   }
 
   const renderNoteIcon = (icon?: string) => {
-    if (icon === "palette") {
+    let iconName: keyof typeof MaterialCommunityIcons.glyphMap | null = null;
+    let iconColor: string | null = null;
+    let backgroundColor: string | null = null;
+
+    switch (icon) {
+      case "pdf":
+        iconName = "file-pdf-box";
+        iconColor = "#D32F2F"; // Red
+        backgroundColor = "#FFEBEE"; // Light Red
+        break;
+      case "audio":
+        iconName = "file-music-outline";
+        iconColor = "#1976D2"; // Blue
+        backgroundColor = "#E3F2FD"; // Light Blue
+        break;
+      case "youtube":
+        iconName = "youtube";
+        iconColor = "#FF0000"; // Red (YouTube Brand)
+        backgroundColor = "#FFEBEE"; // Light Red
+        break;
+      // Keep the palette case or remove if no longer needed
+      case "palette":
+        iconName = "palette";
+        iconColor = "#EB6C3E";
+        backgroundColor = "#FFF5EC";
+        break;
+    }
+
+    if (iconName && iconColor && backgroundColor) {
       return (
-        <View style={styles.iconContainer}>
-          <MaterialCommunityIcons name="palette" size={24} color="#EB6C3E" />
+        <View style={[styles.iconContainer, { backgroundColor }]}>
+          <MaterialCommunityIcons name={iconName} size={24} color={iconColor} />
         </View>
       );
     }
@@ -217,12 +260,12 @@ export default function App() {
             onPress={() => handleOptionPress("Audio")}
           >
             <MaterialCommunityIcons
-              name="microphone"
+              name="file-music-outline"
               size={24}
               color="#1976d2"
               style={styles.modalOptionIcon}
             />
-            <Text style={styles.modalOptionText}>Start Recording</Text>
+            <Text style={styles.modalOptionText}>Import Audio</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.modalOption}
@@ -337,13 +380,13 @@ const styles = StyleSheet.create({
   },
   noteCard: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     marginHorizontal: 24,
     marginBottom: 16,
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: "#f0f0f0",
   },
   iconContainer: {
     width: 44,
@@ -367,12 +410,12 @@ const styles = StyleSheet.create({
   notePreview: {
     fontSize: 14,
     color: "#777",
-    lineHeight: 20,
+    lineHeight: 21,
   },
   noteDate: {
     fontSize: 12,
     color: "#aaa",
-    marginLeft: 10,
+    marginTop: 2,
   },
   bottomActions: {
     flexDirection: "row",
