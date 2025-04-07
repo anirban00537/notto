@@ -73,7 +73,8 @@ export default function App() {
     },
   ]);
   const noteOptionsModalRef = useRef<Modalize>(null);
-  const folderModalRef = useRef<Modalize>(null);
+  const folderDrawerRef = useRef<Modalize>(null);
+  const createFolderModalRef = useRef<Modalize>(null);
   const [newFolderName, setNewFolderName] = useState<string>("");
 
   useEffect(() => {
@@ -91,22 +92,27 @@ export default function App() {
     // TODO: Implement logic for each option (PDF, Audio, YouTube)
   };
 
-  const handleAddFolderPress = () => {
-    folderModalRef.current?.open();
+  const openFolderDrawer = () => {
+    folderDrawerRef.current?.open();
   };
 
-  const handleSaveFolder = () => {
-    if (newFolderName.trim() === "") {
-      return;
-    }
+  const openCreateDrawer = () => {
+    folderDrawerRef.current?.close();
+    setTimeout(() => {
+      createFolderModalRef.current?.open();
+    }, 150);
+  };
+
+  const handleCreateFolder = () => {
+    if (newFolderName.trim() === "") return;
     const newFolder: Folder = {
       id: Date.now().toString(),
       name: newFolderName.trim(),
     };
     setFolders([...folders, newFolder]);
     setNewFolderName("");
-    folderModalRef.current?.close();
     Keyboard.dismiss();
+    createFolderModalRef.current?.close();
     console.log("New folder added:", newFolder);
     console.log("Current folders:", [...folders, newFolder]);
   };
@@ -172,6 +178,14 @@ export default function App() {
     return `${months[date.getMonth()]} ${date.getDate()} ${date.getFullYear()}`;
   };
 
+  const selectedFolder =
+    selectedFolderId === "all"
+      ? { id: "all", name: "All Notes" }
+      : folders.find((folder) => folder.id === selectedFolderId) || {
+          id: "all",
+          name: "All Notes",
+        };
+
   const filteredNotes =
     selectedFolderId === "all"
       ? notes
@@ -197,81 +211,24 @@ export default function App() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.foldersScrollViewContainer}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{
-              paddingHorizontal: 16,
-              alignItems: "center",
-            }}
+        <View style={styles.folderSelectorContainer}>
+          <TouchableOpacity
+            style={styles.folderButton}
+            onPress={openFolderDrawer}
+            activeOpacity={0.7}
           >
-            <TouchableOpacity
-              style={styles.folderItemContainer}
-              onPress={handleAddFolderPress}
-            >
-              <View style={styles.addFolderIconCircle}>
-                <MaterialCommunityIcons name="plus" size={28} color="#555" />
-              </View>
-              <Text style={styles.folderName}>Add</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.folderItemContainer}
-              onPress={() => setSelectedFolderId("all")}
-            >
-              <View
-                style={[
-                  styles.folderIconCircle,
-                  selectedFolderId === "all" && styles.folderIconCircleSelected,
-                ]}
-              >
-                <MaterialCommunityIcons
-                  name="format-list-bulleted"
-                  size={26}
-                  color={selectedFolderId === "all" ? "#fff" : "#555"}
-                />
-              </View>
-              <Text
-                style={[
-                  styles.folderName,
-                  selectedFolderId === "all" && styles.folderNameSelected,
-                ]}
-              >
-                All
-              </Text>
-            </TouchableOpacity>
-
-            {folders.map((folder) => (
-              <TouchableOpacity
-                key={folder.id}
-                style={styles.folderItemContainer}
-                onPress={() => setSelectedFolderId(folder.id)}
-              >
-                <View
-                  style={[
-                    styles.folderIconCircle,
-                    selectedFolderId === folder.id &&
-                      styles.folderIconCircleSelected,
-                  ]}
-                >
-                  <MaterialCommunityIcons
-                    name="folder-outline"
-                    size={26}
-                    color={selectedFolderId === folder.id ? "#fff" : "#555"}
-                  />
-                </View>
-                <Text
-                  style={[
-                    styles.folderName,
-                    selectedFolderId === folder.id && styles.folderNameSelected,
-                  ]}
-                >
-                  {folder.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+            <MaterialCommunityIcons
+              name="folder-outline"
+              size={22}
+              color="#555"
+            />
+            <Text style={styles.folderName}>{selectedFolder.name}</Text>
+            <MaterialCommunityIcons
+              name="chevron-down"
+              size={20}
+              color="#555"
+            />
+          </TouchableOpacity>
         </View>
 
         <Text style={styles.sectionTitle}>Notes</Text>
@@ -378,26 +335,104 @@ export default function App() {
       </Modalize>
 
       <Modalize
-        ref={folderModalRef}
+        ref={folderDrawerRef}
         adjustToContentHeight
         HeaderComponent={
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalHeaderText}>Create New Folder</Text>
+          <View style={styles.drawerHeader}>
+            <Text style={styles.drawerTitle}>Select Folder</Text>
           </View>
         }
       >
-        <View style={styles.folderModalContent}>
+        <View style={styles.drawerContent}>
+          <TouchableOpacity
+            style={[
+              styles.folderItem,
+              selectedFolderId === "all" && styles.selectedFolderItem,
+            ]}
+            onPress={() => {
+              setSelectedFolderId("all");
+              folderDrawerRef.current?.close();
+            }}
+          >
+            <MaterialCommunityIcons
+              name="format-list-bulleted"
+              size={22}
+              color={selectedFolderId === "all" ? "#fff" : "#555"}
+              style={styles.folderItemIcon}
+            />
+            <Text
+              style={[
+                styles.folderItemText,
+                selectedFolderId === "all" && styles.selectedFolderText,
+              ]}
+            >
+              All Notes
+            </Text>
+          </TouchableOpacity>
+
+          <FlatList
+            data={folders}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[
+                  styles.folderItem,
+                  selectedFolderId === item.id && styles.selectedFolderItem,
+                ]}
+                onPress={() => {
+                  setSelectedFolderId(item.id);
+                  folderDrawerRef.current?.close();
+                }}
+              >
+                <MaterialCommunityIcons
+                  name="folder-outline"
+                  size={22}
+                  color={selectedFolderId === item.id ? "#fff" : "#555"}
+                  style={styles.folderItemIcon}
+                />
+                <Text
+                  style={[
+                    styles.folderItemText,
+                    selectedFolderId === item.id && styles.selectedFolderText,
+                  ]}
+                >
+                  {item.name}
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
+
+          <TouchableOpacity
+            style={styles.addFolderButton}
+            onPress={openCreateDrawer}
+          >
+            <MaterialCommunityIcons name="plus" size={22} color="#555" />
+            <Text style={styles.addFolderText}>Create New Folder</Text>
+          </TouchableOpacity>
+        </View>
+      </Modalize>
+
+      <Modalize
+        ref={createFolderModalRef}
+        adjustToContentHeight
+        HeaderComponent={
+          <View style={styles.drawerHeader}>
+            <Text style={styles.drawerTitle}>Create New Folder</Text>
+          </View>
+        }
+      >
+        <View style={styles.createFolderModalContent}>
           <TextInput
-            style={styles.folderInput}
+            style={styles.createFolderInput}
             placeholder="Enter folder name"
             value={newFolderName}
             onChangeText={setNewFolderName}
             autoFocus={true}
-            onSubmitEditing={handleSaveFolder}
+            onSubmitEditing={handleCreateFolder}
           />
           <TouchableOpacity
             style={styles.saveFolderButton}
-            onPress={handleSaveFolder}
+            onPress={handleCreateFolder}
           >
             <Text style={styles.saveFolderButtonText}>Save Folder</Text>
           </TouchableOpacity>
@@ -415,12 +450,12 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 24,
+    paddingVertical: 18,
     paddingHorizontal: 24,
     backgroundColor: "#fff",
   },
   headerTitle: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: "700",
     color: "#111",
     flex: 1,
@@ -429,118 +464,85 @@ const styles = StyleSheet.create({
   proButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#111",
+    backgroundColor: "#222",
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 24,
+    paddingVertical: 7,
+    borderRadius: 20,
     marginRight: 16,
   },
   proText: {
     color: "#fff",
     fontWeight: "bold",
     marginLeft: 6,
-    fontSize: 14,
+    fontSize: 13,
   },
   profileButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#eee",
-  },
-  foldersScrollViewContainer: {
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  folderItemContainer: {
-    alignItems: "center",
-    marginHorizontal: 8,
-    minWidth: 60,
-  },
-  folderIconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
     backgroundColor: "#f5f5f5",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  folderIconCircleSelected: {
-    backgroundColor: "#111",
-  },
-  addFolderIconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "transparent",
-    borderWidth: 2,
-    borderColor: "#e0e0e0",
-    borderStyle: "dashed",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  folderName: {
-    fontSize: 12,
-    color: "#555",
-    textAlign: "center",
-  },
-  folderNameSelected: {
-    color: "#111",
-    fontWeight: "600",
   },
   sectionTitle: {
     fontSize: 18,
-    color: "#555",
+    color: "#888",
     marginLeft: 24,
-    marginBottom: 12,
+    marginTop: 8,
+    marginBottom: 16,
     fontWeight: "500",
   },
   listContent: {
-    paddingBottom: 16,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
   },
   noteCard: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginHorizontal: 24,
     marginBottom: 16,
     padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderRadius: 14,
+    backgroundColor: "#fff",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 5,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
   },
   iconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     backgroundColor: "#FFF5EC",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: 16,
   },
   noteContent: {
     flex: 1,
+    paddingRight: 8,
   },
   noteTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#111",
-    marginBottom: 4,
+    color: "#222",
+    marginBottom: 5,
     letterSpacing: -0.3,
   },
   notePreview: {
     fontSize: 14,
     color: "#777",
-    lineHeight: 21,
+    lineHeight: 20,
   },
   noteDate: {
     fontSize: 12,
     color: "#aaa",
-    marginTop: 2,
   },
   bottomActions: {
     flexDirection: "row",
@@ -549,34 +551,38 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === "ios" ? 34 : 24,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "#eee",
+    borderTopColor: "#f0f0f0",
     backgroundColor: "#fff",
   },
   recordButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#111",
-    borderRadius: 28,
+    backgroundColor: "#222",
+    borderRadius: 25,
     paddingVertical: 14,
     paddingHorizontal: 24,
     width: "48%",
+    height: 50,
   },
   newNoteButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f5f5f5",
-    borderRadius: 28,
+    backgroundColor: "#fff",
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
     paddingVertical: 14,
     paddingHorizontal: 24,
     width: "48%",
+    height: 50,
   },
   actionButtonText: {
     marginLeft: 8,
     fontSize: 16,
     fontWeight: "600",
-    color: "#111",
+    color: "#333",
   },
   recordButtonText: {
     marginLeft: 8,
@@ -612,12 +618,87 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
   },
-  folderModalContent: {
+  folderSelectorContainer: {
+    marginHorizontal: 24,
+    marginVertical: 16,
+  },
+  folderButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fafafa",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#eee",
+  },
+  folderName: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#555",
+    marginLeft: 10,
+  },
+  drawerHeader: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  drawerTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+    textAlign: "center",
+  },
+  drawerContent: {
+    paddingVertical: 8,
+    paddingBottom: Platform.OS === "ios" ? 30 : 20,
+  },
+  folderItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    marginVertical: 2,
+    borderRadius: 8,
+    marginHorizontal: 16,
+  },
+  selectedFolderItem: {
+    backgroundColor: "#555",
+  },
+  folderItemIcon: {
+    marginRight: 16,
+  },
+  folderItemText: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#333",
+  },
+  selectedFolderText: {
+    color: "#fff",
+  },
+  addFolderButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 16,
+    marginHorizontal: 16,
+    marginTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+  },
+  addFolderText: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#555",
+    marginLeft: 8,
+  },
+  createFolderModalContent: {
     paddingHorizontal: 24,
     paddingVertical: 30,
     paddingBottom: Platform.OS === "ios" ? 40 : 30,
   },
-  folderInput: {
+  createFolderInput: {
     fontSize: 16,
     padding: 12,
     borderColor: "#ddd",
