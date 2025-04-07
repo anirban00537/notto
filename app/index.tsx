@@ -10,6 +10,8 @@ import {
   Image,
   Platform,
   ScrollView,
+  TextInput,
+  Keyboard,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
@@ -69,26 +71,43 @@ export default function App() {
       folderId: "ideas",
     },
   ]);
-  const modalizeRef = useRef<Modalize>(null);
+  const noteOptionsModalRef = useRef<Modalize>(null);
+  const folderModalRef = useRef<Modalize>(null);
+  const [newFolderName, setNewFolderName] = useState<string>("");
 
   useEffect(() => {
     const subscriber = auth().onAuthStateChanged(setUser);
     return subscriber;
   }, []);
 
-  const onOpen = () => {
-    modalizeRef.current?.open();
+  const onOpenNoteOptions = () => {
+    noteOptionsModalRef.current?.open();
   };
 
   const handleOptionPress = (option: string) => {
     console.log(`Selected option: ${option}`);
-    modalizeRef.current?.close();
+    noteOptionsModalRef.current?.close();
     // TODO: Implement logic for each option (PDF, Audio, YouTube)
   };
 
   const handleAddFolderPress = () => {
-    console.log("Add folder pressed");
-    // TODO: Implement logic to show a modal/input for adding a new folder
+    folderModalRef.current?.open();
+  };
+
+  const handleSaveFolder = () => {
+    if (newFolderName.trim() === "") {
+      return;
+    }
+    const newFolder: Folder = {
+      id: Date.now().toString(),
+      name: newFolderName.trim(),
+    };
+    setFolders([...folders, newFolder]);
+    setNewFolderName("");
+    folderModalRef.current?.close();
+    Keyboard.dismiss();
+    console.log("New folder added:", newFolder);
+    console.log("Current folders:", [...folders, newFolder]);
   };
 
   if (!user) {
@@ -285,7 +304,7 @@ export default function App() {
           <TouchableOpacity
             style={styles.newNoteButton}
             activeOpacity={0.8}
-            onPress={onOpen}
+            onPress={onOpenNoteOptions}
           >
             <MaterialCommunityIcons name="pencil-plus" size={24} color="#111" />
             <Text style={[styles.actionButtonText, { color: "#111" }]}>
@@ -296,7 +315,7 @@ export default function App() {
       </SafeAreaView>
 
       <Modalize
-        ref={modalizeRef}
+        ref={noteOptionsModalRef}
         adjustToContentHeight
         HeaderComponent={
           <View style={styles.modalHeader}>
@@ -340,6 +359,33 @@ export default function App() {
               style={styles.modalOptionIcon}
             />
             <Text style={styles.modalOptionText}>Add YouTube Video</Text>
+          </TouchableOpacity>
+        </View>
+      </Modalize>
+
+      <Modalize
+        ref={folderModalRef}
+        adjustToContentHeight
+        HeaderComponent={
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalHeaderText}>Create New Folder</Text>
+          </View>
+        }
+      >
+        <View style={styles.folderModalContent}>
+          <TextInput
+            style={styles.folderInput}
+            placeholder="Enter folder name"
+            value={newFolderName}
+            onChangeText={setNewFolderName}
+            autoFocus={true}
+            onSubmitEditing={handleSaveFolder}
+          />
+          <TouchableOpacity
+            style={styles.saveFolderButton}
+            onPress={handleSaveFolder}
+          >
+            <Text style={styles.saveFolderButtonText}>Save Folder</Text>
           </TouchableOpacity>
         </View>
       </Modalize>
@@ -529,6 +575,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
     alignItems: "center",
+    backgroundColor: "#fff",
   },
   modalHeaderText: {
     fontSize: 18,
@@ -550,5 +597,29 @@ const styles = StyleSheet.create({
   modalOptionText: {
     fontSize: 16,
     color: "#333",
+  },
+  folderModalContent: {
+    paddingHorizontal: 24,
+    paddingVertical: 30,
+    paddingBottom: Platform.OS === "ios" ? 40 : 30,
+  },
+  folderInput: {
+    fontSize: 16,
+    padding: 12,
+    borderColor: "#ddd",
+    borderWidth: 1,
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  saveFolderButton: {
+    backgroundColor: "#111",
+    paddingVertical: 14,
+    borderRadius: 28,
+    alignItems: "center",
+  },
+  saveFolderButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
