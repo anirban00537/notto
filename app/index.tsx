@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   StatusBar,
   Image,
+  Platform,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
@@ -75,16 +76,16 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="#f8f9fa" />
 
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Notto</Text>
         <TouchableOpacity style={styles.proButton}>
-          <MaterialCommunityIcons name="rocket" size={16} color="#fff" />
+          <MaterialCommunityIcons name="rocket-launch" size={16} color="#fff" />
           <Text style={styles.proText}>PRO</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.profileButton}>
-          <MaterialCommunityIcons name="account" size={24} color="#666" />
+          <MaterialCommunityIcons name="account" size={24} color="#555" />
         </TouchableOpacity>
       </View>
 
@@ -96,7 +97,7 @@ export default function App() {
           <MaterialCommunityIcons
             name="pencil"
             size={18}
-            color={activeTab === "notes" ? "#000" : "#888"}
+            color={activeTab === "notes" ? "#222" : "#888"}
           />
           <Text
             style={[
@@ -114,7 +115,7 @@ export default function App() {
           <MaterialCommunityIcons
             name="folder-outline"
             size={18}
-            color={activeTab === "folders" ? "#000" : "#888"}
+            color={activeTab === "folders" ? "#222" : "#888"}
           />
           <Text
             style={[
@@ -132,6 +133,8 @@ export default function App() {
       <FlatList
         data={notes}
         keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.noteCard}>
             {renderNoteIcon(item.icon)}
@@ -147,18 +150,20 @@ export default function App() {
       />
 
       <View style={styles.bottomActions}>
-        <TouchableOpacity style={styles.recordButton}>
-          <MaterialCommunityIcons name="record" size={24} color="#f44336" />
+        <TouchableOpacity style={styles.recordButton} activeOpacity={0.8}>
+          <MaterialCommunityIcons
+            name="record-circle"
+            size={24}
+            color="#f44336"
+          />
           <Text style={styles.recordButtonText}>Record</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.newNoteButton}>
-          <MaterialCommunityIcons
-            name="pencil-outline"
-            size={24}
-            color="#333"
-          />
-          <Text style={styles.actionButtonText}>New Note</Text>
+        <TouchableOpacity style={styles.newNoteButton} activeOpacity={0.8}>
+          <MaterialCommunityIcons name="pencil-plus" size={24} color="#222" />
+          <Text style={[styles.actionButtonText, { color: "#222" }]}>
+            New Note
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -168,50 +173,52 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#f8f9fa",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    backgroundColor: "#f5f5f5",
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    backgroundColor: "#f8f9fa",
   },
   headerTitle: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: "bold",
-    color: "#333",
+    color: "#222",
     flex: 1,
+    letterSpacing: -0.5,
   },
   proButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#333",
+    backgroundColor: "#222",
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginRight: 12,
+    paddingVertical: 8,
+    borderRadius: 24,
+    marginRight: 16,
   },
   proText: {
     color: "#fff",
     fontWeight: "bold",
-    marginLeft: 4,
+    marginLeft: 6,
+    fontSize: 14,
   },
   profileButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#f0f0f0",
   },
   tabContainer: {
     flexDirection: "row",
-    marginHorizontal: 20,
-    backgroundColor: "#e8e8e8",
+    marginHorizontal: 24,
+    backgroundColor: "#eef0f2",
     borderRadius: 30,
-    padding: 4,
-    marginBottom: 16,
+    padding: 5,
+    marginBottom: 20,
   },
   tab: {
     flex: 1,
@@ -223,6 +230,17 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     backgroundColor: "#fff",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   tabText: {
     marginLeft: 6,
@@ -230,23 +248,27 @@ const styles = StyleSheet.create({
     color: "#888",
   },
   activeTabText: {
-    color: "#000",
-    fontWeight: "500",
+    color: "#222",
+    fontWeight: "600",
   },
   sectionTitle: {
     fontSize: 18,
-    color: "#999",
-    marginLeft: 20,
-    marginBottom: 10,
+    color: "#666",
+    marginLeft: 24,
+    marginBottom: 12,
+    fontWeight: "500",
+  },
+  listContent: {
+    paddingBottom: 16,
   },
   noteCard: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#fff",
-    marginHorizontal: 20,
-    marginBottom: 12,
+    marginHorizontal: 24,
+    marginBottom: 16,
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 16,
   },
   iconContainer: {
     width: 50,
@@ -255,7 +277,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFF5EC",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: 16,
   },
   noteContent: {
     flex: 1,
@@ -263,55 +285,59 @@ const styles = StyleSheet.create({
   noteTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#333",
-    marginBottom: 4,
+    color: "#222",
+    marginBottom: 6,
+    letterSpacing: -0.3,
   },
   notePreview: {
     fontSize: 14,
-    color: "#999",
+    color: "#666",
+    lineHeight: 20,
   },
   noteDate: {
     fontSize: 12,
-    color: "#999",
+    color: "#888",
     marginLeft: 10,
   },
   bottomActions: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingBottom: 30,
-    paddingTop: 10,
+    paddingHorizontal: 24,
+    paddingBottom: 34,
+    paddingTop: 12,
   },
   recordButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#333",
-    borderRadius: 25,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    width: "45%",
+    backgroundColor: "#222",
+    borderRadius: 28,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    width: "48%",
   },
   newNoteButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#e8e8e8",
-    borderRadius: 25,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    width: "45%",
+    backgroundColor: "#fff",
+    borderRadius: 28,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    width: "48%",
+    borderWidth: 1,
+    borderColor: "rgba(0, 0, 0, 0.1)",
   },
   actionButtonText: {
     marginLeft: 8,
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: "600",
     color: "#333",
   },
   recordButtonText: {
     marginLeft: 8,
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: "600",
     color: "#fff",
   },
 });
