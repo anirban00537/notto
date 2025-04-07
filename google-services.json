@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "76560488756",
+    "project_id": "notto-4a313",
+    "storage_bucket": "notto-4a313.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:76560488756:android:d044bad3a1ddeb0141ad61",
+        "android_client_info": {
+          "package_name": "com.notto.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzJIQ6IaMOGZFMHS0232vuFFUGss_3IBw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
