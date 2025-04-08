@@ -1,105 +1,70 @@
-import React, { RefObject } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  FlatList,
-  TextInput,
-  Keyboard,
-  Platform,
-} from "react-native";
+import React, { RefObject, useEffect, useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Modalize } from "react-native-modalize";
-
-interface Folder {
-  id: string;
-  name: string;
-}
-
-// Define a type for the icons we're using
-type IconName = "format-list-bulleted" | "folder-outline" | "plus" | "check";
-
-// Extended interface for folder items with icon
-interface FolderItem extends Folder {
-  icon: IconName;
-}
+import { Folder, getFolders } from "../lib/services/folderService";
+import FolderListItem, { FolderItem } from "./FolderListItem";
+import CreateFolderForm from "./CreateFolderForm";
 
 interface FolderModalsProps {
   listModalRef: RefObject<Modalize>;
   createModalRef: RefObject<Modalize>;
-  folders: Folder[];
   selectedFolderId: string;
-  newFolderName: string;
-  setNewFolderName: (name: string) => void;
   onFolderSelect: (folderId: string) => void;
-  onOpenCreateModal: () => void; // Callback to trigger opening the create modal
-  onCreateFolder: () => void; // Callback to trigger folder creation logic
+  userId: string;
 }
 
 const FolderModals: React.FC<FolderModalsProps> = ({
   listModalRef,
   createModalRef,
-  folders,
   selectedFolderId,
-  newFolderName,
-  setNewFolderName,
   onFolderSelect,
-  onOpenCreateModal,
-  onCreateFolder,
+  userId,
 }) => {
+  const [folders, setFolders] = useState<Folder[]>([]);
+
+  useEffect(() => {
+    if (userId) {
+      loadFolders();
+    }
+  }, [userId]);
+
+  const loadFolders = async () => {
+    const userFolders = await getFolders(userId);
+    setFolders(userFolders);
+  };
+
   const folderItems: FolderItem[] = [
-    { id: "all", name: "All Notes", icon: "format-list-bulleted" },
+    { id: "all", name: "All Notes", icon: "format-list-bulleted", userId },
     ...folders.map((folder) => ({
       ...folder,
-      icon: "folder-outline" as IconName,
+      icon: "folder-outline" as const,
     })),
   ];
 
   const renderHeader = () => (
     <TouchableOpacity
       style={styles.createFolderButton}
-      onPress={onOpenCreateModal}
+      onPress={() => {
+        listModalRef.current?.close();
+        setTimeout(() => {
+          createModalRef.current?.open();
+        }, 150);
+      }}
     >
       <MaterialCommunityIcons name="plus" size={22} color="#555" />
       <Text style={styles.createFolderButtonText}>Create New Folder</Text>
     </TouchableOpacity>
   );
 
-  const renderItem = ({ item }: { item: FolderItem }) => (
-    <TouchableOpacity
-      style={[
-        styles.folderListItem,
-        selectedFolderId === item.id && styles.selectedFolderListItem,
-      ]}
-      onPress={() => {
-        onFolderSelect(item.id);
-        listModalRef.current?.close();
-      }}
-    >
-      <MaterialCommunityIcons
-        name={item.icon}
-        size={22}
-        color={selectedFolderId === item.id ? "#111" : "#555"}
-      />
-      <Text
-        style={[
-          styles.folderListItemText,
-          selectedFolderId === item.id && styles.selectedFolderListItemText,
-        ]}
-      >
-        {item.name}
-      </Text>
-      {selectedFolderId === item.id && (
-        <MaterialCommunityIcons
-          name="check"
-          size={22}
-          color="#111"
-          style={styles.checkIcon}
-        />
-      )}
-    </TouchableOpacity>
-  );
+  const handleFolderSelect = (id: string) => {
+    onFolderSelect(id);
+    listModalRef.current?.close();
+  };
+
+  const handleFolderCreated = (folder: Folder) => {
+    setFolders([...folders, folder]);
+  };
 
   return (
     <>
@@ -115,7 +80,13 @@ const FolderModals: React.FC<FolderModalsProps> = ({
           data: folderItems,
           keyExtractor: (item) => item.id,
           ListHeaderComponent: renderHeader,
-          renderItem: renderItem,
+          renderItem: ({ item }) => (
+            <FolderListItem
+              item={item}
+              isSelected={selectedFolderId === item.id}
+              onSelect={handleFolderSelect}
+            />
+          ),
           style: styles.listDrawerContent,
           scrollEnabled: true,
           nestedScrollEnabled: true,
@@ -131,28 +102,16 @@ const FolderModals: React.FC<FolderModalsProps> = ({
           </View>
         }
       >
-        <View style={styles.createFolderModalContent}>
-          <TextInput
-            style={styles.createFolderInput}
-            placeholder="Enter folder name"
-            value={newFolderName}
-            onChangeText={setNewFolderName}
-            autoFocus={true}
-            onSubmitEditing={onCreateFolder}
-          />
-          <TouchableOpacity
-            style={styles.saveFolderButton}
-            onPress={onCreateFolder}
-          >
-            <Text style={styles.saveFolderButtonText}>Save Folder</Text>
-          </TouchableOpacity>
-        </View>
+        <CreateFolderForm
+          userId={userId}
+          onFolderCreated={handleFolderCreated}
+          onClose={() => createModalRef.current?.close()}
+        />
       </Modalize>
     </>
   );
 };
 
-// Styles copied and adapted from index.tsx relevant to modals
 const styles = StyleSheet.create({
   drawerHeader: {
     padding: 16,
@@ -171,28 +130,6 @@ const styles = StyleSheet.create({
   listDrawerContent: {
     paddingVertical: 12,
   },
-  folderListItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-  },
-  selectedFolderListItem: {
-    backgroundColor: "#f5f5f5",
-  },
-  folderListItemText: {
-    fontSize: 16,
-    color: "#555",
-    marginLeft: 16,
-    flex: 1,
-  },
-  selectedFolderListItemText: {
-    color: "#111",
-    fontWeight: "500",
-  },
-  checkIcon: {
-    marginLeft: 8,
-  },
   createFolderButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -206,30 +143,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#555",
     marginLeft: 16,
-  },
-  createFolderModalContent: {
-    paddingHorizontal: 24,
-    paddingVertical: 30,
-    paddingBottom: Platform.OS === "ios" ? 40 : 30,
-  },
-  createFolderInput: {
-    fontSize: 16,
-    padding: 12,
-    borderColor: "#ddd",
-    borderWidth: 1,
-    borderRadius: 8,
-    marginBottom: 20,
-  },
-  saveFolderButton: {
-    backgroundColor: "#111",
-    paddingVertical: 14,
-    borderRadius: 28,
-    alignItems: "center",
-  },
-  saveFolderButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
   },
 });
 

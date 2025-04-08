@@ -21,6 +21,7 @@ import { Link } from "expo-router";
 import AuthComponent from "./auth";
 import FolderModals from "../components/FolderModals";
 import NoteCard from "../components/NoteCard";
+import NoteOptionsModal from "./components/NoteOptionsModal";
 import {
   Note,
   Folder,
@@ -159,30 +160,45 @@ export default function App() {
 
         <Text style={styles.sectionTitle}>Notes</Text>
 
-        <FlatList
-          data={notes}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <Link
-              href={{
-                pathname: "/note/[id]",
-                params: { id: item.id },
-              }}
-              asChild
-            >
-              <NoteCard
-                id={item.id}
-                title={item.title}
-                content={item.content}
-                createdAt={item.createdAt}
-                icon={item.icon}
-                onPress={() => {}}
-              />
-            </Link>
-          )}
-        />
+        {notes.length === 0 ? (
+          <View style={styles.emptyStateContainer}>
+            <MaterialCommunityIcons
+              name="note-text-outline"
+              size={64}
+              color="#ccc"
+              style={styles.emptyStateIcon}
+            />
+            <Text style={styles.emptyStateTitle}>No Notes Yet</Text>
+            <Text style={styles.emptyStateText}>
+              Create your first note by tapping the button below
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={notes}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
+            renderItem={({ item }) => (
+              <Link
+                href={{
+                  pathname: "/note/[id]",
+                  params: { id: item.id },
+                }}
+                asChild
+              >
+                <NoteCard
+                  id={item.id}
+                  title={item.title}
+                  content={item.content}
+                  createdAt={item.createdAt}
+                  icon={item.icon}
+                  onPress={() => {}}
+                />
+              </Link>
+            )}
+          />
+        )}
 
         <View style={styles.bottomActions}>
           <TouchableOpacity style={styles.recordButton} activeOpacity={0.8}>
@@ -207,65 +223,17 @@ export default function App() {
         </View>
       </SafeAreaView>
 
-      <Modalize
-        ref={noteOptionsModalRef}
-        adjustToContentHeight
-        HeaderComponent={
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalHeaderText}>Create New Note</Text>
-          </View>
-        }
-      >
-        <View style={styles.modalContent}>
-          <TouchableOpacity
-            style={styles.modalOption}
-            onPress={() => handleOptionPress("PDF")}
-          >
-            <MaterialCommunityIcons
-              name="file-pdf-box"
-              size={24}
-              color="#d32f2f"
-              style={styles.modalOptionIcon}
-            />
-            <Text style={styles.modalOptionText}>Import PDF</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.modalOption}
-            onPress={() => handleOptionPress("Audio")}
-          >
-            <MaterialCommunityIcons
-              name="file-music-outline"
-              size={24}
-              color="#1976d2"
-              style={styles.modalOptionIcon}
-            />
-            <Text style={styles.modalOptionText}>Import Audio</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.modalOption}
-            onPress={() => handleOptionPress("YouTube")}
-          >
-            <MaterialCommunityIcons
-              name="youtube"
-              size={24}
-              color="#ff0000"
-              style={styles.modalOptionIcon}
-            />
-            <Text style={styles.modalOptionText}>Add YouTube Video</Text>
-          </TouchableOpacity>
-        </View>
-      </Modalize>
+      <NoteOptionsModal
+        modalRef={noteOptionsModalRef}
+        onOptionPress={handleOptionPress}
+      />
 
       <FolderModals
         listModalRef={folderDrawerRef}
         createModalRef={createFolderModalRef}
-        folders={folders}
         selectedFolderId={selectedFolderId}
-        newFolderName={newFolderName}
-        setNewFolderName={setNewFolderName}
         onFolderSelect={setSelectedFolderId}
-        onOpenCreateModal={openCreateDrawer}
-        onCreateFolder={handleCreateFolder}
+        userId={user.uid}
       />
     </GestureHandlerRootView>
   );
@@ -371,34 +339,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#fff",
   },
-  modalHeader: {
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    alignItems: "center",
-    backgroundColor: "#fff",
-  },
-  modalHeaderText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-  },
-  modalContent: {
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-  },
-  modalOption: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 15,
-  },
-  modalOptionIcon: {
-    marginRight: 16,
-  },
-  modalOptionText: {
-    fontSize: 16,
-    color: "#333",
-  },
   folderSelectorContainer: {
     marginHorizontal: 24,
     marginVertical: 16,
@@ -419,5 +359,27 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: "#555",
     marginLeft: 10,
+  },
+  emptyStateContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    marginTop: 40,
+  },
+  emptyStateIcon: {
+    marginBottom: 16,
+  },
+  emptyStateTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    lineHeight: 24,
   },
 });
