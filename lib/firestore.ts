@@ -1,8 +1,20 @@
-import firestore from "@react-native-firebase/firestore";
+import firestore, {
+  FirebaseFirestoreTypes,
+} from "@react-native-firebase/firestore";
+import {
+  collection,
+  query,
+  where,
+  addDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  doc,
+} from "@react-native-firebase/firestore";
 
 // Collection references
-const notesCollection = firestore().collection("notes");
-const foldersCollection = firestore().collection("folders");
+const notesCollection = collection(firestore(), "notes");
+const foldersCollection = collection(firestore(), "folders");
 
 // Note types
 export interface Note {
@@ -23,7 +35,7 @@ export interface Folder {
 
 // Note operations
 export const createNote = async (note: Omit<Note, "id">) => {
-  const docRef = await notesCollection.add({
+  const docRef = await addDoc(notesCollection, {
     ...note,
     createdAt: firestore.FieldValue.serverTimestamp(),
   });
@@ -31,13 +43,13 @@ export const createNote = async (note: Omit<Note, "id">) => {
 };
 
 export const getNotes = async (userId: string, folderId?: string) => {
-  let query = notesCollection.where("userId", "==", userId);
+  let q = query(notesCollection, where("userId", "==", userId));
 
   if (folderId) {
-    query = query.where("folderId", "==", folderId);
+    q = query(q, where("folderId", "==", folderId));
   }
 
-  const snapshot = await query.get();
+  const snapshot = await getDocs(q);
   return snapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
@@ -46,21 +58,24 @@ export const getNotes = async (userId: string, folderId?: string) => {
 };
 
 export const updateNote = async (id: string, data: Partial<Note>) => {
-  await notesCollection.doc(id).update(data);
+  const docRef = doc(notesCollection, id);
+  await updateDoc(docRef, data);
 };
 
 export const deleteNote = async (id: string) => {
-  await notesCollection.doc(id).delete();
+  const docRef = doc(notesCollection, id);
+  await deleteDoc(docRef);
 };
 
 // Folder operations
 export const createFolder = async (folder: Omit<Folder, "id">) => {
-  const docRef = await foldersCollection.add(folder);
+  const docRef = await addDoc(foldersCollection, folder);
   return { ...folder, id: docRef.id };
 };
 
 export const getFolders = async (userId: string) => {
-  const snapshot = await foldersCollection.where("userId", "==", userId).get();
+  const q = query(foldersCollection, where("userId", "==", userId));
+  const snapshot = await getDocs(q);
 
   return snapshot.docs.map((doc) => ({
     id: doc.id,
@@ -69,9 +84,11 @@ export const getFolders = async (userId: string) => {
 };
 
 export const updateFolder = async (id: string, data: Partial<Folder>) => {
-  await foldersCollection.doc(id).update(data);
+  const docRef = doc(foldersCollection, id);
+  await updateDoc(docRef, data);
 };
 
 export const deleteFolder = async (id: string) => {
-  await foldersCollection.doc(id).delete();
+  const docRef = doc(foldersCollection, id);
+  await deleteDoc(docRef);
 };

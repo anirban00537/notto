@@ -48,7 +48,6 @@ const FolderModals: React.FC<FolderModalsProps> = ({
   onOpenCreateModal,
   onCreateFolder,
 }) => {
-  // Combine "All Notes" with user folders for the list
   const folderItems: FolderItem[] = [
     { id: "all", name: "All Notes", icon: "format-list-bulleted" },
     ...folders.map((folder) => ({
@@ -57,9 +56,53 @@ const FolderModals: React.FC<FolderModalsProps> = ({
     })),
   ];
 
+  const renderHeader = () => (
+    <TouchableOpacity
+      style={styles.createFolderButton}
+      onPress={onOpenCreateModal}
+    >
+      <MaterialCommunityIcons name="plus" size={22} color="#555" />
+      <Text style={styles.createFolderButtonText}>Create New Folder</Text>
+    </TouchableOpacity>
+  );
+
+  const renderItem = ({ item }: { item: FolderItem }) => (
+    <TouchableOpacity
+      style={[
+        styles.folderListItem,
+        selectedFolderId === item.id && styles.selectedFolderListItem,
+      ]}
+      onPress={() => {
+        onFolderSelect(item.id);
+        listModalRef.current?.close();
+      }}
+    >
+      <MaterialCommunityIcons
+        name={item.icon}
+        size={22}
+        color={selectedFolderId === item.id ? "#111" : "#555"}
+      />
+      <Text
+        style={[
+          styles.folderListItemText,
+          selectedFolderId === item.id && styles.selectedFolderListItemText,
+        ]}
+      >
+        {item.name}
+      </Text>
+      {selectedFolderId === item.id && (
+        <MaterialCommunityIcons
+          name="check"
+          size={22}
+          color="#111"
+          style={styles.checkIcon}
+        />
+      )}
+    </TouchableOpacity>
+  );
+
   return (
     <>
-      {/* Folder Selection Drawer (List) */}
       <Modalize
         ref={listModalRef}
         adjustToContentHeight
@@ -68,63 +111,17 @@ const FolderModals: React.FC<FolderModalsProps> = ({
             <Text style={styles.drawerTitle}>Select Folder</Text>
           </View>
         }
-      >
-        <View style={styles.listDrawerContent}>
-          {/* List View for Folder Selection */}
-          <FlatList
-            data={folderItems}
-            keyExtractor={(item) => item.id}
-            ListHeaderComponent={
-              <TouchableOpacity
-                style={styles.createFolderButton}
-                onPress={onOpenCreateModal}
-              >
-                <MaterialCommunityIcons name="plus" size={22} color="#555" />
-                <Text style={styles.createFolderButtonText}>
-                  Create New Folder
-                </Text>
-              </TouchableOpacity>
-            }
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[
-                  styles.folderListItem,
-                  selectedFolderId === item.id && styles.selectedFolderListItem,
-                ]}
-                onPress={() => {
-                  onFolderSelect(item.id);
-                  listModalRef.current?.close();
-                }}
-              >
-                <MaterialCommunityIcons
-                  name={item.icon}
-                  size={22}
-                  color={selectedFolderId === item.id ? "#111" : "#555"}
-                />
-                <Text
-                  style={[
-                    styles.folderListItemText,
-                    selectedFolderId === item.id &&
-                      styles.selectedFolderListItemText,
-                  ]}
-                >
-                  {item.name}
-                </Text>
-                {selectedFolderId === item.id && (
-                  <MaterialCommunityIcons
-                    name="check"
-                    size={22}
-                    color="#111"
-                    style={styles.checkIcon}
-                  />
-                )}
-              </TouchableOpacity>
-            )}
-          />
-        </View>
-      </Modalize>
+        flatListProps={{
+          data: folderItems,
+          keyExtractor: (item) => item.id,
+          ListHeaderComponent: renderHeader,
+          renderItem: renderItem,
+          style: styles.listDrawerContent,
+          scrollEnabled: true,
+          nestedScrollEnabled: true,
+        }}
+      />
 
-      {/* Separate Drawer/Modal for Creating Folders */}
       <Modalize
         ref={createModalRef}
         adjustToContentHeight
@@ -141,11 +138,11 @@ const FolderModals: React.FC<FolderModalsProps> = ({
             value={newFolderName}
             onChangeText={setNewFolderName}
             autoFocus={true}
-            onSubmitEditing={onCreateFolder} // Use callback prop
+            onSubmitEditing={onCreateFolder}
           />
           <TouchableOpacity
             style={styles.saveFolderButton}
-            onPress={onCreateFolder} // Use callback prop
+            onPress={onCreateFolder}
           >
             <Text style={styles.saveFolderButtonText}>Save Folder</Text>
           </TouchableOpacity>
