@@ -21,59 +21,20 @@ import { Link } from "expo-router";
 import AuthComponent from "./auth";
 import FolderModals from "../components/FolderModals";
 import NoteCard from "../components/NoteCard";
-
-interface Note {
-  id: string;
-  title: string;
-  content: string;
-  createdAt: Date;
-  icon?: string;
-  folderId?: string;
-}
-
-interface Folder {
-  id: string;
-  name: string;
-}
+import {
+  Note,
+  Folder,
+  getNotes,
+  getFolders,
+  createNote,
+  createFolder,
+} from "../lib/firestore";
 
 export default function App() {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const [selectedFolderId, setSelectedFolderId] = useState<string>("all");
-  const [folders, setFolders] = useState<Folder[]>([
-    { id: "work", name: "Work" },
-    { id: "personal", name: "Personal" },
-    { id: "ideas", name: "Ideas" },
-    { id: "travel", name: "Travel" },
-    { id: "recipes", name: "Recipes" },
-  ]);
-  const [notes, setNotes] = useState<Note[]>([
-    {
-      id: "pdf-1",
-      title: "Annual Report Q4",
-      content: "Review of the company performance, financial statements...",
-      createdAt: new Date(2024, 11, 15),
-      icon: "pdf",
-      folderId: "work",
-    },
-    {
-      id: "audio-1",
-      title: "Meeting Notes - Project Alpha",
-      content:
-        "Discussion on project milestones, next steps, team assignments...",
-      createdAt: new Date(2024, 11, 10),
-      icon: "audio",
-      folderId: "work",
-    },
-    {
-      id: "youtube-1",
-      title: "React Native Tutorial: Animations",
-      content:
-        "Learn how to implement engaging animations in React Native apps...",
-      createdAt: new Date(2024, 11, 5),
-      icon: "youtube",
-      folderId: "ideas",
-    },
-  ]);
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
   const noteOptionsModalRef = useRef<Modalize>(null);
   const folderDrawerRef = useRef<Modalize>(null);
   const createFolderModalRef = useRef<Modalize>(null);
@@ -84,14 +45,38 @@ export default function App() {
     return subscriber;
   }, []);
 
+  useEffect(() => {
+    if (user) {
+      // Fetch folders
+      getFolders(user.uid).then(setFolders);
+
+      // Fetch notes
+      getNotes(
+        user.uid,
+        selectedFolderId === "all" ? undefined : selectedFolderId
+      ).then(setNotes);
+    }
+  }, [user, selectedFolderId]);
+
   const onOpenNoteOptions = () => {
     noteOptionsModalRef.current?.open();
   };
 
-  const handleOptionPress = (option: string) => {
-    console.log(`Selected option: ${option}`);
+  const handleOptionPress = async (option: string) => {
+    if (!user) return;
+
+    const newNote: Omit<Note, "id"> = {
+      title: `New ${option} Note`,
+      content: "",
+      createdAt: new Date(),
+      icon: option.toLowerCase(),
+      folderId: selectedFolderId === "all" ? undefined : selectedFolderId,
+      userId: user.uid,
+    };
+
+    const createdNote = await createNote(newNote);
+    setNotes([...notes, createdNote]);
     noteOptionsModalRef.current?.close();
-    // TODO: Implement logic for each option (PDF, Audio, YouTube)
   };
 
   const openFolderDrawer = () => {
@@ -105,18 +90,19 @@ export default function App() {
     }, 150);
   };
 
-  const handleCreateFolder = () => {
-    if (newFolderName.trim() === "") return;
-    const newFolder: Folder = {
-      id: Date.now().toString(),
+  const handleCreateFolder = async () => {
+    if (!user || newFolderName.trim() === "") return;
+
+    const newFolder: Omit<Folder, "id"> = {
       name: newFolderName.trim(),
+      userId: user.uid,
     };
-    setFolders([...folders, newFolder]);
+
+    const createdFolder = await createFolder(newFolder);
+    setFolders([...folders, createdFolder]);
     setNewFolderName("");
     Keyboard.dismiss();
     createFolderModalRef.current?.close();
-    console.log("New folder added:", newFolder);
-    console.log("Current folders:", [...folders, newFolder]);
   };
 
   if (!user) {
@@ -130,11 +116,6 @@ export default function App() {
           id: "all",
           name: "All Notes",
         };
-
-  const filteredNotes =
-    selectedFolderId === "all"
-      ? notes
-      : notes.filter((note) => note.folderId === selectedFolderId);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -179,7 +160,7 @@ export default function App() {
         <Text style={styles.sectionTitle}>Notes</Text>
 
         <FlatList
-          data={filteredNotes}
+          data={notes}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
