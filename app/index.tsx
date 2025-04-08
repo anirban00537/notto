@@ -28,7 +28,7 @@ import {
   getFolders,
   createNote,
   createFolder,
-} from "../lib/firestore";
+} from "../lib/services";
 
 export default function App() {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);

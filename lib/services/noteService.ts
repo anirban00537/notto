@@ -1,6 +1,4 @@
-import firestore, {
-  FirebaseFirestoreTypes,
-} from "@react-native-firebase/firestore";
+import firestore from "@react-native-firebase/firestore";
 import {
   collection,
   query,
@@ -12,11 +10,6 @@ import {
   doc,
 } from "@react-native-firebase/firestore";
 
-// Collection references
-const notesCollection = collection(firestore(), "notes");
-const foldersCollection = collection(firestore(), "folders");
-
-// Note types
 export interface Note {
   id: string;
   title: string;
@@ -27,13 +20,8 @@ export interface Note {
   userId: string;
 }
 
-export interface Folder {
-  id: string;
-  name: string;
-  userId: string;
-}
+const notesCollection = collection(firestore(), "notes");
 
-// Note operations
 export const createNote = async (note: Omit<Note, "id">) => {
   const docRef = await addDoc(notesCollection, {
     ...note,
@@ -64,31 +52,5 @@ export const updateNote = async (id: string, data: Partial<Note>) => {
 
 export const deleteNote = async (id: string) => {
   const docRef = doc(notesCollection, id);
-  await deleteDoc(docRef);
-};
-
-// Folder operations
-export const createFolder = async (folder: Omit<Folder, "id">) => {
-  const docRef = await addDoc(foldersCollection, folder);
-  return { ...folder, id: docRef.id };
-};
-
-export const getFolders = async (userId: string) => {
-  const q = query(foldersCollection, where("userId", "==", userId));
-  const snapshot = await getDocs(q);
-
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Folder[];
-};
-
-export const updateFolder = async (id: string, data: Partial<Folder>) => {
-  const docRef = doc(foldersCollection, id);
-  await updateDoc(docRef, data);
-};
-
-export const deleteFolder = async (id: string) => {
-  const docRef = doc(foldersCollection, id);
   await deleteDoc(docRef);
 };
