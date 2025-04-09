@@ -121,7 +121,7 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+        <StatusBar barStyle="dark-content" backgroundColor="#f0f7ff" />
 
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Notto ai</Text>
@@ -242,14 +242,14 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f7f7f7",
+    backgroundColor: "#f0f7ff",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 18,
     paddingHorizontal: 24,
-    backgroundColor: "#f7f7f7",
+    backgroundColor: "#f0f7ff",
   },
   headerTitle: {
     fontSize: 28,
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
   proButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#222",
+    backgroundColor: "#2c3e50",
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 20,
@@ -300,15 +300,15 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === "ios" ? 34 : 24,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-    backgroundColor: "#f7f7f7",
+    borderTopColor: "#e6f0ff",
+    backgroundColor: "#f0f7ff",
   },
   recordButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#222",
-    borderRadius: 25,
+    backgroundColor: "#2c3e50",
+    borderRadius: 12,
     paddingVertical: 14,
     paddingHorizontal: 24,
     width: "48%",
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#fff",
-    borderRadius: 25,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: "#e0e0e0",
     paddingVertical: 14,
@@ -346,18 +346,18 @@ const styles = StyleSheet.create({
   folderButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: "#f0f7ff",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#eee",
+    borderColor: "#e6f0ff",
   },
   folderName: {
     flex: 1,
     fontSize: 16,
     fontWeight: "500",
-    color: "#555",
+    color: "#111",
     marginLeft: 10,
   },
   emptyStateContainer: {
