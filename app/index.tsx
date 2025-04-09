@@ -21,7 +21,7 @@ import { Link } from "expo-router";
 import AuthComponent from "./auth";
 import FolderModals from "../components/FolderModals";
 import NoteCard from "../components/NoteCard";
-import NoteOptionsModal from "./components/NoteOptionsModal";
+import NoteOptionsModal from "../components/NoteOptionsModal";
 import {
   Note,
   Folder,
