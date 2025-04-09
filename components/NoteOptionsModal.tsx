@@ -2,6 +2,9 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Modalize } from "react-native-modalize";
+import { router } from "expo-router";
+import { useUser } from "../app/context/UserContext";
+import { createNote } from "../lib/services";
 
 interface NoteOptionsModalProps {
   modalRef: React.RefObject<Modalize>;
@@ -12,6 +15,27 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
   modalRef,
   onOptionPress,
 }) => {
+  const { user } = useUser();
+
+  const handlePDFImport = async () => {
+    if (!user) return;
+
+    try {
+      const newNote = await createNote({
+        title: "New PDF Note",
+        content: "",
+        createdAt: new Date(),
+        icon: "pdf",
+        userId: user.uid,
+      });
+
+      modalRef.current?.close();
+      router.push(`/note/${newNote.id}`);
+    } catch (error) {
+      console.error("Error creating PDF note:", error);
+    }
+  };
+
   return (
     <Modalize
       ref={modalRef}
@@ -23,10 +47,7 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
       }
     >
       <View style={styles.modalContent}>
-        <TouchableOpacity
-          style={styles.modalOption}
-          onPress={() => onOptionPress("PDF")}
-        >
+        <TouchableOpacity style={styles.modalOption} onPress={handlePDFImport}>
           <MaterialCommunityIcons
             name="file-pdf-box"
             size={24}

@@ -51,7 +51,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 10,
     paddingVertical: 8,
-    backgroundColor: "#f7f7f7",
+    backgroundColor: "#f0f7ff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#e6f0ff",
   },
   leftSection: {
     flexDirection: "row",
@@ -67,7 +69,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 17,
     fontWeight: "600",
-    color: "#333",
+    color: "#2c3e50",
     paddingVertical: 6,
   },
 });

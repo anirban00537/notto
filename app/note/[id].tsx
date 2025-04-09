@@ -173,11 +173,11 @@ export default function NoteDetailScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#f7f7f7",
+    backgroundColor: "#f0f7ff",
   },
   scrollView: {
     flex: 1,
-    backgroundColor: "#f7f7f7",
+    backgroundColor: "#f0f7ff",
   },
   scrollContentContainer: {
     paddingBottom: 20,

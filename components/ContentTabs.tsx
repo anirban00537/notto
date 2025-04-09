@@ -58,6 +58,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: 10,
     paddingHorizontal: 20,
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#e6f0ff",
   },
   tabIcon: {
     marginRight: 8,
@@ -66,6 +69,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "500",
     letterSpacing: 0.2,
+    color: "#2c3e50",
   },
   tabInnerContent: {
     flexDirection: "row",
