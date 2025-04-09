@@ -44,6 +44,13 @@ export default function Layout() {
               headerShown: false,
             }}
           />
+          <Stack.Screen
+            name="settings"
+            options={{
+              headerShown: false,
+              presentation: "modal",
+            }}
+          />
           <Stack.Screen name="+not-found" />
         </Stack>
       </UserProvider>

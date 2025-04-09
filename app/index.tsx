@@ -17,7 +17,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import { Modalize } from "react-native-modalize";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import AuthComponent from "./auth";
 import FolderModals from "../components/FolderModals";
 import NoteCard from "../components/NoteCard";
@@ -133,8 +133,11 @@ export default function App() {
             />
             <Text style={styles.proText}>PRO</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.profileButton}>
-            <MaterialCommunityIcons name="account" size={22} color="#555" />
+          <TouchableOpacity
+            style={styles.profileButton}
+            onPress={() => router.push("/settings")}
+          >
+            <MaterialCommunityIcons name="cog-outline" size={22} color="#555" />
           </TouchableOpacity>
         </View>
 
