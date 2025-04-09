@@ -28,24 +28,28 @@ const NoteCard: React.FC<NoteCardProps> = ({
     switch (iconName) {
       case "pdf":
         iconComponent = "file-pdf-box";
-        iconColor = "#D32F2F"; // Red
-        backgroundColor = "#FFEBEE"; // Light Red
+        iconColor = "#D32F2F";
+        backgroundColor = "#FFEBEE";
         break;
       case "audio":
         iconComponent = "file-music-outline";
-        iconColor = "#1976D2"; // Blue
-        backgroundColor = "#E3F2FD"; // Light Blue
+        iconColor = "#1976D2";
+        backgroundColor = "#E3F2FD";
         break;
       case "youtube":
         iconComponent = "youtube";
-        iconColor = "#FF0000"; // Red (YouTube Brand)
-        backgroundColor = "#FFEBEE"; // Light Red
+        iconColor = "#FF0000";
+        backgroundColor = "#FFEBEE";
         break;
       case "palette":
         iconComponent = "palette";
         iconColor = "#EB6C3E";
         backgroundColor = "#FFF5EC";
         break;
+      default:
+        iconComponent = "note-text-outline";
+        iconColor = "#2c3e50";
+        backgroundColor = "#f0f7ff";
     }
 
     if (iconComponent && iconColor && backgroundColor) {
@@ -53,7 +57,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
         <View style={[styles.iconContainer, { backgroundColor }]}>
           <MaterialCommunityIcons
             name={iconComponent}
-            size={24}
+            size={28}
             color={iconColor}
           />
         </View>
@@ -106,13 +110,20 @@ const styles = StyleSheet.create({
     borderColor: "#f0f0f0",
   },
   iconContainer: {
-    width: 38,
-    height: 38,
-    borderRadius: 10,
-    backgroundColor: "#FFF5EC",
+    width: 44,
+    height: 44,
+    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   noteContent: {
     flex: 1,

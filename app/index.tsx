@@ -124,24 +124,6 @@ export default function App() {
         <StatusBar barStyle="dark-content" backgroundColor="#f0f7ff" />
 
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Notto ai</Text>
-          <TouchableOpacity style={styles.proButton}>
-            <MaterialCommunityIcons
-              name="rocket-launch"
-              size={16}
-              color="#fff"
-            />
-            <Text style={styles.proText}>PRO</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.profileButton}
-            onPress={() => router.push("/settings")}
-          >
-            <MaterialCommunityIcons name="cog-outline" size={22} color="#555" />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.folderSelectorContainer}>
           <TouchableOpacity
             style={styles.folderButton}
             onPress={openFolderDrawer}
@@ -159,18 +141,39 @@ export default function App() {
               color="#555"
             />
           </TouchableOpacity>
+          <View style={styles.headerRight}>
+            <TouchableOpacity style={styles.proButton}>
+              <MaterialCommunityIcons
+                name="rocket-launch"
+                size={16}
+                color="#fff"
+              />
+              <Text style={styles.proText}>PRO</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.profileButton}
+              onPress={() => router.push("/settings")}
+            >
+              <MaterialCommunityIcons
+                name="cog-outline"
+                size={22}
+                color="#555"
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Notes</Text>
+        {notes.length > 0 && <Text style={styles.sectionTitle}>Notes</Text>}
 
         {notes.length === 0 ? (
           <View style={styles.emptyStateContainer}>
-            <MaterialCommunityIcons
-              name="note-text-outline"
-              size={64}
-              color="#ccc"
-              style={styles.emptyStateIcon}
-            />
+            <View style={styles.emptyStateIconContainer}>
+              <MaterialCommunityIcons
+                name="note-text-outline"
+                size={48}
+                color="#2c3e50"
+              />
+            </View>
             <Text style={styles.emptyStateTitle}>No Notes Yet</Text>
             <Text style={styles.emptyStateText}>
               Create your first note by tapping the button below
@@ -250,16 +253,31 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingVertical: 18,
     paddingHorizontal: 24,
     backgroundColor: "#f0f7ff",
   },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#111",
+  folderButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f0f7ff",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
     flex: 1,
-    letterSpacing: -0.5,
+    marginRight: 16,
+  },
+  folderName: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#111",
+    marginLeft: 10,
+  },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   proButton: {
     flexDirection: "row",
@@ -286,7 +304,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    color: "#888",
+    color: "#111",
     marginLeft: 24,
     marginTop: 8,
     marginBottom: 16,
@@ -342,27 +360,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#fff",
   },
-  folderSelectorContainer: {
-    marginHorizontal: 24,
-    marginVertical: 16,
-  },
-  folderButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f0f7ff",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e6f0ff",
-  },
-  folderName: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#111",
-    marginLeft: 10,
-  },
   emptyStateContainer: {
     flex: 1,
     alignItems: "center",
@@ -370,13 +367,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     marginTop: 40,
   },
-  emptyStateIcon: {
-    marginBottom: 16,
+  emptyStateIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    backgroundColor: "#f0f7ff",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 24,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   emptyStateTitle: {
     fontSize: 20,
     fontWeight: "600",
-    color: "#333",
+    color: "#2c3e50",
     marginBottom: 8,
   },
   emptyStateText: {
