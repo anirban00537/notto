@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import {
   View,
   Text,
@@ -61,15 +61,20 @@ export default function NoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const note = getNoteDetails(id || "unknown");
+  const scrollViewRef = useRef<ScrollView>(null);
 
   if (!note) {
     return <Text>Note not found</Text>;
   }
 
-  // Update state type to include new tabs
   const [activeContentTab, setActiveContentTab] = React.useState<
-    "note" | "transcript" | "summary" | "flashcard" | "quizzes"
+    "note" | "transcript" | "chat"
   >("note");
+
+  const handleTabPress = (tab: "note" | "transcript" | "chat") => {
+    setActiveContentTab(tab);
+    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  };
 
   const iconProps = getIconProps(note.icon);
 
@@ -90,18 +95,14 @@ export default function NoteDetailScreen() {
         onOptionsPress={handleOptionsPress}
       />
 
-      {/* Render ContentTabs *outside* the main ScrollView */}
-      <ContentTabs
-        activeTab={activeContentTab}
-        onTabPress={setActiveContentTab}
-      />
-
-      {/* Main ScrollView now only contains the content *below* the tabs */}
       <ScrollView
+        ref={scrollViewRef}
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContentContainer}
-        showsVerticalScrollIndicator={false} // Optional: Hide scrollbar
+        showsVerticalScrollIndicator={false}
       >
+        <ContentTabs activeTab={activeContentTab} onTabPress={handleTabPress} />
+
         {/* Note Tab Content */}
         {activeContentTab === "note" && (
           <>
@@ -139,29 +140,11 @@ export default function NoteDetailScreen() {
           </View>
         )}
 
-        {/* Summary Tab Content */}
-        {activeContentTab === "summary" && (
+        {/* Chat Tab Content */}
+        {activeContentTab === "chat" && (
           <View style={styles.textContentPadding}>
             <Text style={styles.noteContentText}>
-              Summary content would go here...
-            </Text>
-          </View>
-        )}
-
-        {/* Flashcard Tab Content */}
-        {activeContentTab === "flashcard" && (
-          <View style={styles.textContentPadding}>
-            <Text style={styles.noteContentText}>
-              Flashcard content would go here...
-            </Text>
-          </View>
-        )}
-
-        {/* Quizzes Tab Content */}
-        {activeContentTab === "quizzes" && (
-          <View style={styles.textContentPadding}>
-            <Text style={styles.noteContentText}>
-              Quizzes content would go here...
+              Chat content would go here...
             </Text>
           </View>
         )}
@@ -180,7 +163,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f0f7ff",
   },
   scrollContentContainer: {
-    paddingBottom: 20,
+    flexGrow: 1,
   },
   textContentPadding: {
     paddingHorizontal: 16,

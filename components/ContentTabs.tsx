@@ -1,27 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  ScrollView,
-  Platform,
-  LayoutChangeEvent,
-} from "react-native";
-import Reanimated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  interpolateColor,
-} from "react-native-reanimated";
+import React from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-type TabName = "note" | "transcript" | "summary" | "flashcard" | "quizzes";
-
-interface ContentTabsProps {
-  activeTab: TabName;
-  onTabPress: (tabName: TabName) => void;
-}
+type TabName = "note" | "transcript" | "chat";
 
 const TABS: {
   name: TabName;
@@ -30,180 +11,98 @@ const TABS: {
 }[] = [
   { name: "note", label: "Note", icon: "note-text-outline" },
   { name: "transcript", label: "Transcript", icon: "script-text-outline" },
-  { name: "flashcard", label: "Flashcard", icon: "cards-outline" },
-  { name: "quizzes", label: "Quizzes", icon: "help-circle-outline" },
-  { name: "summary", label: "Summary", icon: "text-short" },
+  { name: "chat", label: "Chat", icon: "message-text-outline" },
 ];
 
-// Create animated component for Icon
-const AnimatedIcon = Reanimated.createAnimatedComponent(MaterialCommunityIcons);
-
-// Define styles before components that use them
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "transparent",
-  },
-  scrollContent: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-  },
-  tab: {
-    marginHorizontal: 4,
-    borderRadius: 8,
-    overflow: "hidden",
-  },
-  tabContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#e6f0ff",
-  },
-  tabIcon: {
-    marginRight: 8,
-  },
-  tabText: {
-    fontSize: 15,
-    fontWeight: "500",
-    letterSpacing: 0.2,
-    color: "#2c3e50",
-  },
-  tabInnerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
-
-interface TabItemProps {
-  tabData: (typeof TABS)[0];
-  isActive: boolean;
-  onPress: () => void;
-  onLayout: (event: LayoutChangeEvent) => void;
+interface ContentTabsProps {
+  activeTab: TabName;
+  onTabPress: (tab: TabName) => void;
 }
-
-// Separate Tab Item component for cleaner animation logic
-const TabItem: React.FC<TabItemProps> = ({
-  tabData,
-  isActive,
-  onPress,
-  onLayout,
-}) => {
-  const progress = useSharedValue(0);
-
-  useEffect(() => {
-    progress.value = withTiming(isActive ? 1 : 0, { duration: 150 });
-  }, [isActive, progress]);
-
-  const tabAnimatedStyle = useAnimatedStyle(() => {
-    const backgroundColor = interpolateColor(
-      progress.value,
-      [0, 1],
-      ["transparent", "#111"]
-    );
-    return { backgroundColor };
-  });
-
-  const iconAnimatedStyle = useAnimatedStyle(() => {
-    const color = interpolateColor(progress.value, [0, 1], ["#888", "#fff"]);
-    return { color };
-  });
-
-  const textAnimatedStyle = useAnimatedStyle(() => {
-    const color = interpolateColor(progress.value, [0, 1], ["#888", "#fff"]);
-    return { color };
-  });
-
-  const translateAnimatedStyle = useAnimatedStyle(() => {
-    const translateY = withTiming(isActive ? -2 : 0, { duration: 100 });
-    return { transform: [{ translateY }] };
-  });
-
-  return (
-    <TouchableOpacity
-      key={tabData.name}
-      style={styles.tab}
-      onPress={onPress}
-      onLayout={onLayout}
-      activeOpacity={0.7}
-    >
-      <Reanimated.View style={[styles.tabContent, tabAnimatedStyle]}>
-        <Reanimated.View
-          style={[styles.tabInnerContent, translateAnimatedStyle]}
-        >
-          <AnimatedIcon
-            name={tabData.icon}
-            size={20}
-            style={[styles.tabIcon, iconAnimatedStyle]}
-          />
-          <Reanimated.Text style={[styles.tabText, textAnimatedStyle]}>
-            {tabData.label}
-          </Reanimated.Text>
-        </Reanimated.View>
-      </Reanimated.View>
-    </TouchableOpacity>
-  );
-};
 
 export default function ContentTabs({
   activeTab,
   onTabPress,
 }: ContentTabsProps) {
-  const scrollViewRef = useRef<ScrollView>(null);
-  const [tabLayouts, setTabLayouts] = useState<
-    Record<TabName, { x: number; width: number } | null>
-  >({
-    note: null,
-    transcript: null,
-    summary: null,
-    flashcard: null,
-    quizzes: null,
-  });
-
-  const handleLayout = (event: LayoutChangeEvent, name: TabName) => {
-    const { x, width } = event.nativeEvent.layout;
-    setTabLayouts((prev) => ({ ...prev, [name]: { x, width } }));
-  };
-
-  useEffect(() => {
-    const layout = tabLayouts[activeTab];
-    if (layout && scrollViewRef.current) {
-      const scrollTargetX =
-        layout.x -
-        styles.scrollContent.paddingHorizontal +
-        layout.width / 2 -
-        50;
-      scrollViewRef.current.scrollTo({
-        x: Math.max(0, scrollTargetX),
-        animated: true,
-      });
-    }
-  }, [activeTab, tabLayouts]);
-
   return (
     <View style={styles.container}>
-      <ScrollView
-        ref={scrollViewRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {TABS.map((tab) => {
-          const isActive = activeTab === tab.name;
-          return (
-            <TabItem
-              key={tab.name}
-              tabData={tab}
-              isActive={isActive}
-              onPress={() => onTabPress(tab.name)}
-              onLayout={(event) => handleLayout(event, tab.name)}
-            />
-          );
-        })}
-      </ScrollView>
+      <View style={styles.tabsContainer}>
+        {TABS.map((tab) => (
+          <TouchableOpacity
+            key={tab.name}
+            style={[styles.tab, activeTab === tab.name && styles.activeTab]}
+            onPress={() => onTabPress(tab.name)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.tabContent}>
+              <MaterialCommunityIcons
+                name={tab.icon}
+                size={16}
+                color={activeTab === tab.name ? "#fff" : "#2c3e50"}
+                style={styles.tabIcon}
+              />
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === tab.name && styles.activeTabText,
+                ]}
+              >
+                {tab.label}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    backgroundColor: "transparent",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  tabsContainer: {
+    flexDirection: "row",
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    borderRadius: 10,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: "rgba(230, 240, 255, 0.5)",
+  },
+  tab: {
+    flex: 1,
+    borderRadius: 8,
+    overflow: "hidden",
+    marginHorizontal: 2,
+  },
+  activeTab: {
+    backgroundColor: "#2c3e50",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 3,
+  },
+  tabContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 6,
+  },
+  tabIcon: {
+    marginRight: 3,
+  },
+  tabText: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#2c3e50",
+  },
+  activeTabText: {
+    color: "#fff",
+  },
+});
