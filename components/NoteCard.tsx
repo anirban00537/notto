@@ -4,8 +4,8 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 interface NoteCardProps {
   id: string;
-  title: string;
-  content: string;
+  title?: string;
+  content?: string;
   createdAt: Date;
   icon?: string;
   onPress: () => void;
@@ -13,59 +13,12 @@ interface NoteCardProps {
 
 const NoteCard: React.FC<NoteCardProps> = ({
   id,
-  title,
-  content,
+  title = "Untitled Note",
+  content = "No content",
   createdAt,
   icon,
   onPress,
 }) => {
-  const renderNoteIcon = (iconName?: string) => {
-    let iconComponent: keyof typeof MaterialCommunityIcons.glyphMap | null =
-      null;
-    let iconColor: string | null = null;
-    let backgroundColor: string | null = null;
-
-    switch (iconName) {
-      case "pdf":
-        iconComponent = "file-pdf-box";
-        iconColor = "#D32F2F";
-        backgroundColor = "#FFEBEE";
-        break;
-      case "audio":
-        iconComponent = "file-music-outline";
-        iconColor = "#1976D2";
-        backgroundColor = "#E3F2FD";
-        break;
-      case "youtube":
-        iconComponent = "youtube";
-        iconColor = "#FF0000";
-        backgroundColor = "#FFEBEE";
-        break;
-      case "palette":
-        iconComponent = "palette";
-        iconColor = "#EB6C3E";
-        backgroundColor = "#FFF5EC";
-        break;
-      default:
-        iconComponent = "note-text-outline";
-        iconColor = "#2c3e50";
-        backgroundColor = "#f0f7ff";
-    }
-
-    if (iconComponent && iconColor && backgroundColor) {
-      return (
-        <View style={[styles.iconContainer, { backgroundColor }]}>
-          <MaterialCommunityIcons
-            name={iconComponent}
-            size={28}
-            color={iconColor}
-          />
-        </View>
-      );
-    }
-    return null;
-  };
-
   const formatDate = (date: Date) => {
     const months = [
       "Jan",
@@ -84,16 +37,38 @@ const NoteCard: React.FC<NoteCardProps> = ({
     return `${months[date.getMonth()]} ${date.getDate()} ${date.getFullYear()}`;
   };
 
+  const getTagData = (iconType?: string) => {
+    switch (iconType) {
+      case "pdf":
+        return { name: "PDF", color: "#D32F2F", bgColor: "#FFEBEE" };
+      case "audio":
+        return { name: "AUDIO", color: "#1976D2", bgColor: "#E3F2FD" };
+      case "youtube":
+        return { name: "YOUTUBE", color: "#FF0000", bgColor: "#FFEBEE" };
+      case "palette":
+        return { name: "PALETTE", color: "#EB6C3E", bgColor: "#FFF5EC" };
+      default:
+        return null;
+    }
+  };
+
+  const tagData = getTagData(icon);
+
   return (
     <TouchableOpacity style={styles.noteCard} onPress={onPress}>
-      {renderNoteIcon(icon)}
       <View style={styles.noteContent}>
         <Text style={styles.noteTitle}>{title}</Text>
-        <Text style={styles.notePreview} numberOfLines={1}>
-          {content}
-        </Text>
+        <View style={styles.bottomContent}>
+          <Text style={styles.noteDate}>{formatDate(createdAt)}</Text>
+          {tagData && (
+            <View style={[styles.tag, { backgroundColor: tagData.bgColor }]}>
+              <Text style={[styles.tagText, { color: tagData.color }]}>
+                {tagData.name}
+              </Text>
+            </View>
+          )}
+        </View>
       </View>
-      <Text style={styles.noteDate}>{formatDate(createdAt)}</Text>
     </TouchableOpacity>
   );
 };
@@ -102,50 +77,40 @@ const styles = StyleSheet.create({
   noteCard: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginBottom: 14,
-    padding: 18,
-    borderRadius: 16,
-    backgroundColor: "#fff",
-    borderWidth: 0.5,
-    borderColor: "#f0f0f0",
-  },
-  iconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
+    marginBottom: 8,
+    padding: 10,
+    borderRadius: 14,
+    backgroundColor: "#f7faff",
+    borderWidth: 1,
+    borderColor: "#e0e8f5",
   },
   noteContent: {
     flex: 1,
-    paddingRight: 10,
   },
   noteTitle: {
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 15,
+    fontWeight: "400",
     color: "#111",
     marginBottom: 6,
-    letterSpacing: -0.4,
+    letterSpacing: -0.3,
   },
-  notePreview: {
-    fontSize: 14,
-    color: "#666",
-    lineHeight: 20,
-    letterSpacing: -0.2,
+  bottomContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   noteDate: {
-    fontSize: 12,
+    fontSize: 10,
     color: "#999",
-    marginLeft: 4,
+  },
+  tag: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 3,
+  },
+  tagText: {
+    fontSize: 9,
+    fontWeight: "500",
   },
 });
 
