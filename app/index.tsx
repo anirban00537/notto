@@ -22,6 +22,7 @@ import AuthComponent from "./auth";
 import FolderModals from "../components/FolderModals";
 import NoteCard from "../components/NoteCard";
 import NoteOptionsModal from "../components/NoteOptionsModal";
+import { useUser } from "./context/UserContext";
 import {
   Note,
   Folder,
@@ -32,7 +33,7 @@ import {
 } from "../lib/services";
 
 export default function App() {
-  const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
+  const { user, loading } = useUser();
   const [selectedFolderId, setSelectedFolderId] = useState<string>("all");
   const [folders, setFolders] = useState<Folder[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
@@ -40,11 +41,6 @@ export default function App() {
   const folderDrawerRef = useRef<Modalize>(null);
   const createFolderModalRef = useRef<Modalize>(null);
   const [newFolderName, setNewFolderName] = useState<string>("");
-
-  useEffect(() => {
-    const subscriber = auth().onAuthStateChanged(setUser);
-    return subscriber;
-  }, []);
 
   useEffect(() => {
     if (user) {
@@ -105,6 +101,10 @@ export default function App() {
     Keyboard.dismiss();
     createFolderModalRef.current?.close();
   };
+
+  if (loading) {
+    return null; // or a loading spinner
+  }
 
   if (!user) {
     return <AuthComponent />;
