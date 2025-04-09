@@ -124,7 +124,7 @@ export default function App() {
         <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Notto</Text>
+          <Text style={styles.headerTitle}>Notto ai</Text>
           <TouchableOpacity style={styles.proButton}>
             <MaterialCommunityIcons
               name="rocket-launch"
