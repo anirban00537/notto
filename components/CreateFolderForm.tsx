@@ -28,10 +28,11 @@ const CreateFolderForm: React.FC<CreateFolderFormProps> = ({
     mutationFn: (newFolder: { name: string; userId: string }) =>
       createFolder(newFolder),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["folders", "list"] });
+      queryClient.invalidateQueries({ queryKey: ["folders"] });
       setNewFolderName("");
       Keyboard.dismiss();
       onClose();
+      queryClient.refetchQueries({ queryKey: ["folders"] });
     },
   });
 

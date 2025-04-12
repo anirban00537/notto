@@ -1,10 +1,11 @@
-import React, { RefObject, useEffect, useState } from "react";
+import React, { RefObject, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Modalize } from "react-native-modalize";
-import { Folder, getFolders } from "../lib/services/folderService";
+import { Folder } from "../lib/services/folderService";
 import FolderListItem, { FolderItem } from "./FolderListItem";
 import CreateFolderForm from "./CreateFolderForm";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface FolderModalsProps {
   listModalRef: RefObject<Modalize>;
@@ -12,6 +13,7 @@ interface FolderModalsProps {
   selectedFolderId: string;
   onFolderSelect: (folderId: string) => void;
   userId: string;
+  folders: Folder[];
 }
 
 const FolderModals: React.FC<FolderModalsProps> = ({
@@ -20,23 +22,16 @@ const FolderModals: React.FC<FolderModalsProps> = ({
   selectedFolderId,
   onFolderSelect,
   userId,
+  folders = [],
 }) => {
-  const [folders, setFolders] = useState<Folder[]>([]);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (userId) {
-      loadFolders();
-    }
-  }, [userId]);
-
-  const loadFolders = async () => {
-    const userFolders = await getFolders(userId);
-    setFolders(userFolders);
-  };
+  // Ensure folders is always an array
+  const folderArray = Array.isArray(folders) ? folders : [];
 
   const folderItems: FolderItem[] = [
     { id: "all", name: "All Notes", icon: "format-list-bulleted", userId },
-    ...folders.map((folder) => ({
+    ...folderArray.map((folder) => ({
       ...folder,
       icon: "folder-outline" as const,
     })),
@@ -62,8 +57,10 @@ const FolderModals: React.FC<FolderModalsProps> = ({
     listModalRef.current?.close();
   };
 
-  const handleFolderCreated = (folder: Folder) => {
-    setFolders([...folders, folder]);
+  const handleCreateFolderClose = () => {
+    // Refetch folders when the create folder modal closes
+    queryClient.refetchQueries({ queryKey: ["folders"] });
+    createModalRef.current?.close();
   };
 
   return (
@@ -76,6 +73,10 @@ const FolderModals: React.FC<FolderModalsProps> = ({
             <Text style={styles.drawerTitle}>Select Folder</Text>
           </View>
         }
+        onOpen={() => {
+          // Refetch folders when the list modal opens
+          queryClient.refetchQueries({ queryKey: ["folders"] });
+        }}
         flatListProps={{
           data: folderItems,
           keyExtractor: (item) => item.id,
@@ -102,11 +103,7 @@ const FolderModals: React.FC<FolderModalsProps> = ({
           </View>
         }
       >
-        <CreateFolderForm
-          userId={userId}
-          onFolderCreated={handleFolderCreated}
-          onClose={() => createModalRef.current?.close()}
-        />
+        <CreateFolderForm userId={userId} onClose={handleCreateFolderClose} />
       </Modalize>
     </>
   );

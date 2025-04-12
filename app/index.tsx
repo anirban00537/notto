@@ -37,15 +37,20 @@ export default function App() {
   const queryClient = useQueryClient();
 
   // Use TanStack Query directly
-  const { data: folders = [] } = useQuery({
+  const { data: foldersResponse, refetch: refetchFolders } = useQuery({
     queryKey: ["folders"],
     queryFn: getAllFolders,
   });
+  const folders = foldersResponse?.data || [];
+  console.log("Folders:", folders);
 
   const createFolderMutation = useMutation({
     mutationFn: createFolder,
     onSuccess: () => {
+      // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ["folders"] });
+      // Force immediate refetch
+      refetchFolders();
     },
   });
 
@@ -109,6 +114,8 @@ export default function App() {
       setNewFolderName("");
       Keyboard.dismiss();
       createFolderModalRef.current?.close();
+      // Force a refetch after creating folder
+      refetchFolders();
     } catch (error) {
       console.error("Error creating folder:", error);
     }
@@ -252,6 +259,7 @@ export default function App() {
         selectedFolderId={selectedFolderId}
         onFolderSelect={setSelectedFolderId}
         userId={user.uid}
+        folders={folders}
       />
     </GestureHandlerRootView>
   );

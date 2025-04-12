@@ -28,44 +28,22 @@ const initializeToken = async () => {
 // Call initializeToken when the module loads
 initializeToken();
 
-// Add request interceptor for logging
+// Add request interceptor
 request.interceptors.request.use(
   (config) => {
-    console.log("Request:", {
-      url: config.url,
-      method: config.method,
-      headers: config.headers,
-      data: config.data,
-    });
     return config;
   },
   (error) => {
-    console.error("Request Error:", error);
     return Promise.reject(error);
   }
 );
 
-// Add response interceptor for logging
+// Add response interceptor
 request.interceptors.response.use(
   (response) => {
-    console.log("Response:", {
-      response,
-    });
     return response;
   },
   (error: AxiosError) => {
-    console.error("Response Error:", {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-      headers: error.response?.headers,
-      config: {
-        url: error.config?.url,
-        method: error.config?.method,
-        headers: error.config?.headers,
-        data: error.config?.data,
-      },
-    });
     return Promise.reject(error);
   }
 );
