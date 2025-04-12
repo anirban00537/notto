@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -7,53 +7,64 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Image,
   Platform,
-  ScrollView,
-  TextInput,
   Keyboard,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
 import { Modalize } from "react-native-modalize";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Link, router } from "expo-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import AuthComponent from "./auth";
 import FolderModals from "../components/FolderModals";
 import NoteCard from "../components/NoteCard";
 import NoteOptionsModal from "../components/NoteOptionsModal";
 import { useUser } from "./context/UserContext";
 import {
-  Note,
-  Folder,
-  getNotes,
-  getFolders,
-  createNote,
+  getAllFolders,
   createFolder,
-} from "../lib/services";
+  Folder,
+} from "../lib/services/folderService";
+import { getAllNotes, createNote } from "../lib/services/noteService";
 
 export default function App() {
   const { user, loading } = useUser();
   const [selectedFolderId, setSelectedFolderId] = useState<string>("all");
-  const [folders, setFolders] = useState<Folder[]>([]);
-  const [notes, setNotes] = useState<Note[]>([]);
   const noteOptionsModalRef = useRef<Modalize>(null);
   const folderDrawerRef = useRef<Modalize>(null);
   const createFolderModalRef = useRef<Modalize>(null);
   const [newFolderName, setNewFolderName] = useState<string>("");
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (user) {
-      // Fetch folders
-      getFolders(user.uid).then(setFolders);
+  // Use TanStack Query directly
+  const { data: folders = [] } = useQuery({
+    queryKey: ["folders"],
+    queryFn: getAllFolders,
+  });
 
-      // Fetch notes
-      getNotes(
-        user.uid,
+  const createFolderMutation = useMutation({
+    mutationFn: createFolder,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["folders"] });
+    },
+  });
+
+  const { data: notes = [] } = useQuery({
+    queryKey: ["notes", { userId: user?.uid, folderId: selectedFolderId }],
+    queryFn: () =>
+      getAllNotes(
+        user?.uid || "",
         selectedFolderId === "all" ? undefined : selectedFolderId
-      ).then(setNotes);
-    }
-  }, [user, selectedFolderId]);
+      ),
+    enabled: !!user?.uid,
+  });
+
+  const createNoteMutation = useMutation({
+    mutationFn: createNote,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+    },
+  });
 
   const onOpenNoteOptions = () => {
     noteOptionsModalRef.current?.open();
@@ -62,18 +73,18 @@ export default function App() {
   const handleOptionPress = async (option: string) => {
     if (!user) return;
 
-    const newNote: Omit<Note, "id"> = {
-      title: `New ${option} Note`,
-      content: "",
-      createdAt: new Date(),
-      icon: option.toLowerCase(),
-      folderId: selectedFolderId === "all" ? undefined : selectedFolderId,
-      userId: user.uid,
-    };
-
-    const createdNote = await createNote(newNote);
-    setNotes([...notes, createdNote]);
-    noteOptionsModalRef.current?.close();
+    try {
+      await createNoteMutation.mutateAsync({
+        title: `New ${option} Note`,
+        content: "",
+        userId: user.uid,
+        folderId: selectedFolderId === "all" ? undefined : selectedFolderId,
+        icon: option.toLowerCase(),
+      });
+      noteOptionsModalRef.current?.close();
+    } catch (error) {
+      console.error("Error creating note:", error);
+    }
   };
 
   const openFolderDrawer = () => {
@@ -90,16 +101,17 @@ export default function App() {
   const handleCreateFolder = async () => {
     if (!user || newFolderName.trim() === "") return;
 
-    const newFolder: Omit<Folder, "id"> = {
-      name: newFolderName.trim(),
-      userId: user.uid,
-    };
-
-    const createdFolder = await createFolder(newFolder);
-    setFolders([...folders, createdFolder]);
-    setNewFolderName("");
-    Keyboard.dismiss();
-    createFolderModalRef.current?.close();
+    try {
+      await createFolderMutation.mutateAsync({
+        name: newFolderName.trim(),
+        userId: user.uid,
+      });
+      setNewFolderName("");
+      Keyboard.dismiss();
+      createFolderModalRef.current?.close();
+    } catch (error) {
+      console.error("Error creating folder:", error);
+    }
   };
 
   if (loading) {
@@ -113,7 +125,7 @@ export default function App() {
   const selectedFolder =
     selectedFolderId === "all"
       ? { id: "all", name: "All Notes" }
-      : folders.find((folder) => folder.id === selectedFolderId) || {
+      : folders.find((folder: Folder) => folder.id === selectedFolderId) || {
           id: "all",
           name: "All Notes",
         };
@@ -197,7 +209,7 @@ export default function App() {
                   id={item.id}
                   title={item.title}
                   content={item.content}
-                  createdAt={item.createdAt}
+                  createdAt={new Date(item.createdAt)}
                   icon={item.icon}
                   onPress={() => {}}
                 />

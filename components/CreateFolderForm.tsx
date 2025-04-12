@@ -7,35 +7,45 @@ import {
   StyleSheet,
   Platform,
   Keyboard,
+  ActivityIndicator,
 } from "react-native";
-import { Folder, createFolder } from "../lib/services/folderService";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createFolder } from "../lib/services/folderService";
 
 interface CreateFolderFormProps {
   userId: string;
-  onFolderCreated: (folder: Folder) => void;
   onClose: () => void;
 }
 
 const CreateFolderForm: React.FC<CreateFolderFormProps> = ({
   userId,
-  onFolderCreated,
   onClose,
 }) => {
   const [newFolderName, setNewFolderName] = useState<string>("");
+  const queryClient = useQueryClient();
+
+  const createFolderMutation = useMutation({
+    mutationFn: (newFolder: { name: string; userId: string }) =>
+      createFolder(newFolder),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["folders", "list"] });
+      setNewFolderName("");
+      Keyboard.dismiss();
+      onClose();
+    },
+  });
 
   const handleCreateFolder = async () => {
     if (newFolderName.trim() === "") return;
 
-    const newFolder: Omit<Folder, "id"> = {
-      name: newFolderName.trim(),
-      userId,
-    };
-
-    const createdFolder = await createFolder(newFolder);
-    onFolderCreated(createdFolder);
-    setNewFolderName("");
-    Keyboard.dismiss();
-    onClose();
+    try {
+      await createFolderMutation.mutateAsync({
+        name: newFolderName.trim(),
+        userId,
+      });
+    } catch (error) {
+      console.error("Error creating folder:", error);
+    }
   };
 
   return (
@@ -51,8 +61,13 @@ const CreateFolderForm: React.FC<CreateFolderFormProps> = ({
       <TouchableOpacity
         style={styles.saveFolderButton}
         onPress={handleCreateFolder}
+        disabled={createFolderMutation.isPending}
       >
-        <Text style={styles.saveFolderButtonText}>Save Folder</Text>
+        {createFolderMutation.isPending ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.saveFolderButtonText}>Save Folder</Text>
+        )}
       </TouchableOpacity>
     </View>
   );

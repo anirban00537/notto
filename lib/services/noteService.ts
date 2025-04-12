@@ -1,56 +1,50 @@
-import firestore from "@react-native-firebase/firestore";
-import {
-  collection,
-  query,
-  where,
-  addDoc,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  doc,
-} from "@react-native-firebase/firestore";
+import request from "./request";
 
+// Types
 export interface Note {
   id: string;
   title: string;
   content: string;
-  createdAt: Date;
-  icon?: string;
-  folderId?: string;
   userId: string;
+  folderId?: string;
+  icon?: string;
+  createdAt: Date;
+  updatedAt?: Date;
 }
 
-const notesCollection = collection(firestore(), "notes");
+export interface CreateNoteDto {
+  title: string;
+  content: string;
+  userId: string;
+  folderId?: string;
+  icon?: string;
+}
 
-export const createNote = async (note: Omit<Note, "id">) => {
-  const docRef = await addDoc(notesCollection, {
-    ...note,
-    createdAt: firestore.FieldValue.serverTimestamp(),
-  });
-  return { ...note, id: docRef.id };
+// API Services
+export const getAllNotes = async (userId: string, folderId?: string) => {
+  const params = folderId ? { folderId } : {};
+  const response = await request.get("/notes", { params });
+  return response.data;
 };
 
-export const getNotes = async (userId: string, folderId?: string) => {
-  let q = query(notesCollection, where("userId", "==", userId));
-
-  if (folderId) {
-    q = query(q, where("folderId", "==", folderId));
-  }
-
-  const snapshot = await getDocs(q);
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-    createdAt: doc.data().createdAt?.toDate() || new Date(),
-  })) as Note[];
+export const getNoteById = async (id: string) => {
+  const response = await request.get(`/notes/${id}`);
+  return response.data;
 };
 
-export const updateNote = async (id: string, data: Partial<Note>) => {
-  const docRef = doc(notesCollection, id);
-  await updateDoc(docRef, data);
+export const createNote = async (newNote: CreateNoteDto) => {
+  const response = await request.post("/notes", newNote);
+  return response.data;
+};
+
+export const updateNote = async (
+  id: string,
+  updateData: Partial<CreateNoteDto>
+) => {
+  const response = await request.put(`/notes/${id}`, updateData);
+  return response.data;
 };
 
 export const deleteNote = async (id: string) => {
-  const docRef = doc(notesCollection, id);
-  await deleteDoc(docRef);
+  await request.delete(`/notes/${id}`);
 };

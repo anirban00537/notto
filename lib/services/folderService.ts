@@ -1,44 +1,51 @@
-import firestore from "@react-native-firebase/firestore";
-import {
-  collection,
-  query,
-  where,
-  addDoc,
-  getDocs,
-  updateDoc,
-  deleteDoc,
-  doc,
-} from "@react-native-firebase/firestore";
+import request from "./request";
+import { AxiosError } from "axios";
 
+// Types
 export interface Folder {
   id: string;
   name: string;
   userId: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-const foldersCollection = collection(firestore(), "folders");
+export interface CreateFolderDto {
+  name: string;
+  userId: string;
+}
 
-export const createFolder = async (folder: Omit<Folder, "id">) => {
-  const docRef = await addDoc(foldersCollection, folder);
-  return { ...folder, id: docRef.id };
+// API Services
+export const getAllFolders = async () => {
+  const response = await request.get("/folders");
+  return response.data;
 };
 
-export const getFolders = async (userId: string) => {
-  const q = query(foldersCollection, where("userId", "==", userId));
-  const snapshot = await getDocs(q);
-
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as Folder[];
+export const getFolderById = async (id: string) => {
+  const response = await request.get(`/folders/${id}`);
+  return response.data;
 };
 
-export const updateFolder = async (id: string, data: Partial<Folder>) => {
-  const docRef = doc(foldersCollection, id);
-  await updateDoc(docRef, data);
+export const createFolder = async (newFolder: CreateFolderDto) => {
+  try {
+    console.log("Creating folder with data:", newFolder);
+    console.log("Request URL:", request.defaults.baseURL + "/folders");
+    const response = await request.post("/folders", newFolder);
+    return response.data;
+  } catch (error) {
+    console.error("Full Axios Error:", error);
+    throw error;
+  }
+};
+
+export const updateFolder = async (
+  id: string,
+  updateData: Partial<CreateFolderDto>
+) => {
+  const response = await request.put(`/folders/${id}`, updateData);
+  return response.data;
 };
 
 export const deleteFolder = async (id: string) => {
-  const docRef = doc(foldersCollection, id);
-  await deleteDoc(docRef);
+  await request.delete(`/folders/${id}`);
 };

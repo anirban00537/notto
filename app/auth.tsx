@@ -24,18 +24,30 @@ const AuthComponent = () => {
     try {
       setLoading(true);
       setError(null);
+
+      // Sign out from previous sessions
       await GoogleSignin.signOut();
       await GoogleSignin.hasPlayServices({
         showPlayServicesUpdateDialog: true,
       });
+
+      // Sign in with Google
       const googleSignInResult = await GoogleSignin.signIn();
+
+      // Sign in to Firebase
       const googleCredential = auth.GoogleAuthProvider.credential(
         googleSignInResult.data?.idToken ?? null
       );
       await auth().signInWithCredential(googleCredential);
-    } catch (error) {
-      console.error(error);
-      setError("Something went wrong. Please try again.");
+    } catch (error: any) {
+      console.error("Auth error:", error);
+      if (error.code === "auth/network-request-failed") {
+        setError("Network error. Please check your connection.");
+      } else if (error.code === "auth/user-disabled") {
+        setError("This account has been disabled.");
+      } else {
+        setError("Failed to sign in. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
