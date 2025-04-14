@@ -30,10 +30,10 @@ const FolderModals: React.FC<FolderModalsProps> = ({
   const folderArray = Array.isArray(folders) ? folders : [];
 
   const folderItems: FolderItem[] = [
-    { id: "all", name: "All Notes", icon: "format-list-bulleted", userId },
+    { id: "all", name: "All Notes", icon: "view-list", userId },
     ...folderArray.map((folder) => ({
       ...folder,
-      icon: "folder-outline" as const,
+      icon: "folder" as const,
     })),
   ];
 
@@ -46,8 +46,10 @@ const FolderModals: React.FC<FolderModalsProps> = ({
           createModalRef.current?.open();
         }, 150);
       }}
+      activeOpacity={0.6}
+      hitSlop={{top: 15, bottom: 15, left: 15, right: 15}}
     >
-      <MaterialCommunityIcons name="plus" size={22} color="#555" />
+      <MaterialCommunityIcons name="folder-plus" size={22} color="#555" />
       <Text style={styles.createFolderButtonText}>Create New Folder</Text>
     </TouchableOpacity>
   );
@@ -111,35 +113,52 @@ const FolderModals: React.FC<FolderModalsProps> = ({
 
 const styles = StyleSheet.create({
   drawerHeader: {
-    padding: 16,
+    padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: "#f0f0f0",
     backgroundColor: "#fff",
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   drawerTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#333",
+    color: "#1a1a1a",
     textAlign: "center",
+    letterSpacing: 0.5,
   },
   listDrawerContent: {
-    paddingVertical: 12,
+    paddingVertical: 8,
+    backgroundColor: "#fafafa",
   },
   createFolderButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
+    paddingVertical: 16,
     paddingHorizontal: 24,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: "#f0f0f0",
     marginBottom: 8,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    marginHorizontal: 16,
+    marginTop: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
   },
   createFolderButtonText: {
     fontSize: 16,
-    color: "#555",
+    color: "#1a1a1a",
     marginLeft: 16,
+    fontWeight: "500",
   },
 });
 

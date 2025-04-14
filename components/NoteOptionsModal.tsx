@@ -24,7 +24,6 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
       const newNote = await createNote({
         title: "New PDF Note",
         content: "",
-        createdAt: new Date(),
         icon: "pdf",
         userId: user.uid,
       });

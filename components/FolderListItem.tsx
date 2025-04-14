@@ -3,7 +3,7 @@ import { TouchableOpacity, Text, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Folder } from "../lib/services/folderService";
 
-type IconName = "format-list-bulleted" | "folder-outline" | "plus" | "check";
+type IconName = "format-list-bulleted" | "folder-outline" | "plus" | "check" | "folder" | "view-list";
 
 export interface FolderItem extends Folder {
   icon: IconName;
@@ -27,6 +27,8 @@ const FolderListItem: React.FC<FolderListItemProps> = ({
         isSelected && styles.selectedFolderListItem,
       ]}
       onPress={() => onSelect(item.id)}
+      activeOpacity={0.6}
+      hitSlop={{top: 15, bottom: 15, left: 15, right: 15}}
     >
       <MaterialCommunityIcons
         name={item.icon}
