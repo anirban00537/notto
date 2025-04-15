@@ -1964,6 +1964,11 @@
   dependencies:
     merge-options "^3.0.4"
 
+"@react-native-documents/picker@^10.1.2":
+  version "10.1.2"
+  resolved "https://registry.yarnpkg.com/@react-native-documents/picker/-/picker-10.1.2.tgz#2ebbf1eccc7e9efa3690e35ab5f0a811411a57b8"
+  integrity sha512-JzbFmFp0SmG0FEKt4Q62trewHMFpas2zAX0n5EANwrU9kondnzAEF7/xxz2EA2tfZNwnkHelqG8A7iedGleMRw==
+
 "@react-native-firebase/app@^21.13.0":
   version "21.13.0"
   resolved "https://registry.yarnpkg.com/@react-native-firebase/app/-/app-21.13.0.tgz#25247c0a8200fbfcf7dd22a5b627af20bea7c352"

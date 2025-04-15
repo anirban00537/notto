@@ -13,6 +13,21 @@ const request = axios.create({
   },
 });
 
+// Log all outgoing requests with full URL
+request.interceptors.request.use(
+  (config) => {
+    const fullUrl = config.baseURL
+      ? config.baseURL.replace(/\/$/, "") + (config.url || "")
+      : config.url;
+    const token = config.headers?.Authorization || request.defaults.headers.common["Authorization"];
+    console.log("[API REQUEST]", config.method?.toUpperCase(), fullUrl, token ? `Bearer: ${token}` : "No Bearer Token");
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 // Initialize token from AsyncStorage
 const initializeToken = async () => {
   try {

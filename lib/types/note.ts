@@ -92,9 +92,13 @@ export interface Note {
   lastEditedBy?: string;
 }
 
-export interface CreateNoteDto extends Partial<Note> {
-  userId: string;
-  title: string;
+export interface CreateNoteDto  {
   noteType: NoteType;
-  status?: NoteStatus;
+  youtubeUrl?: string;
+  file?: {
+    uri: string;
+    name: string;
+    mimeType: string;
+    type: string;
+  };
 }

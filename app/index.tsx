@@ -23,11 +23,11 @@ import { useUser } from "./context/UserContext";
 import {
   getAllFolders,
   createFolder,
-  Folder,
 } from "../lib/services/folderService";
-import { getAllNotes, createNote } from "../lib/services/noteService";
+import { Folder } from "../lib/types/folder";
+import { getAllNotes } from "../lib/services/noteService";
 
-export default function App() {
+export default function Note() {
   const { user, loading } = useUser();
   const [selectedFolderId, setSelectedFolderId] = useState<string>("all");
   const noteOptionsModalRef = useRef<Modalize>(null);
@@ -42,14 +42,11 @@ export default function App() {
     queryFn: getAllFolders,
   });
   const folders = foldersResponse?.data || [];
-  console.log("Folders:", folders);
 
   const createFolderMutation = useMutation({
     mutationFn: createFolder,
     onSuccess: () => {
-      // Invalidate and refetch
       queryClient.invalidateQueries({ queryKey: ["folders"] });
-      // Force immediate refetch
       refetchFolders();
     },
   });
@@ -58,49 +55,17 @@ export default function App() {
     queryKey: ["notes", { userId: user?.uid, folderId: selectedFolderId }],
     queryFn: () =>
       getAllNotes(
-        user?.uid || "",
         selectedFolderId === "all" ? undefined : selectedFolderId
       ),
     enabled: !!user?.uid,
-  });
-
-  const createNoteMutation = useMutation({
-    mutationFn: createNote,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notes"] });
-    },
   });
 
   const onOpenNoteOptions = () => {
     noteOptionsModalRef.current?.open();
   };
 
-  const handleOptionPress = async (option: string) => {
-    if (!user) return;
-
-    try {
-      await createNoteMutation.mutateAsync({
-        title: `New ${option} Note`,
-        content: "",
-        userId: user.uid,
-        folderId: selectedFolderId === "all" ? undefined : selectedFolderId,
-        icon: option.toLowerCase(),
-      });
-      noteOptionsModalRef.current?.close();
-    } catch (error) {
-      console.error("Error creating note:", error);
-    }
-  };
-
   const openFolderDrawer = () => {
     folderDrawerRef.current?.open();
-  };
-
-  const openCreateDrawer = () => {
-    folderDrawerRef.current?.close();
-    setTimeout(() => {
-      createFolderModalRef.current?.open();
-    }, 150);
   };
 
   const handleCreateFolder = async () => {
@@ -114,7 +79,6 @@ export default function App() {
       setNewFolderName("");
       Keyboard.dismiss();
       createFolderModalRef.current?.close();
-      // Force a refetch after creating folder
       refetchFolders();
     } catch (error) {
       console.error("Error creating folder:", error);
@@ -122,7 +86,7 @@ export default function App() {
   };
 
   if (loading) {
-    return null; // or a loading spinner
+    return null;
   }
 
   if (!user) {
@@ -184,7 +148,7 @@ export default function App() {
 
         {notes.length > 0 && <Text style={styles.sectionTitle}>Notes</Text>}
 
-        {!notes.length? (
+        {!notes.length ? (
           <View style={styles.emptyStateContainer}>
             <View style={styles.emptyStateIconContainer}>
               <MaterialCommunityIcons
@@ -250,7 +214,6 @@ export default function App() {
 
       <NoteOptionsModal
         modalRef={noteOptionsModalRef}
-        onOptionPress={handleOptionPress}
       />
 
       <FolderModals
