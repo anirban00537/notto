@@ -53,10 +53,13 @@ export default function Note() {
 
   const { data: notes = [] } = useQuery({
     queryKey: ["notes", { userId: user?.uid, folderId: selectedFolderId }],
-    queryFn: () =>
-      getAllNotes(
-        selectedFolderId === "all" ? undefined : selectedFolderId
-      ),
+    queryFn: async () => {
+      const response = await getAllNotes(
+        
+      );
+      console.log("Notes API response:", response);
+      return response.data || [];
+    },
     enabled: !!user?.uid,
   });
 
@@ -176,14 +179,16 @@ export default function Note() {
                 }}
                 asChild
               >
-                <NoteCard
-                  id={item.id}
-                  title={item.title}
-                  content={item.content}
-                  createdAt={new Date(item.createdAt)}
-                  icon={item.icon}
-                  onPress={() => {}}
-                />
+                <View>
+                  <NoteCard
+                    id={item.id}
+                    title={item.title}
+                    content={item.content}
+                    createdAt={new Date(item.createdAt?._seconds ? item.createdAt._seconds * 1000 : item.createdAt)}
+                    icon={item.icon || item.noteType}
+                    onPress={() => {}}
+                  />
+                </View>
               </Link>
             )}
           />

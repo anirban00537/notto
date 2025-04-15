@@ -2,9 +2,9 @@ import request from "./request";
 import { Note, NoteType, NoteStatus, CreateNoteDto } from "../types/note";
 
 // API Services
-export const getAllNotes = async (folderId?: string) => {
-  const params = folderId ? { folderId } : {};
-  const response = await request.get("/notes", { params });
+export const getAllNotes = async () => {
+  
+  const response = await request.get("/notes");
   return response.data;
 };
 
