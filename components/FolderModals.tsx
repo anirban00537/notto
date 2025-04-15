@@ -2,7 +2,7 @@ import React, { RefObject, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Modalize } from "react-native-modalize";
-import { Folder } from "../lib/services/folderService";
+import { Folder } from "../lib/types/folder";
 import FolderListItem, { FolderItem } from "./FolderListItem";
 import CreateFolderForm from "./CreateFolderForm";
 import { useQueryClient } from "@tanstack/react-query";
@@ -30,7 +30,7 @@ const FolderModals: React.FC<FolderModalsProps> = ({
   const folderArray = Array.isArray(folders) ? folders : [];
 
   const folderItems: FolderItem[] = [
-    { id: "all", name: "All Notes", icon: "view-list", userId },
+    { id: "all" as const, name: "All Notes", icon: "view-list" as const, userId },
     ...folderArray.map((folder) => ({
       ...folder,
       icon: "folder" as const,

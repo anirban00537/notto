@@ -1,27 +1,9 @@
 import request from "./request";
+import { Note, NoteType, NoteStatus, CreateNoteDto } from "../types/note";
 
-// Types
-export interface Note {
-  id: string;
-  title: string;
-  content: string;
-  userId: string;
-  folderId?: string;
-  icon?: string;
-  createdAt: Date;
-  updatedAt?: Date;
-}
-
-export interface CreateNoteDto {
-  title: string;
-  content: string;
-  userId: string;
-  folderId?: string;
-  icon?: string;
-}
 
 // API Services
-export const getAllNotes = async (userId: string, folderId?: string) => {
+export const getAllNotes = async (folderId?: string) => {
   const params = folderId ? { folderId } : {};
   const response = await request.get("/notes", { params });
   return response.data;

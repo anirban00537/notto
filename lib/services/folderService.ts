@@ -1,19 +1,6 @@
 import request from "./request";
 import { AxiosError } from "axios";
-
-// Types
-export interface Folder {
-  id: string;
-  name: string;
-  userId: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-export interface CreateFolderDto {
-  name: string;
-  userId: string;
-}
+import { Folder, CreateFolderDto } from "../types/folder";
 
 // API Services
 export const getAllFolders = async () => {

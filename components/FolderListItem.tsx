@@ -1,13 +1,14 @@
 import React from "react";
 import { TouchableOpacity, Text, StyleSheet, Alert } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Folder } from "../lib/services/folderService";
+import { Folder } from "../lib/types/folder";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteFolder } from "../lib/services/folderService";
 
 type IconName = "format-list-bulleted" | "folder-outline" | "plus" | "check" | "folder" | "view-list";
 
-export interface FolderItem extends Folder {
+export interface FolderItem extends Omit<Folder, 'id'> {
+  id: string;
   icon: IconName;
 }
 
