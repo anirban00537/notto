@@ -49,7 +49,7 @@ const FolderModals: React.FC<FolderModalsProps> = ({
       activeOpacity={0.6}
       hitSlop={{top: 15, bottom: 15, left: 15, right: 15}}
     >
-      <MaterialCommunityIcons name="folder-plus" size={22} color="#555" />
+      <MaterialCommunityIcons name="folder-plus" size={22} color="#fff" />
       <Text style={styles.createFolderButtonText}>Create New Folder</Text>
     </TouchableOpacity>
   );
@@ -57,6 +57,11 @@ const FolderModals: React.FC<FolderModalsProps> = ({
   const handleFolderSelect = (id: string) => {
     onFolderSelect(id);
     listModalRef.current?.close();
+  };
+
+  const handleFolderDelete = (id: string) => {
+    // Refetch folders after deletion
+    queryClient.refetchQueries({ queryKey: ["folders"] });
   };
 
   const handleCreateFolderClose = () => {
@@ -88,6 +93,7 @@ const FolderModals: React.FC<FolderModalsProps> = ({
               item={item}
               isSelected={selectedFolderId === item.id}
               onSelect={handleFolderSelect}
+              onDelete={handleFolderDelete}
             />
           ),
           style: styles.listDrawerContent,
@@ -116,7 +122,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
-    backgroundColor: "#fff",
+    backgroundColor: "#f0f7ff",
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     shadowColor: "#000",
@@ -134,31 +140,29 @@ const styles = StyleSheet.create({
   },
   listDrawerContent: {
     paddingVertical: 8,
-    backgroundColor: "#fafafa",
+    backgroundColor: "#f0f7ff",
   },
   createFolderButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-    marginBottom: 8,
-    backgroundColor: "#fff",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderWidth: 1,
+    borderColor: "#2c3e50",
+    backgroundColor: "#2c3e50",
     borderRadius: 12,
     marginHorizontal: 16,
-    marginTop: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 1,
+    marginTop: 10,
+    marginBottom: 10,
+    transitionProperty: 'transform',
+    transitionDuration: '150ms',
   },
   createFolderButtonText: {
     fontSize: 16,
-    color: "#1a1a1a",
+    color: "#fff",
     marginLeft: 16,
-    fontWeight: "500",
+    fontWeight: "600",
+    letterSpacing: 0.3,
   },
 });
 

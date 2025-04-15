@@ -184,7 +184,7 @@ export default function App() {
 
         {notes.length > 0 && <Text style={styles.sectionTitle}>Notes</Text>}
 
-        {notes.length === 0 ? (
+        {!notes.length? (
           <View style={styles.emptyStateContainer}>
             <View style={styles.emptyStateIconContainer}>
               <MaterialCommunityIcons
