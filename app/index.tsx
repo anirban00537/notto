@@ -4,26 +4,25 @@ import {
   View,
   Text,
   FlatList,
-  TouchableOpacity,
   SafeAreaView,
   StatusBar,
   Platform,
-  Keyboard,
+  TouchableOpacity,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Modalize } from "react-native-modalize";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Link, router } from "expo-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "expo-router";
 import AuthComponent from "./auth";
 import FolderModals from "../components/FolderModals";
 import NoteCard from "../components/NoteCard";
 import NoteOptionsModal from "../components/NoteOptionsModal";
 import { useUser } from "./context/UserContext";
-import { getAllFolders, createFolder } from "../lib/services/folderService";
 import { Folder } from "../lib/types/folder";
-import { getAllNotes } from "../lib/services/noteService";
 import LoadingScreen from "../components/LoadingScreen";
+import { HomeHeader } from "../components/HomeHeader";
+import { useNotes } from "../hooks/useNotes";
+import { useFolders } from "../hooks/useFolders";
 
 export default function Note() {
   const { user, loading } = useUser();
@@ -31,33 +30,14 @@ export default function Note() {
   const noteOptionsModalRef = useRef<Modalize>(null);
   const folderDrawerRef = useRef<Modalize>(null);
   const createFolderModalRef = useRef<Modalize>(null);
-  const [newFolderName, setNewFolderName] = useState<string>("");
-  const queryClient = useQueryClient();
 
-  // Use TanStack Query directly
-  const { data: foldersResponse, refetch: refetchFolders } = useQuery({
-    queryKey: ["folders"],
-    queryFn: getAllFolders,
-  });
-  const folders = foldersResponse?.data || [];
+  const { folders, newFolderName, setNewFolderName, handleCreateFolder } =
+    useFolders();
 
-  const createFolderMutation = useMutation({
-    mutationFn: createFolder,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["folders"] });
-      refetchFolders();
-    },
-  });
-
-  const { data: notes = [], isLoading: isNotesLoading } = useQuery({
-    queryKey: ["notes", { userId: user?.uid, folderId: selectedFolderId }],
-    queryFn: async () => {
-      const response = await getAllNotes();
-      console.log("Notes API response:", response);
-      return response.data || [];
-    },
-    enabled: !!user?.uid,
-  });
+  const { data: notes = [], isLoading: isNotesLoading } = useNotes(
+    user?.uid,
+    selectedFolderId
+  );
 
   const onOpenNoteOptions = () => {
     noteOptionsModalRef.current?.open();
@@ -65,23 +45,6 @@ export default function Note() {
 
   const openFolderDrawer = () => {
     folderDrawerRef.current?.open();
-  };
-
-  const handleCreateFolder = async () => {
-    if (!user || newFolderName.trim() === "") return;
-
-    try {
-      await createFolderMutation.mutateAsync({
-        name: newFolderName.trim(),
-        userId: user.uid,
-      });
-      setNewFolderName("");
-      Keyboard.dismiss();
-      createFolderModalRef.current?.close();
-      refetchFolders();
-    } catch (error) {
-      console.error("Error creating folder:", error);
-    }
   };
 
   if (loading) {
@@ -105,45 +68,10 @@ export default function Note() {
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor="#f0f7ff" />
 
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.folderButton}
-            onPress={openFolderDrawer}
-            activeOpacity={0.7}
-          >
-            <MaterialCommunityIcons
-              name="folder-outline"
-              size={22}
-              color="#555"
-            />
-            <Text style={styles.folderName}>{selectedFolder.name}</Text>
-            <MaterialCommunityIcons
-              name="chevron-down"
-              size={20}
-              color="#555"
-            />
-          </TouchableOpacity>
-          <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.proButton}>
-              <MaterialCommunityIcons
-                name="rocket-launch"
-                size={16}
-                color="#fff"
-              />
-              <Text style={styles.proText}>PRO</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.profileButton}
-              onPress={() => router.push("/settings")}
-            >
-              <MaterialCommunityIcons
-                name="cog-outline"
-                size={22}
-                color="#555"
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
+        <HomeHeader
+          selectedFolder={selectedFolder}
+          onFolderPress={openFolderDrawer}
+        />
 
         {notes.length > 0 && <Text style={styles.sectionTitle}>Notes</Text>}
 
