@@ -3,7 +3,13 @@ import { ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { getNoteById } from "../lib/services/noteService";
 
-type ContentTab = "note" | "transcript" | "chat" | "summary";
+type ContentTab =
+  | "note"
+  | "transcript"
+  | "chat"
+  | "summary"
+  | "quiz"
+  | "flashcards";
 
 interface IconProps {
   name: string;

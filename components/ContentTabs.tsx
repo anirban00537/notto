@@ -1,8 +1,20 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+} from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-type TabName = "note" | "transcript" | "chat" | "summary";
+type TabName =
+  | "note"
+  | "transcript"
+  | "chat"
+  | "summary"
+  | "quiz"
+  | "flashcards";
 
 const TABS: {
   name: TabName;
@@ -13,6 +25,8 @@ const TABS: {
   { name: "transcript", label: "Transcript", icon: "script-text-outline" },
   { name: "chat", label: "Chat", icon: "message-text-outline" },
   { name: "summary", label: "Summary", icon: "text-box-outline" },
+  { name: "quiz", label: "Quiz", icon: "help-circle-outline" },
+  { name: "flashcards", label: "Flashcards", icon: "card-text-outline" },
 ];
 
 interface ContentTabsProps {
@@ -26,33 +40,39 @@ export default function ContentTabs({
 }: ContentTabsProps) {
   return (
     <View style={styles.container}>
-      <View style={styles.tabsContainer}>
-        {TABS.map((tab) => (
-          <TouchableOpacity
-            key={tab.name}
-            style={[styles.tab, activeTab === tab.name && styles.activeTab]}
-            onPress={() => onTabPress(tab.name)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.tabContent}>
-              <MaterialCommunityIcons
-                name={tab.icon}
-                size={16}
-                color={activeTab === tab.name ? "#fff" : "#2c3e50"}
-                style={styles.tabIcon}
-              />
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === tab.name && styles.activeTabText,
-                ]}
-              >
-                {tab.label}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <View style={styles.tabsContainer}>
+          {TABS.map((tab) => (
+            <TouchableOpacity
+              key={tab.name}
+              style={[styles.tab, activeTab === tab.name && styles.activeTab]}
+              onPress={() => onTabPress(tab.name)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.tabContent}>
+                <MaterialCommunityIcons
+                  name={tab.icon}
+                  size={16}
+                  color={activeTab === tab.name ? "#fff" : "#2c3e50"}
+                  style={styles.tabIcon}
+                />
+                <Text
+                  style={[
+                    styles.tabText,
+                    activeTab === tab.name && styles.activeTabText,
+                  ]}
+                >
+                  {tab.label}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -62,6 +82,9 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     paddingHorizontal: 16,
     paddingVertical: 8,
+  },
+  scrollContent: {
+    paddingHorizontal: 4,
   },
   tabsContainer: {
     flexDirection: "row",

@@ -90,6 +90,20 @@ export default function NoteDetailScreen() {
             )}
           </View>
         )}
+        {activeContentTab === "quiz" && (
+          <View style={styles.textContentPadding}>
+            <Text style={styles.noteContentText}>
+              Quiz feature coming soon...
+            </Text>
+          </View>
+        )}
+        {activeContentTab === "flashcards" && (
+          <View style={styles.textContentPadding}>
+            <Text style={styles.noteContentText}>
+              Flashcards feature coming soon...
+            </Text>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
