@@ -10,6 +10,7 @@ import YouTubePreview from "../../components/YouTubePreview";
 import ActionButtons from "../../components/ActionButtons";
 import NoteTitleSection from "../../components/NoteTitleSection";
 import ContentTabs from "../../components/ContentTabs";
+import TranscriptContent from "../../components/TranscriptContent";
 
 export default function NoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -83,11 +84,7 @@ export default function NoteDetailScreen() {
           </>
         )}
         {activeContentTab === "transcript" && (
-          <View style={styles.textContentPadding}>
-            <Text style={styles.noteContentText}>
-              {note.transcript || "Transcript content would go here..."}
-            </Text>
-          </View>
+          <TranscriptContent transcript={note.fullText} />
         )}
         {activeContentTab === "chat" && (
           <View style={styles.textContentPadding}>
