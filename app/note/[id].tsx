@@ -68,18 +68,6 @@ export default function NoteDetailScreen() {
                   <Text style={styles.noteContentText}>{note.note}</Text>
                 </View>
               )}
-              {note.summary && (
-                <View style={styles.contentSection}>
-                  <Text style={styles.sectionTitle}>Summary</Text>
-                  <Text style={styles.noteContentText}>{note.summary}</Text>
-                </View>
-              )}
-              {note.fullText && (
-                <View style={styles.contentSection}>
-                  <Text style={styles.sectionTitle}>Full Text</Text>
-                  <Text style={styles.noteContentText}>{note.fullText}</Text>
-                </View>
-              )}
             </View>
           </>
         )}
@@ -91,6 +79,15 @@ export default function NoteDetailScreen() {
             <Text style={styles.noteContentText}>
               Chat content would go here...
             </Text>
+          </View>
+        )}
+        {activeContentTab === "summary" && (
+          <View style={styles.textContentPadding}>
+            {note.summary ? (
+              <Text style={styles.noteContentText}>{note.summary}</Text>
+            ) : (
+              <Text style={styles.noteContentText}>No summary available</Text>
+            )}
           </View>
         )}
       </ScrollView>

@@ -2,7 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-type TabName = "note" | "transcript" | "chat";
+type TabName = "note" | "transcript" | "chat" | "summary";
 
 const TABS: {
   name: TabName;
@@ -12,6 +12,7 @@ const TABS: {
   { name: "note", label: "Note", icon: "note-text-outline" },
   { name: "transcript", label: "Transcript", icon: "script-text-outline" },
   { name: "chat", label: "Chat", icon: "message-text-outline" },
+  { name: "summary", label: "Summary", icon: "text-box-outline" },
 ];
 
 interface ContentTabsProps {
