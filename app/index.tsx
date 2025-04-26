@@ -20,12 +20,10 @@ import FolderModals from "../components/FolderModals";
 import NoteCard from "../components/NoteCard";
 import NoteOptionsModal from "../components/NoteOptionsModal";
 import { useUser } from "./context/UserContext";
-import {
-  getAllFolders,
-  createFolder,
-} from "../lib/services/folderService";
+import { getAllFolders, createFolder } from "../lib/services/folderService";
 import { Folder } from "../lib/types/folder";
 import { getAllNotes } from "../lib/services/noteService";
+import LoadingScreen from "../components/LoadingScreen";
 
 export default function Note() {
   const { user, loading } = useUser();
@@ -51,12 +49,10 @@ export default function Note() {
     },
   });
 
-  const { data: notes = [] } = useQuery({
+  const { data: notes = [], isLoading: isNotesLoading } = useQuery({
     queryKey: ["notes", { userId: user?.uid, folderId: selectedFolderId }],
     queryFn: async () => {
-      const response = await getAllNotes(
-        
-      );
+      const response = await getAllNotes();
       console.log("Notes API response:", response);
       return response.data || [];
     },
@@ -89,7 +85,7 @@ export default function Note() {
   };
 
   if (loading) {
-    return null;
+    return <LoadingScreen />;
   }
 
   if (!user) {
@@ -151,7 +147,11 @@ export default function Note() {
 
         {notes.length > 0 && <Text style={styles.sectionTitle}>Notes</Text>}
 
-        {!notes.length ? (
+        {isNotesLoading ? (
+          <View style={styles.emptyStateContainer}>
+            <LoadingScreen />
+          </View>
+        ) : !notes.length ? (
           <View style={styles.emptyStateContainer}>
             <View style={styles.emptyStateIconContainer}>
               <MaterialCommunityIcons
@@ -184,7 +184,13 @@ export default function Note() {
                     id={item.id}
                     title={item.title}
                     content={item.content}
-                    createdAt={new Date(item.createdAt?._seconds ? item.createdAt._seconds * 1000 : item.createdAt)}
+                    createdAt={
+                      new Date(
+                        item.createdAt?._seconds
+                          ? item.createdAt._seconds * 1000
+                          : item.createdAt
+                      )
+                    }
                     icon={item.icon || item.noteType}
                     onPress={() => {}}
                   />
@@ -217,9 +223,7 @@ export default function Note() {
         </View>
       </SafeAreaView>
 
-      <NoteOptionsModal
-        modalRef={noteOptionsModalRef}
-      />
+      <NoteOptionsModal modalRef={noteOptionsModalRef} />
 
       <FolderModals
         listModalRef={folderDrawerRef}
