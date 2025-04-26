@@ -1,17 +1,8 @@
-import React, { useRef } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Platform,
-  Linking,
-  Alert,
-} from "react-native";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context"; // Use this for better edge handling
-import { getNoteById } from "../../lib/services/noteService";
+import React from "react";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { Stack, useLocalSearchParams } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useNoteDetail } from "../../hooks/useNoteDetail";
 
 // Import the new components
 import NoteDetailHeader from "../../components/NoteDetailHeader";
@@ -22,67 +13,28 @@ import ContentTabs from "../../components/ContentTabs";
 
 export default function NoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const router = useRouter();
-  const scrollViewRef = useRef<ScrollView>(null);
-  const [note, setNote] = React.useState<any>(null);
-  const [loading, setLoading] = React.useState(true);
-  const [activeContentTab, setActiveContentTab] = React.useState<
-    "note" | "transcript" | "chat"
-  >("note");
-
-  React.useEffect(() => {
-    if (!id) return;
-    (async () => {
-      try {
-        const data = await getNoteById(id);
-        setNote(data?.data);
-      } catch (e) {
-        console.error("Error fetching note:", e);
-        setNote(null);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [id]);
+  const {
+    note,
+    loading,
+    activeContentTab,
+    scrollViewRef,
+    iconProps,
+    handleTabPress,
+    handleOptionsPress,
+    handleNoteToolsPress,
+    handleEditNotePress,
+    handleBackPress,
+  } = useNoteDetail(id);
 
   if (loading) return <Text>Loading...</Text>;
   if (!note) return <Text>Note not found</Text>;
-
-  const handleTabPress = (tab: "note" | "transcript" | "chat") => {
-    setActiveContentTab(tab);
-    scrollViewRef.current?.scrollTo({ y: 0, animated: true });
-  };
-
-  const getIconProps = (iconType?: string) => {
-    switch (iconType) {
-      case "pdf":
-        return { name: "file-pdf-box", color: "#D32F2F", bgColor: "#FFEBEE" };
-      case "audio":
-        return {
-          name: "file-music-outline",
-          color: "#1976D2",
-          bgColor: "#E3F2FD",
-        };
-      case "youtube":
-        return { name: "youtube", color: "#FF0000", bgColor: "#FFEBEE" };
-      case "palette":
-        return { name: "palette", color: "#EB6C3E", bgColor: "#FFF5EC" };
-      default:
-        return { name: "note-text-outline", color: "#888", bgColor: "#f0f0f0" };
-    }
-  };
-  const iconProps = getIconProps(note.noteType || note.icon);
-
-  const handleOptionsPress = () => console.log("Options pressed");
-  const handleNoteToolsPress = () => console.log("Note Tools pressed");
-  const handleEditNotePress = () => console.log("Edit Note pressed");
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom", "left", "right"]}>
       <Stack.Screen options={{ headerShown: false }} />
       <NoteDetailHeader
         title={note.title}
-        onBackPress={() => router.back()}
+        onBackPress={handleBackPress}
         onOptionsPress={handleOptionsPress}
       />
       <ScrollView
