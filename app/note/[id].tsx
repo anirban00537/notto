@@ -47,8 +47,8 @@ export default function NoteDetailScreen() {
         <ContentTabs activeTab={activeContentTab} onTabPress={handleTabPress} />
         {activeContentTab === "note" && (
           <>
-            {note.youtubeUrl && (
-              <YouTubePreview directPlayableUrl={note.youtubeUrl} />
+            {note.sourceUrl && (
+              <YouTubePreview directPlayableUrl={note.sourceUrl} />
             )}
             <ActionButtons
               onNoteToolsPress={handleNoteToolsPress}
