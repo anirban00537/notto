@@ -11,6 +11,7 @@ import ActionButtons from "../../components/ActionButtons";
 import NoteTitleSection from "../../components/NoteTitleSection";
 import ContentTabs from "../../components/ContentTabs";
 import TranscriptContent from "../../components/TranscriptContent";
+import LoadingScreen from "@/components/LoadingScreen";
 
 export default function NoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -27,7 +28,7 @@ export default function NoteDetailScreen() {
     handleBackPress,
   } = useNoteDetail(id);
 
-  if (loading) return <Text>Loading...</Text>;
+  if (loading) return <LoadingScreen />;
   if (!note) return <Text>Note not found</Text>;
 
   return (
