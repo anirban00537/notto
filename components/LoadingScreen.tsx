@@ -1,45 +1,59 @@
 import React, { useEffect } from "react";
-import {
-  View,
-  ActivityIndicator,
-  StyleSheet,
-  Animated,
-  Easing,
-} from "react-native";
+import { View, StyleSheet, Animated, Easing } from "react-native";
 
 const LoadingScreen = () => {
-  const pulseAnim = new Animated.Value(1);
+  const waveAnim1 = new Animated.Value(0);
+  const waveAnim2 = new Animated.Value(0);
+  const waveAnim3 = new Animated.Value(0);
 
   useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1.3,
-          duration: 1000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
+    const createWaveAnimation = (anim: any) => {
+      return Animated.loop(
+        Animated.sequence([
+          Animated.timing(anim, {
+            toValue: 1,
+            duration: 1500,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(anim, {
+            toValue: 0,
+            duration: 1500,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      );
+    };
+
+    Animated.stagger(300, [
+      createWaveAnimation(waveAnim1),
+      createWaveAnimation(waveAnim2),
+      createWaveAnimation(waveAnim3),
+    ]).start();
   }, []);
+
+  const waveStyle = (anim: any) => ({
+    transform: [
+      {
+        scale: anim.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.8, 1.4],
+        }),
+      },
+    ],
+    opacity: anim.interpolate({
+      inputRange: [0, 0.5, 1],
+      outputRange: [0.8, 0.4, 0],
+    }),
+  });
 
   return (
     <View style={styles.container}>
-      <View style={styles.spinnerContainer}>
-        <Animated.View
-          style={[styles.glowContainer, { transform: [{ scale: pulseAnim }] }]}
-        />
-        <ActivityIndicator
-          size="large"
-          color="#2c3e50"
-          style={styles.spinner}
-        />
+      <View style={styles.waveContainer}>
+        <Animated.View style={[styles.wave, waveStyle(waveAnim1)]} />
+        <Animated.View style={[styles.wave, waveStyle(waveAnim2)]} />
+        <Animated.View style={[styles.wave, waveStyle(waveAnim3)]} />
       </View>
     </View>
   );
@@ -57,19 +71,16 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(240, 247, 255, 0.95)",
     zIndex: 9999,
   },
-  spinnerContainer: {
+  waveContainer: {
     alignItems: "center",
     justifyContent: "center",
   },
-  glowContainer: {
+  wave: {
     position: "absolute",
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "rgba(44, 62, 80, 0.2)",
-  },
-  spinner: {
-    transform: [{ scale: 1.5 }],
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#2c3e50",
   },
 });
 
