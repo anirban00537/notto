@@ -26,14 +26,16 @@ export default function NoteDetailScreen() {
   const scrollViewRef = useRef<ScrollView>(null);
   const [note, setNote] = React.useState<any>(null);
   const [loading, setLoading] = React.useState(true);
+  const [activeContentTab, setActiveContentTab] = React.useState<
+    "note" | "transcript" | "chat"
+  >("note");
 
   React.useEffect(() => {
     if (!id) return;
     (async () => {
       try {
         const data = await getNoteById(id);
-        console.log("Fetched note:", data);
-        setNote(data);
+        setNote(data?.data);
       } catch (e) {
         console.error("Error fetching note:", e);
         setNote(null);
@@ -45,10 +47,6 @@ export default function NoteDetailScreen() {
 
   if (loading) return <Text>Loading...</Text>;
   if (!note) return <Text>Note not found</Text>;
-
-  const [activeContentTab, setActiveContentTab] = React.useState<
-    "note" | "transcript" | "chat"
-  >("note");
 
   const handleTabPress = (tab: "note" | "transcript" | "chat") => {
     setActiveContentTab(tab);
@@ -111,15 +109,24 @@ export default function NoteDetailScreen() {
               iconBackgroundColor={iconProps.bgColor}
             />
             <View style={styles.textContentPadding}>
-              <Text style={styles.noteContentText}>
-                {note.content || note.fullText || note.summary || ""}
-              </Text>
-              <Text
-                style={{ fontSize: 12, color: "#888", marginTop: 16 }}
-                selectable
-              >
-                {JSON.stringify(note, null, 2)}
-              </Text>
+              {note.note && (
+                <View style={styles.contentSection}>
+                  <Text style={styles.sectionTitle}>Note</Text>
+                  <Text style={styles.noteContentText}>{note.note}</Text>
+                </View>
+              )}
+              {note.summary && (
+                <View style={styles.contentSection}>
+                  <Text style={styles.sectionTitle}>Summary</Text>
+                  <Text style={styles.noteContentText}>{note.summary}</Text>
+                </View>
+              )}
+              {note.fullText && (
+                <View style={styles.contentSection}>
+                  <Text style={styles.sectionTitle}>Full Text</Text>
+                  <Text style={styles.noteContentText}>{note.fullText}</Text>
+                </View>
+              )}
             </View>
           </>
         )}
@@ -157,6 +164,15 @@ const styles = StyleSheet.create({
   textContentPadding: {
     paddingHorizontal: 16,
     paddingVertical: 10,
+  },
+  contentSection: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#2c3e50",
+    marginBottom: 8,
   },
   noteContentText: {
     fontSize: 16,

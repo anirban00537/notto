@@ -12,7 +12,7 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Modalize } from "react-native-modalize";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import AuthComponent from "./auth";
 import FolderModals from "../components/FolderModals";
 import NoteCard from "../components/NoteCard";
@@ -26,6 +26,7 @@ import { useFolders } from "../hooks/useFolders";
 
 export default function Note() {
   const { user, loading } = useUser();
+  const router = useRouter();
   const [selectedFolderId, setSelectedFolderId] = useState<string>("all");
   const noteOptionsModalRef = useRef<Modalize>(null);
   const folderDrawerRef = useRef<Modalize>(null);
@@ -120,7 +121,7 @@ export default function Note() {
                       )
                     }
                     icon={item.icon || item.noteType}
-                    onPress={() => {}}
+                    onPress={() => router.push(`/note/${item.id}`)}
                   />
                 </View>
               </Link>
