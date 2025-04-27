@@ -72,6 +72,7 @@ export default function Note() {
   }) : { mutate: () => {}, isLoading: false };
 
   const handleAddYouTube = () => {
+    noteOptionsModalRef.current?.close();
     setYoutubeUrl("");
     setYoutubeModalVisible(true);
   };
