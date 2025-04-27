@@ -10,7 +10,10 @@
     "web": "expo start --web",
     "test": "jest --watchAll",
     "lint": "expo lint",
-    "run:android": "expo run:android --variant debug"
+    "prebuild": "npx expo prebuild --platform android",
+    "build:apk": "cd android && ./gradlew assembleRelease && cd ..",
+    "build:apk-debug": "cd android && ./gradlew assembleDebug && cd ..",
+    "clean:android": "cd android && ./gradlew clean && cd .."
   },
   "jest": {
     "preset": "jest-expo"
