@@ -13,29 +13,22 @@ export default function ActionButtons({
 }: ActionButtonsProps) {
   return (
     <View style={styles.actionButtonsContainer}>
+      <View style={styles.cancelButtonContainer}>
+        <TouchableOpacity onPress={onNoteToolsPress}>
+          <Text style={styles.cancelButtonText}>Cancel</Text>
+        </TouchableOpacity>
+      </View>
       <TouchableOpacity
-        style={[styles.actionButton, styles.noteToolsButton]}
-        onPress={onNoteToolsPress}
-      >
-        <MaterialCommunityIcons
-          name="creation"
-          size={18}
-          color="#fff"
-          style={{ transform: [{ rotate: "90deg" }], marginRight: 8 }}
-        />
-        <Text style={styles.noteToolsButtonText}>Note Tools</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[styles.actionButton, styles.editNoteButton]}
+        style={[styles.actionButton, styles.submitButton]}
         onPress={onEditNotePress}
       >
         <MaterialCommunityIcons
-          name="pencil-outline"
+          name="check"
           size={18}
-          color="#333"
+          color="#fff"
           style={{ marginRight: 8 }}
         />
-        <Text style={styles.editNoteButtonText}>Edit Note</Text>
+        <Text style={styles.submitButtonText}>Submit</Text>
       </TouchableOpacity>
     </View>
   );
@@ -61,17 +54,25 @@ const styles = StyleSheet.create({
   noteToolsButton: {
     backgroundColor: "#2c3e50",
   },
-  editNoteButton: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#e6f0ff",
+  submitButton: {
+    backgroundColor: "#2c3e50",
   },
   noteToolsButtonText: {
     color: "#fff",
     fontSize: 15,
     fontWeight: "600",
   },
-  editNoteButtonText: {
+  submitButtonText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  cancelButtonContainer: {
+    position: "absolute",
+    right: 16,
+    top: 12,
+  },
+  cancelButtonText: {
     color: "#2c3e50",
     fontSize: 15,
     fontWeight: "600",

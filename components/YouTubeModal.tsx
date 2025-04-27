@@ -49,8 +49,9 @@ const YouTubeModal: React.FC<YouTubeModalProps> = ({
         <View
           style={{
             flexDirection: "row",
-            justifyContent: "space-between",
             alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 24,
           }}
         >
           <Text style={styles.youtubeModalTitle}>Add YouTube Video</Text>
@@ -89,11 +90,11 @@ const YouTubeModal: React.FC<YouTubeModalProps> = ({
             />
             <View style={styles.actionButtonsContainer}>
               <TouchableOpacity
-                style={[styles.actionButton, styles.editNoteButton]}
+                style={[styles.actionButton, styles.submitButton]}
                 onPress={onSubmit}
                 disabled={loading}
               >
-                <Text style={styles.editNoteButtonText}>Submit</Text>
+                <Text style={styles.submitButtonText}>Submit</Text>
               </TouchableOpacity>
             </View>
           </>
@@ -119,10 +120,7 @@ const styles = StyleSheet.create({
   youtubeModalTitle: {
     fontSize: 20,
     fontWeight: "600",
-    marginBottom: 24,
     color: "#1a1a1a",
-    textAlign: "center",
-    position: "relative",
   },
   youtubeInput: {
     borderWidth: 1,
@@ -136,7 +134,6 @@ const styles = StyleSheet.create({
   actionButtonsContainer: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    paddingHorizontal: 16,
     marginBottom: 16,
   },
   actionButton: {
@@ -144,18 +141,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingHorizontal: 12,
     borderRadius: 12,
-    flex: 1,
-    marginHorizontal: 4,
+    marginHorizontal: 0,
   },
-  editNoteButton: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#e6f0ff",
+  submitButton: {
+    backgroundColor: "#2c3e50",
+    width: "100%",
   },
-  editNoteButtonText: {
-    color: "#2c3e50",
+  submitButtonText: {
+    color: "#fff",
     fontSize: 15,
     fontWeight: "600",
   },
