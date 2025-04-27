@@ -9,7 +9,6 @@ import {
 type ContentTab =
   | "note"
   | "transcript"
-  | "chat"
   | "summary"
   | "quiz"
   | "flashcards";

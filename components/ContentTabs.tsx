@@ -14,7 +14,6 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 type TabName =
   | "note"
   | "transcript"
-  | "chat"
   | "summary"
   | "quiz"
   | "flashcards";
@@ -26,7 +25,6 @@ const TABS: {
 }[] = [
   { name: "note", label: "Note", icon: "note-text-outline" },
   { name: "transcript", label: "Transcript", icon: "script-text-outline" },
-  { name: "chat", label: "Chat", icon: "message-text-outline" },
   { name: "summary", label: "Summary", icon: "text-box-outline" },
   { name: "quiz", label: "Quiz", icon: "help-circle-outline" },
   { name: "flashcards", label: "Flashcards", icon: "card-text-outline" },

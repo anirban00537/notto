@@ -4,9 +4,10 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Button,
+  TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Button,
 } from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -22,6 +23,7 @@ import TranscriptContent from "../../components/TranscriptContent";
 import LoadingScreen from "@/components/LoadingScreen";
 import QuizComponent from "@/components/QuizComponent";
 import FlashcardComponent from "@/components/FlashcardComponent";
+import EmptyState from "../../components/EmptyState";
 
 export default function NoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -94,13 +96,6 @@ export default function NoteDetailScreen() {
         {activeContentTab === "transcript" && (
           <TranscriptContent transcript={note.fullText} />
         )}
-        {activeContentTab === "chat" && (
-          <View style={styles.textContentPadding}>
-            <Text style={styles.noteContentText}>
-              Chat content would go here...
-            </Text>
-          </View>
-        )}
         {activeContentTab === "summary" && (
           <View style={styles.textContentPadding}>
             {note.summary ? (
@@ -117,14 +112,14 @@ export default function NoteDetailScreen() {
             ) : note.quizzes && note.quizzes.length > 0 ? (
               <QuizComponent quiz={note.quizzes[0]} />
             ) : (
-              <View style={styles.generateContainer}>
-                <Text style={styles.generateText}>No quiz available yet.</Text>
-                <Button
-                  title="Generate Quiz & Flashcards"
-                  onPress={handleGenerateMaterials}
-                  disabled={isGenerating}
-                />
-              </View>
+              <EmptyState
+                iconName="clipboard-edit-outline"
+                message="No quiz available yet."
+                buttonText="Generate Quiz & Flashcards"
+                onPress={handleGenerateMaterials}
+                loading={isGenerating}
+                disabled={isGenerating}
+              />
             )}
           </View>
         )}
@@ -135,16 +130,14 @@ export default function NoteDetailScreen() {
             ) : note.flashcards && note.flashcards.length > 0 ? (
               <FlashcardComponent flashcards={note.flashcards} />
             ) : (
-              <View style={styles.generateContainer}>
-                <Text style={styles.generateText}>
-                  No flashcards available yet.
-                </Text>
-                <Button
-                  title="Generate Quiz & Flashcards"
-                  onPress={handleGenerateMaterials}
-                  disabled={isGenerating}
-                />
-              </View>
+              <EmptyState
+                iconName="cards-outline"
+                message="No flashcards available yet."
+                buttonText="Generate Quiz & Flashcards"
+                onPress={handleGenerateMaterials}
+                loading={isGenerating}
+                disabled={isGenerating}
+              />
             )}
           </View>
         )}
@@ -245,4 +238,25 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
   },
+  actionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    flex: 1,
+    marginHorizontal: 4,
+  },
+  noteToolsButton: {
+    backgroundColor: "#2c3e50",
+  },
+  noteToolsButtonText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "600",
+    textAlign: "center"
+  },
 });
+
+
