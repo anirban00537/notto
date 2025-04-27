@@ -1,5 +1,13 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Button,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNoteDetail } from "../../hooks/useNoteDetail";
@@ -12,6 +20,7 @@ import NoteTitleSection from "../../components/NoteTitleSection";
 import ContentTabs from "../../components/ContentTabs";
 import TranscriptContent from "../../components/TranscriptContent";
 import LoadingScreen from "@/components/LoadingScreen";
+import QuizComponent from "@/components/QuizComponent";
 
 export default function NoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -26,10 +35,19 @@ export default function NoteDetailScreen() {
     handleNoteToolsPress,
     handleEditNotePress,
     handleBackPress,
+    isGenerating,
+    generationError,
+    handleGenerateMaterials,
   } = useNoteDetail(id);
 
   if (loading) return <LoadingScreen />;
   if (!note) return <Text>Note not found</Text>;
+
+  // Display generation error if any
+  if (generationError) {
+    Alert.alert("Generation Error", generationError);
+    // Optionally reset the error state here if needed
+  }
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom", "left", "right"]}>
@@ -93,16 +111,56 @@ export default function NoteDetailScreen() {
         )}
         {activeContentTab === "quiz" && (
           <View style={styles.textContentPadding}>
-            <Text style={styles.noteContentText}>
-              Quiz feature coming soon...
-            </Text>
+            {isGenerating ? (
+              <ActivityIndicator size="large" color="#007AFF" />
+            ) : note.quizzes && note.quizzes.length > 0 ? (
+              <QuizComponent quiz={note.quizzes[0]} />
+            ) : (
+              <View style={styles.generateContainer}>
+                <Text style={styles.generateText}>No quiz available yet.</Text>
+                <Button
+                  title="Generate Quiz & Flashcards"
+                  onPress={handleGenerateMaterials}
+                  disabled={isGenerating}
+                />
+              </View>
+            )}
           </View>
         )}
         {activeContentTab === "flashcards" && (
           <View style={styles.textContentPadding}>
-            <Text style={styles.noteContentText}>
-              Flashcards feature coming soon...
-            </Text>
+            {isGenerating ? (
+              <ActivityIndicator size="large" color="#007AFF" />
+            ) : note.flashcards && note.flashcards.length > 0 ? (
+              <View>
+                {note.flashcards.map((flashcard: any, index: number) => (
+                  <View key={`flashcard-${index}`} style={styles.flashcardItem}>
+                    <Text
+                      style={styles.flashcardQuestion}
+                    >{`Q: ${flashcard.question}`}</Text>
+                    <Text
+                      style={styles.flashcardAnswer}
+                    >{`A: ${flashcard.answer}`}</Text>
+                    {flashcard.hints && flashcard.hints.length > 0 && (
+                      <Text
+                        style={styles.flashcardHints}
+                      >{`Hints: ${flashcard.hints.join(", ")}`}</Text>
+                    )}
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <View style={styles.generateContainer}>
+                <Text style={styles.generateText}>
+                  No flashcards available yet.
+                </Text>
+                <Button
+                  title="Generate Quiz & Flashcards"
+                  onPress={handleGenerateMaterials}
+                  disabled={isGenerating}
+                />
+              </View>
+            )}
           </View>
         )}
       </ScrollView>
@@ -139,5 +197,67 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     color: "#333",
+  },
+
+  quizItem: {
+    marginBottom: 15,
+    padding: 10,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#eee",
+  },
+  quizQuestion: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 8,
+    color: "#333",
+  },
+  quizOption: {
+    fontSize: 14,
+    color: "#555",
+    marginLeft: 10,
+    marginBottom: 4,
+  },
+  quizExplanation: {
+    fontSize: 13,
+    color: "#777",
+    marginTop: 5,
+    fontStyle: "italic",
+  },
+  flashcardItem: {
+    marginBottom: 15,
+    padding: 15,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#eee",
+  },
+  flashcardQuestion: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 8,
+    color: "#333",
+  },
+  flashcardAnswer: {
+    fontSize: 14,
+    color: "#555",
+    marginBottom: 8,
+  },
+  flashcardHints: {
+    fontSize: 14,
+    color: "#666",
+    marginTop: 4,
+  },
+  generateContainer: {
+    padding: 20,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  generateText: {
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 20,
+    textAlign: "center",
   },
 });

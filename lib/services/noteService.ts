@@ -3,7 +3,6 @@ import { Note, NoteType, NoteStatus, CreateNoteDto } from "../types/note";
 
 // API Services
 export const getAllNotes = async () => {
-  
   const response = await request.get("/notes");
   return response.data;
 };
@@ -19,14 +18,14 @@ export const createNote = async (newNote: CreateNoteDto) => {
     const formData = new FormData();
     formData.append("noteType", newNote.noteType);
     if (newNote.youtubeUrl) formData.append("youtubeUrl", newNote.youtubeUrl);
-    formData.append(
-      "file",
-      {
-        uri: newNote.file.uri,
-        name: newNote.file.name || "upload",
-        type: newNote.file.mimeType || newNote.file.type || "application/octet-stream",
-      } as any
-    );
+    formData.append("file", {
+      uri: newNote.file.uri,
+      name: newNote.file.name || "upload",
+      type:
+        newNote.file.mimeType ||
+        newNote.file.type ||
+        "application/octet-stream",
+    } as any);
     const response = await request.post("/notes", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
@@ -55,4 +54,10 @@ export const updateNote = async (
 
 export const deleteNote = async (id: string) => {
   await request.delete(`/notes/${id}`);
+};
+
+export const generateLearningMaterials = async (id: string) => {
+  const response = await request.post(`/notes/generate-materials/${id}`);
+  console.log("Generated materials response:", response.data); // Log the response as requested
+  return response.data;
 };

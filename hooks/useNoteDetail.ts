@@ -1,7 +1,10 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { ScrollView } from "react-native";
 import { useRouter } from "expo-router";
-import { getNoteById } from "../lib/services/noteService";
+import {
+  getNoteById,
+  generateLearningMaterials,
+} from "../lib/services/noteService";
 
 type ContentTab =
   | "note"
@@ -28,6 +31,9 @@ export interface NoteDetailHook {
   handleNoteToolsPress: () => void;
   handleEditNotePress: () => void;
   handleBackPress: () => void;
+  isGenerating: boolean;
+  generationError: string | null;
+  handleGenerateMaterials: () => Promise<void>;
 }
 
 export function useNoteDetail(noteId: string): NoteDetailHook {
@@ -36,24 +42,26 @@ export function useNoteDetail(noteId: string): NoteDetailHook {
   const [note, setNote] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeContentTab, setActiveContentTab] = useState<ContentTab>("note");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
+
+  const fetchNote = useCallback(async () => {
+    if (!noteId) return;
+    setLoading(true);
+    try {
+      const data = await getNoteById(noteId);
+      setNote(data?.data);
+    } catch (e) {
+      console.error("Error fetching note:", e);
+      setNote(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [noteId]);
 
   useEffect(() => {
-    if (!noteId) return;
-
-    const fetchNote = async () => {
-      try {
-        const data = await getNoteById(noteId);
-        setNote(data?.data);
-      } catch (e) {
-        console.error("Error fetching note:", e);
-        setNote(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchNote();
-  }, [noteId]);
+  }, [noteId, fetchNote]);
 
   const getIconProps = (iconType?: string): IconProps => {
     switch (iconType) {
@@ -84,6 +92,24 @@ export function useNoteDetail(noteId: string): NoteDetailHook {
   const handleEditNotePress = () => console.log("Edit Note pressed");
   const handleBackPress = () => router.back();
 
+  const handleGenerateMaterials = async () => {
+    if (!noteId) return;
+    setIsGenerating(true);
+    setGenerationError(null);
+    try {
+      const updatedNoteData = await generateLearningMaterials(noteId);
+      // Update note state directly with the response data
+      if (updatedNoteData && updatedNoteData.data) {
+        setNote(updatedNoteData.data);
+      }
+    } catch (error) {
+      console.error("Error generating learning materials:", error);
+      setGenerationError("Failed to generate materials. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const iconProps = getIconProps(note?.noteType || note?.icon);
 
   return {
@@ -97,5 +123,8 @@ export function useNoteDetail(noteId: string): NoteDetailHook {
     handleNoteToolsPress,
     handleEditNotePress,
     handleBackPress,
+    isGenerating,
+    generationError,
+    handleGenerateMaterials,
   };
 }
