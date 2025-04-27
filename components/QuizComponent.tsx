@@ -129,12 +129,12 @@ const styles = StyleSheet.create({
     color: "#2c3e50",
   },
   optionButton: {
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#fff",
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: "#e0e0e0",
+    borderColor: "#e6f0ff",
   },
   optionText: {
     fontSize: 14,
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   nextButton: {
-    backgroundColor: "#1976d2",
+    backgroundColor: "#2c3e50",
     padding: 12,
     borderRadius: 8,
     alignItems: "center",
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     color: "#2c3e50",
   },
   restartButton: {
-    backgroundColor: "#1976d2",
+    backgroundColor: "#2c3e50",
     padding: 12,
     borderRadius: 8,
     alignItems: "center",

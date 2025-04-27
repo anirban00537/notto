@@ -21,6 +21,7 @@ import ContentTabs from "../../components/ContentTabs";
 import TranscriptContent from "../../components/TranscriptContent";
 import LoadingScreen from "@/components/LoadingScreen";
 import QuizComponent from "@/components/QuizComponent";
+import FlashcardComponent from "@/components/FlashcardComponent";
 
 export default function NoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -132,23 +133,7 @@ export default function NoteDetailScreen() {
             {isGenerating ? (
               <ActivityIndicator size="large" color="#007AFF" />
             ) : note.flashcards && note.flashcards.length > 0 ? (
-              <View>
-                {note.flashcards.map((flashcard: any, index: number) => (
-                  <View key={`flashcard-${index}`} style={styles.flashcardItem}>
-                    <Text
-                      style={styles.flashcardQuestion}
-                    >{`Q: ${flashcard.question}`}</Text>
-                    <Text
-                      style={styles.flashcardAnswer}
-                    >{`A: ${flashcard.answer}`}</Text>
-                    {flashcard.hints && flashcard.hints.length > 0 && (
-                      <Text
-                        style={styles.flashcardHints}
-                      >{`Hints: ${flashcard.hints.join(", ")}`}</Text>
-                    )}
-                  </View>
-                ))}
-              </View>
+              <FlashcardComponent flashcards={note.flashcards} />
             ) : (
               <View style={styles.generateContainer}>
                 <Text style={styles.generateText}>
