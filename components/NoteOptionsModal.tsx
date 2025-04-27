@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform, Modal, TextInput } from "react-native";
+import React, { useState, useRef } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform, Modal, TextInput, ActivityIndicator } from "react-native";
 import { pick, types as docTypes } from '@react-native-documents/picker';
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Modalize } from "react-native-modalize";
@@ -11,16 +11,17 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface NoteOptionsModalProps {
   modalRef: React.RefObject<Modalize>;
+  onAddYouTube: () => void;
 }
 
 const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
   modalRef,
+  onAddYouTube,
 }) => {
   const { user } = useUser();
   const queryClient = useQueryClient();
   const [isPicking, setIsPicking] = useState(false);
-  const [youtubeModalVisible, setYoutubeModalVisible] = useState(false);
-  const [youtubeUrl, setYoutubeUrl] = useState("");
+
 
   const createNoteMutation = useMutation({
     mutationFn: createNote,
@@ -70,24 +71,6 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
     }
   };
 
-  const handleOpenYouTubeModal = () => {
-    setYoutubeModalVisible(true);
-    setYoutubeUrl("");
-  };
-
-  const handleSubmitYouTube = () => {
-    if (!youtubeUrl || !/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(youtubeUrl)) {
-      Alert.alert("Invalid URL", "Please enter a valid YouTube URL.");
-      return;
-    }
-    const noteDto: CreateNoteDto = {
-      noteType: NoteType.YOUTUBE,
-      youtubeUrl,
-    };
-    createNoteMutation.mutate(noteDto);
-    setYoutubeModalVisible(false);
-  };
-
   return (
     <Modalize
       ref={modalRef}
@@ -127,7 +110,7 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.modalOption}
-          onPress={handleOpenYouTubeModal}
+          onPress={onAddYouTube}
           disabled={isPicking}
         >
           <MaterialCommunityIcons
@@ -139,41 +122,7 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
           <Text style={styles.modalOptionText}>Add YouTube Video</Text>
         </TouchableOpacity>
       </View>
-      <Modal
-        visible={youtubeModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setYoutubeModalVisible(false)}
-      >
-        <View style={styles.youtubeModalOverlay}>
-          <View style={styles.youtubeModalContent}>
-            <Text style={styles.youtubeModalTitle}>Add YouTube Video</Text>
-            <TextInput
-              style={styles.youtubeInput}
-              placeholder="Paste YouTube URL"
-              value={youtubeUrl}
-              onChangeText={setYoutubeUrl}
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="url"
-            />
-            <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
-              <TouchableOpacity
-                style={[styles.youtubeButton, { marginRight: 8 }]}
-                onPress={() => setYoutubeModalVisible(false)}
-              >
-                <Text style={styles.youtubeButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.youtubeButton}
-                onPress={handleSubmitYouTube}
-              >
-                <Text style={styles.youtubeButtonText}>Add</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+
     </Modalize>
   );
 };

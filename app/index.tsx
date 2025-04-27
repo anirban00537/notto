@@ -17,6 +17,7 @@ import AuthComponent from "./auth";
 import FolderModals from "../components/FolderModals";
 import NoteCard from "../components/NoteCard";
 import NoteOptionsModal from "../components/NoteOptionsModal";
+import YouTubeModal from "../components/YouTubeModal";
 import { useUser } from "./context/UserContext";
 import { Folder } from "../lib/types/folder";
 import LoadingScreen from "../components/LoadingScreen";
@@ -31,6 +32,11 @@ export default function Note() {
   const noteOptionsModalRef = useRef<Modalize>(null);
   const folderDrawerRef = useRef<Modalize>(null);
   const createFolderModalRef = useRef<Modalize>(null);
+
+  // YouTube modal state
+  const [youtubeModalVisible, setYoutubeModalVisible] = useState(false);
+  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [youtubeLoading, setYoutubeLoading] = useState(false);
 
   const { folders, newFolderName, setNewFolderName, handleCreateFolder } =
     useFolders();
@@ -47,6 +53,44 @@ export default function Note() {
   const openFolderDrawer = () => {
     folderDrawerRef.current?.open();
   };
+
+  // YouTube note creation logic
+  const { mutate: createNote, isLoading: isCreatingNote } = require("../lib/services").createNote ? require("@tanstack/react-query").useMutation({
+    mutationFn: require("../lib/services").createNote,
+    onSuccess: (newNote: any) => {
+      noteOptionsModalRef.current?.close();
+      setYoutubeModalVisible(false);
+      setYoutubeUrl("");
+      setYoutubeLoading(false);
+      // Invalidate notes query if needed
+      // router.push(`/note/${newNote?.data?.id}`);
+    },
+    onError: () => {
+      setYoutubeLoading(false);
+      alert("Failed to create note. Please try again.");
+    },
+  }) : { mutate: () => {}, isLoading: false };
+
+  const handleAddYouTube = () => {
+    setYoutubeUrl("");
+    setYoutubeModalVisible(true);
+  };
+
+  const handleCloseYouTubeModal = () => {
+    setYoutubeModalVisible(false);
+    setYoutubeUrl("");
+    setYoutubeLoading(false);
+  };
+
+  const handleSubmitYouTube = () => {
+    if (!youtubeUrl || !/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(youtubeUrl)) {
+      alert("Please enter a valid YouTube URL.");
+      return;
+    }
+    setYoutubeLoading(true);
+    createNote({ noteType: "YOUTUBE", youtubeUrl });
+  };
+
 
   if (loading) {
     return <LoadingScreen />;
@@ -152,7 +196,19 @@ export default function Note() {
         </View>
       </SafeAreaView>
 
-      <NoteOptionsModal modalRef={noteOptionsModalRef} />
+      <NoteOptionsModal
+        modalRef={noteOptionsModalRef}
+        onAddYouTube={handleAddYouTube}
+      />
+
+      <YouTubeModal
+        visible={youtubeModalVisible}
+        loading={youtubeLoading}
+        url={youtubeUrl}
+        onUrlChange={setYoutubeUrl}
+        onClose={handleCloseYouTubeModal}
+        onSubmit={handleSubmitYouTube}
+      />
 
       <FolderModals
         listModalRef={folderDrawerRef}
