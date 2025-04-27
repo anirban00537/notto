@@ -17,6 +17,7 @@ export default function FlashcardComponent({
 }: FlashcardComponentProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showHints, setShowHints] = useState(false);
+  const [visibleHintCount, setVisibleHintCount] = useState(1);
   const [isFlipped, setIsFlipped] = useState(false);
   const flipAnim = useRef(new Animated.Value(0)).current;
 
@@ -50,6 +51,7 @@ export default function FlashcardComponent({
 
   const handleNext = () => {
     setShowHints(false);
+    setVisibleHintCount(1);
     setIsFlipped(false);
     Animated.timing(flipAnim, {
       toValue: 0,
@@ -61,6 +63,7 @@ export default function FlashcardComponent({
 
   const handlePrev = () => {
     setShowHints(false);
+    setVisibleHintCount(1);
     setIsFlipped(false);
     Animated.timing(flipAnim, {
       toValue: 0,
@@ -119,6 +122,7 @@ export default function FlashcardComponent({
             <View style={styles.answerContainer}>
               <Text style={styles.answer}>{currentFlashcard.answer}</Text>
             </View>
+
           </Animated.View>
         </View>
       </TouchableOpacity>
@@ -135,7 +139,7 @@ export default function FlashcardComponent({
 
         <View style={styles.centerButtons}>
           <TouchableOpacity
-            onPress={() => setShowHints(!showHints)}
+            onPress={() => setShowHints((prev) => !prev)}
             style={styles.hintButton}
           >
             <MaterialCommunityIcons
@@ -161,6 +165,28 @@ export default function FlashcardComponent({
       <Text style={styles.counterText}>
         {currentIndex + 1} / {flashcards.length}
       </Text>
+
+      {/* Hints shown at bottom, outside the card */}
+      {showHints && currentFlashcard.hints && currentFlashcard.hints.length > 0 && (
+        <View style={styles.hintsContainerBottom}>
+          <Text style={styles.hintsTitle}>Hints</Text>
+          {currentFlashcard.hints.slice(0, visibleHintCount).map((hint, i) => (
+            <View key={`hint-${i}`} style={styles.hintRow}>
+              <View style={styles.hintDot} />
+              <Text style={styles.hintText}>{hint}</Text>
+            </View>
+          ))}
+          {visibleHintCount < currentFlashcard.hints.length && (
+            <TouchableOpacity
+              style={styles.moreHintButton}
+              onPress={() => setVisibleHintCount((prev) => prev + 1)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.moreHintText}>More</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
     </View>
   );
 }
@@ -229,6 +255,46 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     borderTopWidth: 1,
     borderTopColor: "#eee",
+  },
+  hintsContainerBottom: {
+    marginTop: 24,
+    padding: 18,
+    backgroundColor: '#f0f6ff',
+    borderRadius: 14,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#e3eaf5',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  hintRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+    gap: 8,
+  },
+
+  moreHintButton: {
+    marginTop: 10,
+    alignSelf: 'center',
+    backgroundColor: '#2c3e50',
+    paddingHorizontal: 18,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  moreHintText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 15,
+    letterSpacing: 0.2,
+  },
+  hintDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#2c3e50',
+    marginRight: 8,
   },
   hintsTitle: {
     fontSize: 14,
