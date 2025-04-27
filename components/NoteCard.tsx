@@ -80,17 +80,17 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     padding: 10,
     borderRadius: 14,
-    backgroundColor: "#f7faff",
+    backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "#e0e8f5",
+    borderColor: "#e0e8f5", 
   },
   noteContent: {
     flex: 1,
   },
   noteTitle: {
     fontSize: 15,
-    fontWeight: "400",
-    color: "#111",
+    fontWeight: "500", // Medium bold
+    color: "#111", // Dark text for light theme
     marginBottom: 6,
     letterSpacing: -0.3,
   },
@@ -101,16 +101,18 @@ const styles = StyleSheet.create({
   },
   noteDate: {
     fontSize: 10,
-    color: "#999",
+    color: "#999", // Subtle gray for date
   },
   tag: {
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 3,
+    backgroundColor: "#f7faff", // Light tag background
   },
   tagText: {
     fontSize: 9,
     fontWeight: "500",
+    color: "#222", // Dark tag text for light theme
   },
 });
 
