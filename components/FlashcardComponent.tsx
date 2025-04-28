@@ -1,13 +1,24 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  Animated,
-  Easing,
+  Dimensions,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { GestureDetector, Gesture } from "react-native-gesture-handler";
+import Reanimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  interpolate,
+  Extrapolate,
+  runOnJS,
+} from "react-native-reanimated";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.4; // Threshold to trigger swipe
 
 type Flashcard = {
   question: string;
@@ -25,123 +36,163 @@ export default function FlashcardComponent({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showHints, setShowHints] = useState(false);
   const [visibleHintCount, setVisibleHintCount] = useState(1);
-  const [isFlipped, setIsFlipped] = useState(false);
-  const flipAnim = useRef(new Animated.Value(0)).current;
+  // Use shared values for animations
+  const isFlipped = useSharedValue(false);
+  const flipAnim = useSharedValue(0); // 0 for front, 1 for back
+  const translateX = useSharedValue(0); // For swipe gesture
+  const rotateZ = useSharedValue(0); // For card rotation during swipe
 
   const currentFlashcard = flashcards[currentIndex];
 
-  // Interpolate rotation for front and back
-  const rotateY = flipAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0deg", "180deg"],
+  // --- Flip Animation Logic (Reanimated) ---
+  const animatedFrontStyle = useAnimatedStyle(() => {
+    const rotateY = interpolate(flipAnim.value, [0, 1], [0, 180]);
+    return {
+      transform: [{ perspective: 1000 }, { rotateY: `${rotateY}deg` }],
+      position: isFlipped.value ? "absolute" : "relative",
+      opacity: interpolate(flipAnim.value, [0, 0.5, 0.5, 1], [1, 1, 0, 0]),
+      zIndex: isFlipped.value ? 0 : 1,
+    };
   });
-  const rotateYBack = flipAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["180deg", "360deg"],
+
+  const animatedBackStyle = useAnimatedStyle(() => {
+    const rotateY = interpolate(flipAnim.value, [0, 1], [180, 360]);
+    return {
+      transform: [{ perspective: 1000 }, { rotateY: `${rotateY}deg` }],
+      position: isFlipped.value ? "relative" : "absolute",
+      opacity: interpolate(flipAnim.value, [0, 0.5, 0.5, 1], [0, 0, 1, 1]),
+      zIndex: isFlipped.value ? 1 : 0,
+    };
   });
 
   const handleFlip = () => {
-    if (!isFlipped) {
-      Animated.timing(flipAnim, {
-        toValue: 1,
-        duration: 300,
-        easing: Easing.inOut(Easing.ease),
-        useNativeDriver: true,
-      }).start(() => setIsFlipped(true));
-    } else {
-      Animated.timing(flipAnim, {
-        toValue: 0,
-        duration: 300,
-        easing: Easing.inOut(Easing.ease),
-        useNativeDriver: true,
-      }).start(() => setIsFlipped(false));
-    }
+    isFlipped.value = !isFlipped.value;
+    flipAnim.value = withTiming(isFlipped.value ? 1 : 0, { duration: 400 });
   };
 
-  const handleNext = () => {
-    setShowHints(false);
-    setVisibleHintCount(1);
-    setIsFlipped(false);
-    Animated.timing(flipAnim, {
-      toValue: 0,
-      duration: 0,
-      useNativeDriver: true,
-    }).start();
-    setCurrentIndex((prev) => (prev + 1) % flashcards.length);
-  };
-
-  const handlePrev = () => {
-    setShowHints(false);
-    setVisibleHintCount(1);
-    setIsFlipped(false);
-    Animated.timing(flipAnim, {
-      toValue: 0,
-      duration: 0,
-      useNativeDriver: true,
-    }).start();
-    setCurrentIndex(
-      (prev) => (prev - 1 + flashcards.length) % flashcards.length
+  // --- Swipe Gesture Logic (Setup) ---
+  const cardAnimatedStyle = useAnimatedStyle(() => {
+    // Rotate card slightly during swipe
+    const rotateVal = interpolate(
+      translateX.value,
+      [-SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2],
+      [-10, 0, 10],
+      Extrapolate.CLAMP
     );
+    rotateZ.value = rotateVal; // Update rotateZ for potential future use/sync
+
+    return {
+      transform: [
+        { translateX: translateX.value },
+        { rotateZ: `${rotateZ.value}deg` },
+      ],
+    };
+  });
+
+  const goToNextCard = () => {
+    // Needs to be run on JS thread
+    const nextIndex = (currentIndex + 1) % flashcards.length;
+    setCurrentIndex(nextIndex);
+    resetCardState();
   };
+
+  const goToPrevCard = () => {
+    // Needs to be run on JS thread
+    const prevIndex =
+      (currentIndex - 1 + flashcards.length) % flashcards.length;
+    setCurrentIndex(prevIndex);
+    resetCardState();
+  };
+
+  const resetCardState = () => {
+    // Reset shared values non-animated for new card
+    translateX.value = 0;
+    rotateZ.value = 0;
+    flipAnim.value = 0;
+    isFlipped.value = false;
+    // Reset component state
+    setShowHints(false);
+    setVisibleHintCount(1);
+  };
+
+  const panGesture = Gesture.Pan()
+    .onUpdate((event) => {
+      translateX.value = event.translationX;
+    })
+    .onEnd((event) => {
+      if (Math.abs(event.translationX) > SWIPE_THRESHOLD) {
+        const direction = event.translationX > 0 ? 1 : -1; // 1 for right, -1 for left
+        // Animate card off screen
+        translateX.value = withTiming(
+          direction * SCREEN_WIDTH * 1.2, // Move further than screen width
+          { duration: 250 },
+          () => {
+            // Callback after animation completes
+            if (direction === 1) {
+              // Swiped Right (-> Previous Card)
+              runOnJS(goToPrevCard)();
+            } else {
+              // Swiped Left (-> Next Card)
+              runOnJS(goToNextCard)();
+            }
+          }
+        );
+        // Optionally add rotation during exit animation
+        rotateZ.value = withTiming(direction * 20, { duration: 250 });
+      } else {
+        // Snap back to center
+        translateX.value = withTiming(0, { duration: 200 });
+        rotateZ.value = withTiming(0, { duration: 200 });
+      }
+    });
 
   return (
     <View style={styles.container}>
-      {/* Flip Card */}
-      <TouchableOpacity
-        activeOpacity={0.9}
-        onPress={handleFlip}
-        style={styles.flipTouchable}
-      >
-        <View>
-          {/* Card Front */}
-          <Animated.View
-            style={[
-              styles.flashcardContainer,
-              {
-                transform: [{ perspective: 1000 }, { rotateY: rotateY }],
-                position: isFlipped ? "absolute" : "relative",
-                opacity: isFlipped ? 0 : 1,
-                zIndex: isFlipped ? 0 : 1,
-              },
-            ]}
+      <GestureDetector gesture={panGesture}>
+        <Reanimated.View style={[styles.swipeContainer, cardAnimatedStyle]}>
+          {/* Flip Card */}
+          <TouchableOpacity
+            activeOpacity={1} // Less feedback needed as swipe is main interaction
+            onPress={handleFlip}
+            style={styles.flipTouchable}
           >
-            <Text style={styles.question}>{currentFlashcard.question}</Text>
-          </Animated.View>
+            <View>
+              {/* Card Front */}
+              <Reanimated.View
+                style={[styles.flashcardContainer, animatedFrontStyle]}
+              >
+                <Text style={styles.question}>{currentFlashcard.question}</Text>
+              </Reanimated.View>
 
-          {/* Card Back */}
-          <Animated.View
-            style={[
-              styles.flashcardContainer,
-              styles.flashcardBack,
-              {
-                transform: [{ perspective: 1000 }, { rotateY: rotateYBack }],
-                position: isFlipped ? "relative" : "absolute",
-                opacity: isFlipped ? 1 : 0,
-                zIndex: isFlipped ? 1 : 0,
-              },
-            ]}
-          >
-            <Text style={styles.answerTitle}>Answer</Text>
-            <View style={styles.answerContainer}>
-              <Text style={styles.answer}>{currentFlashcard.answer}</Text>
+              {/* Card Back */}
+              <Reanimated.View
+                style={[
+                  styles.flashcardContainer,
+                  styles.flashcardBack,
+                  animatedBackStyle,
+                ]}
+              >
+                <Text style={styles.answerTitle}>Answer</Text>
+                <View style={styles.answerContainer}>
+                  <Text style={styles.answer}>{currentFlashcard.answer}</Text>
+                </View>
+              </Reanimated.View>
             </View>
-          </Animated.View>
-        </View>
-      </TouchableOpacity>
+          </TouchableOpacity>
+        </Reanimated.View>
+      </GestureDetector>
 
       {/* Hints and Controls */}
       <View style={styles.controlsContainer}>
-        <TouchableOpacity onPress={handlePrev} style={styles.navButton}>
-          <MaterialCommunityIcons
-            name="chevron-left"
-            size={24}
-            color="#2c3e50"
-          />
-        </TouchableOpacity>
-
         <View style={styles.centerButtons}>
           <TouchableOpacity
-            onPress={() => setShowHints((prev) => !prev)}
+            onPress={() => {
+              // Reset flip state if hints are opened/closed while card is flipped
+              if (isFlipped.value) {
+                handleFlip(); // Flip back to front smoothly
+              }
+              setShowHints((prev) => !prev);
+            }}
             style={styles.hintButton}
           >
             <MaterialCommunityIcons
@@ -152,14 +203,6 @@ export default function FlashcardComponent({
             <Text style={styles.buttonText}>Hints</Text>
           </TouchableOpacity>
         </View>
-
-        <TouchableOpacity onPress={handleNext} style={styles.navButton}>
-          <MaterialCommunityIcons
-            name="chevron-right"
-            size={24}
-            color="#2c3e50"
-          />
-        </TouchableOpacity>
       </View>
 
       <Text style={styles.counterText}>
@@ -200,19 +243,33 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "center", // Adjust alignment for swipe container
+    overflow: "hidden", // Prevent swiped card from showing outside bounds prematurely
+  },
+  swipeContainer: {
+    width: "100%",
+    alignItems: "center", // Center the flipTouchable within the swipe container
   },
   flipTouchable: {
-    width: "100%",
-    minHeight: 200,
+    width: "95%", // Make card slightly smaller than container
+    minHeight: 250, // Increase min height for better presence
     marginBottom: 12,
+    // Add subtle shadow for depth
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   flashcardContainer: {
     backgroundColor: "#fff",
     borderRadius: 8,
     padding: 20,
     width: "100%",
-    minHeight: 200,
+    minHeight: 250, // Match flipTouchable
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
@@ -313,16 +370,14 @@ const styles = StyleSheet.create({
   },
   controlsContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center", // Center the remaining buttons
     alignItems: "center",
     width: "100%",
     marginTop: 20,
   },
-  navButton: {
-    padding: 10,
-  },
   centerButtons: {
     flexDirection: "row",
+    justifyContent: "center", // Ensure buttons are centered
     gap: 16,
   },
   hintButton: {
@@ -331,7 +386,9 @@ const styles = StyleSheet.create({
     gap: 4,
     padding: 8,
     borderRadius: 8,
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#e8f0fe", // Lighter blue for subtle highlight
+    borderWidth: 1,
+    borderColor: "#d6e4ff",
   },
   buttonText: {
     fontSize: 14,
