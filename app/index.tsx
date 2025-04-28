@@ -20,6 +20,7 @@ import FolderModals from "../components/FolderModals";
 import NoteCard from "../components/NoteCard";
 import NoteOptionsModal from "../components/NoteOptionsModal";
 import YouTubeModal from "../components/YouTubeModal";
+import EmptyNotesState from "../components/EmptyNotesState";
 import { useUser } from "./context/UserContext";
 import { Folder } from "../lib/types/folder";
 import LoadingScreen from "../components/LoadingScreen";
@@ -171,19 +172,7 @@ export default function Note() {
             <LoadingScreen />
           </View>
         ) : !notes.length ? (
-          <View style={styles.emptyStateContainer}>
-            <View style={styles.emptyStateIconContainer}>
-              <MaterialCommunityIcons
-                name="note-text-outline"
-                size={48}
-                color="#2c3e50"
-              />
-            </View>
-            <Text style={styles.emptyStateTitle}>No Notes Yet</Text>
-            <Text style={styles.emptyStateText}>
-              Create your first note by tapping the button below
-            </Text>
-          </View>
+          <EmptyNotesState onCreateNote={onOpenNoteOptions} />
         ) : (
           <FlatList
             data={notes}
@@ -376,34 +365,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 24,
     marginTop: 40,
-  },
-  emptyStateIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 20,
-    backgroundColor: "#f0f7ff",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 24,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  emptyStateTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#2c3e50",
-    marginBottom: 8,
-  },
-  emptyStateText: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-    lineHeight: 24,
   },
 });
