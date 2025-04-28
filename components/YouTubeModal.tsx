@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -7,10 +7,10 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import CommonBottomSheet from './CommonBottomSheet';
 
 interface YouTubeModalProps {
-  bottomSheetRef: React.RefObject<BottomSheet>;
+  bottomSheetRef: React.RefObject<any>;
   visible: boolean;
   loading: boolean;
   url: string;
@@ -30,25 +30,15 @@ const YouTubeModal: React.FC<YouTubeModalProps> = ({
 }) => {
   const snapPoints = [1, 340]; // closed, open height
 
-  React.useEffect(() => {
-    if (visible) {
-      bottomSheetRef.current?.expand();
-    } else {
-      bottomSheetRef.current?.close();
-    }
-  }, [visible, bottomSheetRef]);
-
   return (
-    <BottomSheet
+    <CommonBottomSheet
       ref={bottomSheetRef}
-      index={0}
+      visible={visible}
       snapPoints={snapPoints}
-      enablePanDownToClose
       backgroundStyle={{ backgroundColor: '#fff' }}
       handleIndicatorStyle={{ backgroundColor: '#ccc' }}
       onClose={onClose}
     >
-      <BottomSheetView>
         <View style={styles.youtubeModalContent}>
         <View
           style={{
@@ -104,8 +94,7 @@ const YouTubeModal: React.FC<YouTubeModalProps> = ({
           </>
         )}
         </View>
-      </BottomSheetView>
-    </BottomSheet>
+    </CommonBottomSheet>
   );
 };
 
