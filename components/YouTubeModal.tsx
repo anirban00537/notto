@@ -7,9 +7,10 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
-import { Modalize } from "react-native-modalize";
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 
 interface YouTubeModalProps {
+  bottomSheetRef: React.RefObject<BottomSheet>;
   visible: boolean;
   loading: boolean;
   url: string;
@@ -19,6 +20,7 @@ interface YouTubeModalProps {
 }
 
 const YouTubeModal: React.FC<YouTubeModalProps> = ({
+  bottomSheetRef,
   visible,
   loading,
   url,
@@ -26,26 +28,28 @@ const YouTubeModal: React.FC<YouTubeModalProps> = ({
   onClose,
   onSubmit,
 }) => {
-  const modalRef = useRef<Modalize>(null);
+  const snapPoints = [1, 340]; // closed, open height
 
   React.useEffect(() => {
     if (visible) {
-      modalRef.current?.open();
+      bottomSheetRef.current?.expand();
     } else {
-      modalRef.current?.close();
+      bottomSheetRef.current?.close();
     }
-  }, [visible]);
+  }, [visible, bottomSheetRef]);
 
   return (
-    <Modalize
-      ref={modalRef}
-      adjustToContentHeight
-      panGestureEnabled={!loading}
-      closeOnOverlayTap={!loading}
-      withHandle={false}
+    <BottomSheet
+      ref={bottomSheetRef}
+      index={0}
+      snapPoints={snapPoints}
+      enablePanDownToClose
+      backgroundStyle={{ backgroundColor: '#fff' }}
+      handleIndicatorStyle={{ backgroundColor: '#ccc' }}
       onClose={onClose}
     >
-      <View style={styles.youtubeModalContent}>
+      <BottomSheetView>
+        <View style={styles.youtubeModalContent}>
         <View
           style={{
             flexDirection: "row",
@@ -99,8 +103,9 @@ const YouTubeModal: React.FC<YouTubeModalProps> = ({
             </View>
           </>
         )}
-      </View>
-    </Modalize>
+        </View>
+      </BottomSheetView>
+    </BottomSheet>
   );
 };
 

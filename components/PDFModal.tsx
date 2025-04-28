@@ -7,7 +7,7 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
-import { Modalize } from "react-native-modalize";
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 
 interface PDFModalProps {
   visible: boolean;
@@ -16,6 +16,7 @@ interface PDFModalProps {
   onUrlChange: (url: string) => void;
   onClose: () => void;
   onSubmit: () => void;
+  bottomSheetRef?: React.RefObject<BottomSheet>; // Optional external ref for control
 }
 
 const PDFModal: React.FC<PDFModalProps> = ({
@@ -25,16 +26,17 @@ const PDFModal: React.FC<PDFModalProps> = ({
   onUrlChange,
   onClose,
   onSubmit,
+  bottomSheetRef: externalRef,
 }) => {
-  const modalRef = useRef<Modalize>(null);
+  const bottomSheetRef = externalRef || useRef<BottomSheet>(null);
   const [step, setStep] = React.useState(1);
 
   React.useEffect(() => {
     if (visible) {
-      modalRef.current?.open();
+      bottomSheetRef.current?.expand();
       setStep(1); // Reset step on open
     } else {
-      modalRef.current?.close();
+      bottomSheetRef.current?.close();
     }
   }, [visible]);
 
@@ -43,14 +45,16 @@ const PDFModal: React.FC<PDFModalProps> = ({
   };
 
   return (
-    <Modalize
-      ref={modalRef}
-      adjustToContentHeight
-      panGestureEnabled={!loading}
-      closeOnOverlayTap={!loading}
-      withHandle={false}
+    <BottomSheet
+      ref={bottomSheetRef}
+      index={visible ? 1 : -1}
+      snapPoints={[1, 340]}
+      enablePanDownToClose={!loading}
       onClose={onClose}
+      backgroundStyle={{ backgroundColor: '#fff' }}
+      handleIndicatorStyle={{ backgroundColor: '#ccc' }}
     >
+      <BottomSheetView>
       <View style={styles.pdfModalContent}>
         <View
           style={{
@@ -115,7 +119,8 @@ const PDFModal: React.FC<PDFModalProps> = ({
           </>
         )}
       </View>
-    </Modalize>
+      </BottomSheetView>
+    </BottomSheet>
   );
 };
 

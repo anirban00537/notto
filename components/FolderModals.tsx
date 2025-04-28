@@ -1,15 +1,15 @@
 import React, { RefObject, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Modalize } from "react-native-modalize";
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { Folder } from "../lib/types/folder";
 import FolderListItem, { FolderItem } from "./FolderListItem";
 import CreateFolderForm from "./CreateFolderForm";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface FolderModalsProps {
-  listModalRef: RefObject<Modalize>;
-  createModalRef: RefObject<Modalize>;
+  bottomSheetRef: RefObject<BottomSheet>;
+  bottomSheetCreateRef: RefObject<BottomSheet>;
   selectedFolderId: string;
   onFolderSelect: (folderId: string) => void;
   userId: string;
@@ -17,8 +17,8 @@ interface FolderModalsProps {
 }
 
 const FolderModals: React.FC<FolderModalsProps> = ({
-  listModalRef,
-  createModalRef,
+  bottomSheetRef,
+  bottomSheetCreateRef,
   selectedFolderId,
   onFolderSelect,
   userId,
@@ -41,9 +41,9 @@ const FolderModals: React.FC<FolderModalsProps> = ({
     <TouchableOpacity
       style={styles.createFolderButton}
       onPress={() => {
-        listModalRef.current?.close();
+        bottomSheetRef.current?.close();
         setTimeout(() => {
-          createModalRef.current?.open();
+          bottomSheetCreateRef.current?.expand();
         }, 150);
       }}
       activeOpacity={0.6}
@@ -56,7 +56,7 @@ const FolderModals: React.FC<FolderModalsProps> = ({
 
   const handleFolderSelect = (id: string) => {
     onFolderSelect(id);
-    listModalRef.current?.close();
+    bottomSheetRef.current?.close();
   };
 
   const handleFolderDelete = (id: string) => {
@@ -67,52 +67,59 @@ const FolderModals: React.FC<FolderModalsProps> = ({
   const handleCreateFolderClose = () => {
     // Refetch folders when the create folder modal closes
     queryClient.refetchQueries({ queryKey: ["folders"] });
-    createModalRef.current?.close();
+    bottomSheetCreateRef.current?.close();
   };
 
   return (
     <>
-      <Modalize
-        ref={listModalRef}
-        adjustToContentHeight
-        HeaderComponent={
+      <BottomSheet
+        ref={bottomSheetRef}
+        index={0}
+        snapPoints={[1, 320]}
+        enablePanDownToClose
+        backgroundStyle={{ backgroundColor: '#fff' }}
+        handleIndicatorStyle={{ backgroundColor: '#ccc' }}
+        onChange={(index) => {
+          // index 1 = open, index 0 = closed
+          if (index === 1) {
+            queryClient.refetchQueries({ queryKey: ["folders"] });
+          }
+        }}
+      >
+        <BottomSheetView>
           <View style={styles.drawerHeader}>
             <Text style={styles.drawerTitle}>Select Folder</Text>
           </View>
-        }
-        onOpen={() => {
-          // Refetch folders when the list modal opens
-          queryClient.refetchQueries({ queryKey: ["folders"] });
-        }}
-        flatListProps={{
-          data: folderItems,
-          keyExtractor: (item) => item.id,
-          ListHeaderComponent: renderHeader,
-          renderItem: ({ item }) => (
-            <FolderListItem
-              item={item}
-              isSelected={selectedFolderId === item.id}
-              onSelect={handleFolderSelect}
-              onDelete={handleFolderDelete}
-            />
-          ),
-          style: styles.listDrawerContent,
-          scrollEnabled: true,
-          nestedScrollEnabled: true,
-        }}
-      />
+          <View style={styles.listDrawerContent}>
+            {renderHeader()}
+            {folderItems.map((item) => (
+              <FolderListItem
+                key={item.id}
+                item={item}
+                isSelected={selectedFolderId === item.id}
+                onSelect={handleFolderSelect}
+                onDelete={handleFolderDelete}
+              />
+            ))}
+          </View>
+        </BottomSheetView>
+      </BottomSheet>
 
-      <Modalize
-        ref={createModalRef}
-        adjustToContentHeight
-        HeaderComponent={
+      <BottomSheet
+        ref={bottomSheetCreateRef}
+        index={-1}
+        snapPoints={[1, 320]}
+        enablePanDownToClose
+        backgroundStyle={{ backgroundColor: '#fff' }}
+        handleIndicatorStyle={{ backgroundColor: '#ccc' }}
+      >
+        <BottomSheetView>
           <View style={styles.drawerHeader}>
             <Text style={styles.drawerTitle}>Create New Folder</Text>
           </View>
-        }
-      >
-        <CreateFolderForm userId={userId} onClose={handleCreateFolderClose} />
-      </Modalize>
+          <CreateFolderForm userId={userId} onClose={handleCreateFolderClose} />
+        </BottomSheetView>
+      </BottomSheet>
     </>
   );
 };

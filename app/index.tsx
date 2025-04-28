@@ -32,6 +32,7 @@ export default function Note() {
   const noteOptionsBottomSheetRef = useRef<BottomSheet>(null);
   const folderDrawerRef = useRef<any>(null);
   const createFolderModalRef = useRef<any>(null);
+  const youtubeBottomSheetRef = useRef<BottomSheet>(null);
 
   // YouTube modal state
   const [youtubeModalVisible, setYoutubeModalVisible] = useState(false);
@@ -51,7 +52,7 @@ export default function Note() {
   };
 
   const openFolderDrawer = () => {
-    folderDrawerRef.current?.open();
+    folderDrawerRef.current?.expand();
   };
 
   // YouTube note creation logic
@@ -203,6 +204,7 @@ export default function Note() {
       />
 
       <YouTubeModal
+        bottomSheetRef={youtubeBottomSheetRef}
         visible={youtubeModalVisible}
         loading={youtubeLoading}
         url={youtubeUrl}
@@ -212,8 +214,8 @@ export default function Note() {
       />
 
       <FolderModals
-        listModalRef={folderDrawerRef}
-        createModalRef={createFolderModalRef}
+        bottomSheetRef={folderDrawerRef}
+        bottomSheetCreateRef={createFolderModalRef}
         selectedFolderId={selectedFolderId}
         onFolderSelect={setSelectedFolderId}
         userId={user.uid}

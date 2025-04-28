@@ -7,7 +7,7 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
-import { Modalize } from "react-native-modalize";
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 
 interface AudioModalProps {
   visible: boolean;
@@ -26,15 +26,15 @@ const AudioModal: React.FC<AudioModalProps> = ({
   onClose,
   onSubmit,
 }) => {
-  const modalRef = useRef<Modalize>(null);
+  const bottomSheetRef = useRef<BottomSheet>(null);
   const [step, setStep] = React.useState(1);
 
   React.useEffect(() => {
     if (visible) {
-      modalRef.current?.open();
+      bottomSheetRef.current?.snapToIndex(1);
       setStep(1); // Reset step on open
     } else {
-      modalRef.current?.close();
+      bottomSheetRef.current?.close();
     }
   }, [visible]);
 
@@ -42,16 +42,19 @@ const AudioModal: React.FC<AudioModalProps> = ({
     setStep(2);
   };
 
+  const snapPoints = [1, 320];
   return (
-    <Modalize
-      ref={modalRef}
-      adjustToContentHeight
-      panGestureEnabled={!loading}
-      closeOnOverlayTap={!loading}
-      withHandle={false}
+    <BottomSheet
+      ref={bottomSheetRef}
+      index={0}
+      snapPoints={snapPoints}
+      enablePanDownToClose
+      backgroundStyle={{ backgroundColor: '#fff' }}
+      handleIndicatorStyle={{ backgroundColor: '#ccc' }}
       onClose={onClose}
     >
-      <View style={styles.audioModalContent}>
+      <BottomSheetView>
+        <View style={styles.audioModalContent}>
         <View
           style={{
             flexDirection: "row",
@@ -115,7 +118,8 @@ const AudioModal: React.FC<AudioModalProps> = ({
           </>
         )}
       </View>
-    </Modalize>
+      </BottomSheetView>
+    </BottomSheet>
   );
 };
 
