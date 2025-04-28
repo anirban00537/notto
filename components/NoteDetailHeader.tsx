@@ -76,8 +76,6 @@ const styles = StyleSheet.create({
   },
   header: {
     position: "relative",
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(230, 240, 255, 0.3)",
     backgroundColor: "rgba(240, 247, 255, 0.25)",
   },
   androidHeader: {
