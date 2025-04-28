@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -9,6 +9,7 @@ import {
   Platform,
   TouchableOpacity,
   RefreshControl,
+  Animated,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
@@ -35,6 +36,7 @@ export default function Note() {
   const createFolderModalRef = useRef<any>(null);
   const youtubeBottomSheetRef = useRef<BottomSheet>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [listAnimation] = useState(new Animated.Value(0));
 
   const { folders, newFolderName, setNewFolderName, handleCreateFolder } =
     useFolders();
@@ -51,6 +53,17 @@ export default function Note() {
     handleSubmitYouTube,
     refetchNotes,
   } = useNotes(user?.uid, selectedFolderId);
+
+  useEffect(() => {
+    if (notes.length > 0) {
+      Animated.spring(listAnimation, {
+        toValue: 1,
+        tension: 50,
+        friction: 7,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [notes]);
 
   const onOpenNoteOptions = () => {
     noteOptionsBottomSheetRef.current?.snapToIndex(1);
@@ -84,6 +97,62 @@ export default function Note() {
           id: "all",
           name: "All Notes",
         };
+
+  const renderAnimatedItem = ({
+    item,
+    index,
+  }: {
+    item: any;
+    index: number;
+  }) => {
+    const translateY = listAnimation.interpolate({
+      inputRange: [0, 1],
+      outputRange: [50 * (index + 1), 0],
+    });
+
+    const opacity = listAnimation.interpolate({
+      inputRange: [0, 0.5, 1],
+      outputRange: [0, 0.5, 1],
+    });
+
+    const scale = listAnimation.interpolate({
+      inputRange: [0, 0.5, 1],
+      outputRange: [0.8, 1.1, 1],
+    });
+
+    return (
+      <Animated.View
+        style={{
+          transform: [{ translateY }, { scale }],
+          opacity,
+        }}
+      >
+        <Link
+          href={{
+            pathname: "/note/[id]",
+            params: { id: item.id },
+          }}
+          asChild
+        >
+          <View>
+            <NoteCard
+              id={item.id}
+              title={item.title}
+              createdAt={
+                new Date(
+                  item.createdAt?._seconds
+                    ? item.createdAt._seconds * 1000
+                    : item.createdAt
+                )
+              }
+              icon={item.noteType}
+              onPress={() => router.push(`/note/${item.id}`)}
+            />
+          </View>
+        </Link>
+      </Animated.View>
+    );
+  };
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -121,6 +190,7 @@ export default function Note() {
             keyExtractor={(item) => item.id}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
+            renderItem={renderAnimatedItem}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -132,31 +202,6 @@ export default function Note() {
                 progressBackgroundColor="rgba(240, 247, 255, 0.95)"
               />
             }
-            renderItem={({ item }) => (
-              <Link
-                href={{
-                  pathname: "/note/[id]",
-                  params: { id: item.id },
-                }}
-                asChild
-              >
-                <View>
-                  <NoteCard
-                    id={item.id}
-                    title={item.title}
-                    createdAt={
-                      new Date(
-                        item.createdAt?._seconds
-                          ? item.createdAt._seconds * 1000
-                          : item.createdAt
-                      )
-                    }
-                    icon={item.noteType}
-                    onPress={() => router.push(`/note/${item.id}`)}
-                  />
-                </View>
-              </Link>
-            )}
             ItemSeparatorComponent={() => <View style={styles.separator} />}
           />
         )}

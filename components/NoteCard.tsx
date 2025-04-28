@@ -162,38 +162,44 @@ const NoteCard: React.FC<NoteCardProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {},
+  container: {
+    marginHorizontal: 16,
+    marginVertical: 4,
+  },
   noteCard: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 16,
-    backgroundColor: "transparent",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E5EA",
   },
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 14,
+    marginRight: 12,
   },
   noteContent: {
     flex: 1,
     justifyContent: "center",
   },
   noteTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "500",
-    color: "#000000",
-    marginBottom: 3,
-    letterSpacing: -0.1,
+    color: "#1a1a1a",
+    marginBottom: 2,
+    letterSpacing: -0.3,
   },
   contentPreview: {
-    fontSize: 14,
+    fontSize: 13,
     color: "#666666",
     marginBottom: 4,
-    letterSpacing: -0.1,
+    letterSpacing: -0.2,
   },
   dateContainer: {
     flexDirection: "row",
@@ -204,8 +210,8 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 12,
-    color: "#8E8E93",
-    fontWeight: "400",
+    color: "#999999",
+    letterSpacing: -0.1,
   },
 });
 
