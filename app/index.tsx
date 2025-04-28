@@ -157,17 +157,20 @@ export default function Note() {
                 </View>
               </Link>
             )}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
           />
         )}
 
         <View style={styles.bottomActions}>
           <TouchableOpacity style={styles.recordButton} activeOpacity={0.8}>
             <MaterialCommunityIcons
-              name="record-circle"
+              name="microphone-plus"
               size={24}
-              color="#f44336"
+              color="#FFFFFF"
             />
-            <Text style={styles.recordButtonText}>Record</Text>
+            <Text style={[styles.actionButtonText, { color: "#FFFFFF" }]}>
+              Record
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -175,8 +178,12 @@ export default function Note() {
             activeOpacity={0.8}
             onPress={onOpenNoteOptions}
           >
-            <MaterialCommunityIcons name="pencil-plus" size={24} color="#111" />
-            <Text style={[styles.actionButtonText, { color: "#111" }]}>
+            <MaterialCommunityIcons
+              name="pencil-plus"
+              size={24}
+              color="#2c3e50"
+            />
+            <Text style={[styles.actionButtonText, { color: "#2c3e50" }]}>
               New Note
             </Text>
           </TouchableOpacity>
@@ -276,54 +283,53 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   listContent: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 0,
     paddingBottom: 24,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: "#E5E5EA",
+    marginLeft: 16 + 48 + 14,
   },
   bottomActions: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 24,
+    justifyContent: "space-around",
+    paddingHorizontal: 16,
     paddingBottom: Platform.OS === "ios" ? 34 : 24,
     paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#e6f0ff",
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "transparent",
   },
   recordButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#2c3e50",
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    width: "48%",
+    borderRadius: 25,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    flex: 1,
+    marginHorizontal: 6,
     height: 50,
   },
   newNoteButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    width: "48%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 25,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    flex: 1,
+    marginHorizontal: 6,
     height: 50,
+    borderWidth: 1,
+    borderColor: "#E5E5EA",
   },
   actionButtonText: {
     marginLeft: 8,
     fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-  },
-  recordButtonText: {
-    marginLeft: 8,
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#fff",
+    fontWeight: "500",
+    color: "#2c3e50",
   },
   emptyStateContainer: {
     flex: 1,

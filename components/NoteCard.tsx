@@ -78,93 +78,51 @@ const NoteCard: React.FC<NoteCardProps> = ({
         return {
           name: "palette" as IconName,
           color: "#EB6C3E",
-          bgColor: "rgba(255, 245, 236, 0.7)",
+          bgColor: "rgba(255, 245, 236, 0.9)",
         };
       default:
         return {
           name: "note-text-outline" as IconName,
           color: "#4CAF50",
-          bgColor: "rgba(232, 245, 233, 0.7)",
+          bgColor: "rgba(232, 245, 233, 0.9)",
         };
     }
   };
 
   const typeData = getTypeData(icon);
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
-  const shadowAnim = React.useRef(new Animated.Value(0)).current;
 
   const handlePressIn = () => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 0.98,
-        friction: 8,
-        tension: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(shadowAnim, {
-        toValue: 1,
-        duration: 150,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    Animated.spring(scaleAnim, {
+      toValue: 0.97,
+      friction: 7,
+      tension: 150,
+      useNativeDriver: true,
+    }).start();
   };
 
   const handlePressOut = () => {
-    Animated.parallel([
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 5,
-        tension: 200,
-        useNativeDriver: true,
-      }),
-      Animated.timing(shadowAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 5,
+      tension: 150,
+      useNativeDriver: true,
+    }).start();
   };
-
-  // Interpolate shadow and transform properties for smooth animation
-  const animatedShadowOpacity = shadowAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.12, 0.22],
-  });
-
-  const animatedShadowRadius = shadowAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [10, 18],
-  });
-
-  const animatedElevation = shadowAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [6, 12],
-  });
-
-  const animatedTranslateY = shadowAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0, -3],
-  });
 
   return (
     <TouchableOpacity
       onPress={onPress}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
-      activeOpacity={1}
+      activeOpacity={0.95}
       style={styles.container}
     >
       <Animated.View
         style={[
           styles.noteCard,
           {
-            transform: [
-              { scale: scaleAnim },
-              { translateY: animatedTranslateY },
-            ],
-            shadowOpacity: animatedShadowOpacity,
-            shadowRadius: animatedShadowRadius,
-            elevation: animatedElevation,
+            transform: [{ scale: scaleAnim }],
           },
         ]}
       >
@@ -173,7 +131,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
         >
           <MaterialCommunityIcons
             name={typeData.name}
-            size={28}
+            size={26}
             color={typeData.color}
           />
         </View>
@@ -204,55 +162,38 @@ const NoteCard: React.FC<NoteCardProps> = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginBottom: 8,
-  },
+  container: {},
   noteCard: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 24,
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    borderWidth: 1,
-    borderColor: "rgba(0, 0, 0, 0.05)",
-    shadowColor: "rgba(0, 0, 0, 0.2)",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 6,
-    overflow: "hidden",
-    backfaceVisibility: "hidden",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "transparent",
   },
   iconContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 18,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 18,
-    shadowColor: "rgba(0, 0, 0, 0.15)",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 1,
+    marginRight: 14,
   },
   noteContent: {
     flex: 1,
-    paddingVertical: 4,
+    justifyContent: "center",
   },
   noteTitle: {
     fontSize: 16,
-    fontWeight: "600",
-    color: "#2c3e50",
-    marginBottom: 6,
-    letterSpacing: -0.3,
+    fontWeight: "500",
+    color: "#000000",
+    marginBottom: 3,
+    letterSpacing: -0.1,
   },
   contentPreview: {
-    fontSize: 13,
-    color: "#7f8c8d",
-    marginBottom: 8,
-    letterSpacing: -0.2,
+    fontSize: 14,
+    color: "#666666",
+    marginBottom: 4,
+    letterSpacing: -0.1,
   },
   dateContainer: {
     flexDirection: "row",
@@ -263,8 +204,8 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 12,
-    color: "#95a5a6",
-    fontWeight: "500",
+    color: "#8E8E93",
+    fontWeight: "400",
   },
 });
 
