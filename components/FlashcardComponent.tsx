@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Animated,
-  PanResponder,
   Easing,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -28,7 +27,6 @@ export default function FlashcardComponent({
   const [visibleHintCount, setVisibleHintCount] = useState(1);
   const [isFlipped, setIsFlipped] = useState(false);
   const flipAnim = useRef(new Animated.Value(0)).current;
-  const swipeAnim = useRef(new Animated.Value(0)).current;
 
   const currentFlashcard = flashcards[currentIndex];
 
@@ -86,36 +84,8 @@ export default function FlashcardComponent({
     );
   };
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        return Math.abs(gestureState.dx) > 10;
-      },
-      onPanResponderMove: (_, gestureState) => {
-        swipeAnim.setValue(gestureState.dx);
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        if (Math.abs(gestureState.dx) > 120) {
-          Animated.timing(swipeAnim, {
-            toValue: gestureState.dx > 0 ? 300 : -300,
-            duration: 200,
-            useNativeDriver: true,
-          }).start(() => {
-            swipeAnim.setValue(0);
-            gestureState.dx > 0 ? handlePrev() : handleNext();
-          });
-        } else {
-          Animated.spring(swipeAnim, {
-            toValue: 0,
-            useNativeDriver: true,
-          }).start();
-        }
-      },
-    })
-  ).current;
-
   return (
-    <View style={styles.container} {...panResponder.panHandlers}>
+    <View style={styles.container}>
       {/* Flip Card */}
       <TouchableOpacity
         activeOpacity={0.9}
@@ -128,11 +98,7 @@ export default function FlashcardComponent({
             style={[
               styles.flashcardContainer,
               {
-                transform: [
-                  { perspective: 1000 },
-                  { rotateY: rotateY },
-                  { translateX: swipeAnim },
-                ],
+                transform: [{ perspective: 1000 }, { rotateY: rotateY }],
                 position: isFlipped ? "absolute" : "relative",
                 opacity: isFlipped ? 0 : 1,
                 zIndex: isFlipped ? 0 : 1,
@@ -148,11 +114,7 @@ export default function FlashcardComponent({
               styles.flashcardContainer,
               styles.flashcardBack,
               {
-                transform: [
-                  { perspective: 1000 },
-                  { rotateY: rotateYBack },
-                  { translateX: swipeAnim },
-                ],
+                transform: [{ perspective: 1000 }, { rotateY: rotateYBack }],
                 position: isFlipped ? "relative" : "absolute",
                 opacity: isFlipped ? 1 : 0,
                 zIndex: isFlipped ? 1 : 0,
