@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Alert, Platform, Modal, TextInput, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, Alert, Platform, Modal, TextInput, ActivityIndicator, Pressable, Animated } from "react-native";
 import { pick, types as docTypes } from '@react-native-documents/picker';
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Modalize } from "react-native-modalize";
@@ -14,6 +14,49 @@ interface NoteOptionsModalProps {
   onAddYouTube: () => void;
 }
 
+type ModalOptionButtonProps = {
+  onPress: () => void;
+  disabled?: boolean;
+  icon: React.ReactNode;
+  label: string;
+};
+
+const ModalOptionButton: React.FC<ModalOptionButtonProps> = ({ onPress, disabled, icon, label }) => {
+  const scale = useRef(new Animated.Value(1)).current;
+  const animateIn = () => {
+    Animated.spring(scale, {
+      toValue: 0.97,
+      useNativeDriver: true,
+      speed: 40,
+      bounciness: 10,
+    }).start();
+  };
+  const animateOut = () => {
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 40,
+      bounciness: 10,
+    }).start();
+  };
+  return (
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <Pressable
+        style={({ pressed }) => [styles.modalOption, pressed && styles.pressed]}
+        onPress={onPress}
+        disabled={disabled}
+        onPressIn={animateIn}
+        onPressOut={animateOut}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+      >
+        {icon}
+        <Text style={styles.modalOptionText}>{label}</Text>
+      </Pressable>
+    </Animated.View>
+  );
+};
+
 const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
   modalRef,
   onAddYouTube,
@@ -22,6 +65,27 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
   const queryClient = useQueryClient();
   const [isPicking, setIsPicking] = useState(false);
 
+  // Animated values for scaling
+  const scalePDF = useRef(new Animated.Value(1)).current;
+  const scaleAudio = useRef(new Animated.Value(1)).current;
+  const scaleYouTube = useRef(new Animated.Value(1)).current;
+
+  const animateIn = (scaleAnim: Animated.Value) => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.97,
+      useNativeDriver: true,
+      speed: 40,
+      bounciness: 10,
+    }).start();
+  };
+  const animateOut = (scaleAnim: Animated.Value) => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 40,
+      bounciness: 10,
+    }).start();
+  };
 
   const createNoteMutation = useMutation({
     mutationFn: createNote,
@@ -82,45 +146,39 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
       }
     >
       <View style={styles.modalContent}>
-        <TouchableOpacity
-          style={styles.modalOption}
+        <ModalOptionButton
           onPress={() => handlePickFile(NoteType.PDF)}
           disabled={isPicking}
-        >
-          <MaterialCommunityIcons
+          icon={<MaterialCommunityIcons
             name="file-pdf-box"
             size={24}
             color="#d32f2f"
             style={styles.modalOptionIcon}
-          />
-          <Text style={styles.modalOptionText}>Import PDF</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.modalOption}
+          />}
+          label="Import PDF"
+        />
+        <ModalOptionButton
           onPress={() => handlePickFile(NoteType.AUDIO)}
           disabled={isPicking}
-        >
-          <MaterialCommunityIcons
+          icon={<MaterialCommunityIcons
             name="file-music-outline"
             size={24}
             color="#1976d2"
             style={styles.modalOptionIcon}
-          />
-          <Text style={styles.modalOptionText}>Import Audio</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.modalOption}
+          />}
+          label="Import Audio"
+        />
+        <ModalOptionButton
           onPress={onAddYouTube}
           disabled={isPicking}
-        >
-          <MaterialCommunityIcons
+          icon={<MaterialCommunityIcons
             name="youtube"
             size={24}
             color="#ff0000"
             style={styles.modalOptionIcon}
-          />
-          <Text style={styles.modalOptionText}>Add YouTube Video</Text>
-        </TouchableOpacity>
+          />}
+          label="Add YouTube Video"
+        />
       </View>
 
     </Modalize>
@@ -128,6 +186,9 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
 };
 
 const styles = StyleSheet.create({
+  pressed: {
+    opacity: 0.7,
+  },
   modalHeader: {
     paddingVertical: 16,
     borderBottomWidth: 1,
