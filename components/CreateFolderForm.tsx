@@ -15,11 +15,13 @@ import { createFolder } from "../lib/services/folderService";
 interface CreateFolderFormProps {
   userId: string;
   onClose: () => void;
+  autoFocus?: boolean;
 }
 
 const CreateFolderForm: React.FC<CreateFolderFormProps> = ({
   userId,
   onClose,
+  autoFocus = false,
 }) => {
   const [newFolderName, setNewFolderName] = useState<string>("");
   const queryClient = useQueryClient();
@@ -56,7 +58,7 @@ const CreateFolderForm: React.FC<CreateFolderFormProps> = ({
         placeholder="Enter folder name"
         value={newFolderName}
         onChangeText={setNewFolderName}
-        autoFocus={true}
+        autoFocus={autoFocus}
         onSubmitEditing={handleCreateFolder}
       />
       <TouchableOpacity

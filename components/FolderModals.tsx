@@ -1,11 +1,12 @@
-import React, { RefObject, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import React, { RefObject, useEffect, useRef, useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Pressable, Animated, Alert, TextInput, ActivityIndicator } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { Folder } from "../lib/types/folder";
 import FolderListItem, { FolderItem } from "./FolderListItem";
 import CreateFolderForm from "./CreateFolderForm";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { updateFolder, deleteFolder } from "../lib/services/folderService";
 
 interface FolderModalsProps {
   bottomSheetRef: RefObject<BottomSheet>;
@@ -16,6 +17,108 @@ interface FolderModalsProps {
   folders: Folder[];
 }
 
+const ModalOptionButton: React.FC<{ onPress: () => void; disabled?: boolean; icon: React.ReactNode; label: string; }> = ({ onPress, disabled, icon, label }) => {
+  const scale = useRef(new Animated.Value(1)).current;
+  const animateIn = () => {
+    Animated.spring(scale, {
+      toValue: 0.97,
+      useNativeDriver: true,
+      speed: 40,
+      bounciness: 10,
+    }).start();
+  };
+  const animateOut = () => {
+    Animated.spring(scale, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 40,
+      bounciness: 10,
+    }).start();
+  };
+  return (
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <Pressable
+        style={({ pressed }) => [styles.modalOption, pressed && styles.pressed]}
+        onPress={onPress}
+        disabled={disabled}
+        onPressIn={animateIn}
+        onPressOut={animateOut}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+      >
+        {icon}
+        <Text style={styles.modalOptionText}>{label}</Text>
+      </Pressable>
+    </Animated.View>
+  );
+};
+
+const FolderOptionsModal: React.FC<{
+  bottomSheetRef: RefObject<any>;
+  folder: Folder | null;
+  onClose: () => void;
+  onRename: (newName: string) => void;
+  onDelete: () => void;
+  isRenaming: boolean;
+  setIsRenaming: (v: boolean) => void;
+  isLoading: boolean;
+}> = ({ bottomSheetRef, folder, onClose, onRename, onDelete, isRenaming, setIsRenaming, isLoading }) => {
+  const [newName, setNewName] = useState(folder?.name || "");
+  useEffect(() => { setNewName(folder?.name || ""); }, [folder]);
+  return (
+    <BottomSheet
+      ref={bottomSheetRef}
+      index={-1}
+      snapPoints={[1, 260]}
+      enablePanDownToClose
+      backgroundStyle={{ backgroundColor: '#fff' }}
+      handleIndicatorStyle={{ backgroundColor: '#ccc' }}
+      onChange={idx => { if (idx === 0) { setIsRenaming(false); onClose(); } }}
+    >
+      <BottomSheetView>
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalHeaderText}>Folder Options</Text>
+        </View>
+        <View style={styles.modalContent}>
+          {isRenaming ? (
+            <View style={{ marginBottom: 16 }}>
+              <TextInput
+                style={styles.renameInput}
+                value={newName}
+                onChangeText={setNewName}
+                placeholder="Enter new folder name"
+                autoFocus
+              />
+              <TouchableOpacity
+                style={styles.saveFolderButton}
+                onPress={() => onRename(newName)}
+                disabled={isLoading || !newName.trim()}
+              >
+                {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveFolderButtonText}>Save</Text>}
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <ModalOptionButton
+                onPress={() => setIsRenaming(true)}
+                disabled={isLoading}
+                icon={<MaterialCommunityIcons name="pencil-outline" size={24} color="#1976d2" style={styles.modalOptionIcon} />}
+                label="Rename Folder"
+              />
+              <ModalOptionButton
+                onPress={onDelete}
+                disabled={isLoading}
+                icon={<MaterialCommunityIcons name="trash-can-outline" size={24} color="#d32f2f" style={styles.modalOptionIcon} />}
+                label="Delete Folder"
+              />
+            </>
+          )}
+        </View>
+      </BottomSheetView>
+    </BottomSheet>
+  );
+};
+
 const FolderModals: React.FC<FolderModalsProps> = ({
   bottomSheetRef,
   bottomSheetCreateRef,
@@ -24,6 +127,8 @@ const FolderModals: React.FC<FolderModalsProps> = ({
   userId,
   folders = [],
 }) => {
+  // Track if create folder sheet is open
+  const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
   const queryClient = useQueryClient();
 
   // Ensure folders is always an array
@@ -36,6 +141,39 @@ const FolderModals: React.FC<FolderModalsProps> = ({
       icon: "folder" as const,
     })),
   ];
+
+  // Folder options modal state
+  const folderOptionsSheetRef = useRef<any>(null);
+  const [optionsFolder, setOptionsFolder] = useState<Folder | null>(null);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Mutations
+  const updateFolderMutation = useMutation({
+    mutationFn: ({ id, name }: { id: string; name: string }) => updateFolder(id, { name }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["folders"] });
+      setIsRenaming(false);
+      setIsLoading(false);
+      folderOptionsSheetRef.current?.close();
+    },
+    onError: () => {
+      setIsLoading(false);
+      Alert.alert("Error", "Failed to rename folder. Try again.");
+    },
+  });
+  const deleteFolderMutation = useMutation({
+    mutationFn: (id: string) => deleteFolder(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["folders"] });
+      setIsLoading(false);
+      folderOptionsSheetRef.current?.close();
+    },
+    onError: () => {
+      setIsLoading(false);
+      Alert.alert("Error", "Failed to delete folder. Try again.");
+    },
+  });
 
   const renderHeader = () => (
     <TouchableOpacity
@@ -99,8 +237,15 @@ const FolderModals: React.FC<FolderModalsProps> = ({
                 isSelected={selectedFolderId === item.id}
                 onSelect={handleFolderSelect}
                 onDelete={handleFolderDelete}
+                onOptions={() => {
+                  if (item.id !== "all") {
+                    setOptionsFolder(item as Folder);
+                    setIsRenaming(false);
+                    folderOptionsSheetRef.current?.expand();
+                  }
+                }}
               />
-            ))}
+            ))} 
           </View>
         </BottomSheetView>
       </BottomSheet>
@@ -112,14 +257,49 @@ const FolderModals: React.FC<FolderModalsProps> = ({
         enablePanDownToClose
         backgroundStyle={{ backgroundColor: '#fff' }}
         handleIndicatorStyle={{ backgroundColor: '#ccc' }}
+        onChange={(index) => {
+          // index 1 = open, index 0 = closed
+          setIsCreateSheetOpen(index === 1);
+        }}
       >
         <BottomSheetView>
           <View style={styles.drawerHeader}>
             <Text style={styles.drawerTitle}>Create New Folder</Text>
           </View>
-          <CreateFolderForm userId={userId} onClose={handleCreateFolderClose} />
+          <CreateFolderForm userId={userId} onClose={handleCreateFolderClose} autoFocus={isCreateSheetOpen} />
         </BottomSheetView>
       </BottomSheet>
+      <FolderOptionsModal
+        bottomSheetRef={folderOptionsSheetRef}
+        folder={optionsFolder}
+        onClose={() => setOptionsFolder(null)}
+        isRenaming={isRenaming}
+        setIsRenaming={setIsRenaming}
+        isLoading={isLoading || updateFolderMutation.isPending || deleteFolderMutation.isPending}
+        onRename={(newName: string) => {
+          if (!optionsFolder || !newName.trim()) return;
+          setIsLoading(true);
+          updateFolderMutation.mutate({ id: optionsFolder.id, name: newName.trim() });
+        }}
+        onDelete={() => {
+          if (!optionsFolder) return;
+          Alert.alert(
+            "Delete Folder",
+            `Are you sure you want to delete "${optionsFolder.name}"?`,
+            [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Delete",
+                style: "destructive",
+                onPress: () => {
+                  setIsLoading(true);
+                  deleteFolderMutation.mutate(optionsFolder.id);
+                },
+              },
+            ]
+          );
+        }}
+      />
     </>
   );
 };
@@ -170,6 +350,58 @@ const styles = StyleSheet.create({
     marginLeft: 16,
     fontWeight: "600",
     letterSpacing: 0.3,
+  },
+  // ModalOptionButton styles
+  pressed: {
+    opacity: 0.7,
+  },
+  modalHeader: {
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  modalHeaderText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+  },
+  modalContent: {
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+  },
+  modalOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 15,
+  },
+  modalOptionIcon: {
+    marginRight: 16,
+  },
+  modalOptionText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  renameInput: {
+    fontSize: 16,
+    padding: 12,
+    borderColor: "#ddd",
+    borderWidth: 1,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  saveFolderButton: {
+    backgroundColor: "#111",
+    paddingVertical: 14,
+    borderRadius: 28,
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  saveFolderButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
 });
 

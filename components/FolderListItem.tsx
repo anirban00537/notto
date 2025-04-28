@@ -17,6 +17,7 @@ interface FolderListItemProps {
   isSelected: boolean;
   onSelect: (id: string) => void;
   onDelete?: (id: string) => void;
+  onOptions?: () => void;
 }
 
 const FolderListItem: React.FC<FolderListItemProps> = ({
@@ -24,6 +25,7 @@ const FolderListItem: React.FC<FolderListItemProps> = ({
   isSelected,
   onSelect,
   onDelete,
+  onOptions,
 }) => {
   const queryClient = useQueryClient();
   
@@ -82,20 +84,35 @@ const FolderListItem: React.FC<FolderListItemProps> = ({
             style={styles.checkIcon}
           />
           {item.id !== "all" && (
-            <TouchableOpacity
-              onPress={handleDelete}
-              style={styles.deleteButton}
-              hitSlop={{top: 15, bottom: 15, left: 15, right: 15}}
-            >
-              <MaterialCommunityIcons
-                name="trash-can-outline"
-                size={20}
-                color="#d32f2f"
-              />
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity
+                onPress={handleDelete}
+                style={styles.deleteButton}
+                hitSlop={{top: 15, bottom: 15, left: 15, right: 15}}
+              >
+                <MaterialCommunityIcons
+                  name="trash-can-outline"
+                  size={20}
+                  color="#d32f2f"
+                />
+              </TouchableOpacity>
+              {onOptions && (
+                <TouchableOpacity
+                  onPress={onOptions}
+                  style={styles.optionsButton}
+                  hitSlop={{top: 15, bottom: 15, left: 15, right: 15}}
+                >
+                  <MaterialCommunityIcons
+                    name="dots-vertical"
+                    size={22}
+                    color="#888"
+                  />
+                </TouchableOpacity>
+              )}
+            </>
           )}
         </>
-      )}
+      )} 
     </TouchableOpacity>
   );
 };
@@ -126,6 +143,11 @@ const styles = StyleSheet.create({
   },
   deleteButton: {
     marginLeft: 12,
+    padding: 4,
+    borderRadius: 8,
+  },
+  optionsButton: {
+    marginLeft: 6,
     padding: 4,
     borderRadius: 8,
   },
