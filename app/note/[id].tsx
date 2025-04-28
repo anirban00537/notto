@@ -1,4 +1,5 @@
 import React from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import {
   View,
   Text,
@@ -53,7 +54,8 @@ export default function NoteDetailScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["bottom", "left", "right"]}>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaView style={styles.safeArea} edges={["bottom", "left", "right"]}>
       <Stack.Screen options={{ headerShown: false }} />
       <NoteDetailHeader
         title={note.title}
@@ -142,7 +144,8 @@ export default function NoteDetailScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
 
