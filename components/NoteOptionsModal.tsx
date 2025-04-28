@@ -1,17 +1,35 @@
 import React, { useState, useRef } from "react";
-import { View, Text, StyleSheet, Alert, Platform, Modal, TextInput, ActivityIndicator, Pressable, Animated } from "react-native";
-import { pick, types as docTypes } from '@react-native-documents/picker';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Alert,
+  Platform,
+  Modal,
+  TextInput,
+  ActivityIndicator,
+  Pressable,
+  Animated,
+} from "react-native";
+import { pick, types as docTypes } from "@react-native-documents/picker";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import CommonBottomSheet from './CommonBottomSheet';
+import CommonBottomSheet from "./CommonBottomSheet";
 import { router } from "expo-router";
 import { useUser } from "../app/context/UserContext";
 import { createNote } from "../lib/services";
-import { CreateNoteDto, NoteType, NoteStatus } from "../lib/types/note";
+import { CreateNoteDto, NoteType, NoteStatus, Note } from "../lib/types/note";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface NoteOptionsModalProps {
   bottomSheetRef: React.RefObject<any>;
   onAddYouTube: () => void;
+}
+
+// Define a potential API response structure (matching useNotes)
+interface CreateNoteResponse {
+  data?: Note;
+  id?: string;
+  noteType?: NoteType;
 }
 
 type ModalOptionButtonProps = {
@@ -21,7 +39,12 @@ type ModalOptionButtonProps = {
   label: string;
 };
 
-const ModalOptionButton: React.FC<ModalOptionButtonProps> = ({ onPress, disabled, icon, label }) => {
+const ModalOptionButton: React.FC<ModalOptionButtonProps> = ({
+  onPress,
+  disabled,
+  icon,
+  label,
+}) => {
   const scale = useRef(new Animated.Value(1)).current;
   const animateIn = () => {
     Animated.spring(scale, {
@@ -87,20 +110,33 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
     }).start();
   };
 
-  const createNoteMutation = useMutation({
+  const createNoteMutation = useMutation<
+    CreateNoteResponse,
+    Error,
+    CreateNoteDto
+  >({
     mutationFn: createNote,
-    onSuccess: (newNote) => {
-      console.log('Note created:', newNote);
-      bottomSheetRef.current?.close();
+    onSuccess: (newNote: CreateNoteResponse) => {
+      console.log("Note created:", newNote);
       queryClient.invalidateQueries({ queryKey: ["notes"] });
-      // Support both {id} and {data: {id}}
-      const noteId = newNote?.data?.id;
+
+      const noteData = newNote?.data;
+      const noteId = noteData?.id || newNote?.id;
+
       if (noteId) {
         router.push(`/note/${noteId}`);
+      } else {
+        console.error(
+          "Failed to get new note ID for navigation from response:",
+          newNote
+        );
       }
     },
-    onError: (error) => {
-      Alert.alert("Error", "Failed to create note. Please try again.");
+    onError: (error: Error) => {
+      Alert.alert(
+        "Error",
+        `Failed to create note: ${error.message || "Please try again."}`
+      );
       console.error("Error creating note:", error);
     },
   });
@@ -114,24 +150,33 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
       const [result] = await pick({
         type: pickerTypes,
         allowMultiSelection: false,
-        mode: 'import',
+        mode: "import",
       });
       if (result) {
         const noteDto: CreateNoteDto = {
           noteType: type,
           file: {
-            uri: result.uri || '',
-            name: result.name || 'upload',
-            mimeType: result.type || 'application/octet-stream',
-            type: result.type || 'application/octet-stream',
+            uri: result.uri || "",
+            name: result.name || "upload",
+            mimeType: result.type || "application/octet-stream",
+            type: result.type || "application/octet-stream",
           },
         };
+        bottomSheetRef.current?.close();
         createNoteMutation.mutate(noteDto);
       }
-    } catch (e) {
-      Alert.alert("Error", "File selection failed.");
+    } catch (e: any) {
+      if (!(e.code && e.code === "DOCUMENT_PICKER_CANCELED")) {
+        Alert.alert(
+          "Error",
+          `File selection failed: ${e.message || "Unknown error"}`
+        );
+      }
     } finally {
       setIsPicking(false);
+      if (!createNoteMutation.isPending) {
+        // bottomSheetRef.current?.close(); // Already closed before mutation starts
+      }
     }
   };
 
@@ -143,47 +188,56 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
       ref={bottomSheetRef}
       visible={false} // controlled by parent via ref
       snapPoints={snapPoints}
-      backgroundStyle={{ backgroundColor: '#fff' }}
-      handleIndicatorStyle={{ backgroundColor: '#ccc' }}
+      backgroundStyle={{ backgroundColor: "#fff" }}
+      handleIndicatorStyle={{ backgroundColor: "#ccc" }}
     >
       <View style={styles.modalHeader}>
-          <Text style={styles.modalHeaderText}>Create New Note</Text>
-        </View>
-        <View style={styles.modalContent}>
-          <ModalOptionButton
-            onPress={() => handlePickFile(NoteType.PDF)}
-            disabled={isPicking}
-            icon={<MaterialCommunityIcons
+        <Text style={styles.modalHeaderText}>Create New Note</Text>
+      </View>
+      <View style={styles.modalContent}>
+        <ModalOptionButton
+          onPress={() => handlePickFile(NoteType.PDF)}
+          disabled={isPicking || createNoteMutation.isPending}
+          icon={
+            <MaterialCommunityIcons
               name="file-pdf-box"
               size={24}
               color="#d32f2f"
               style={styles.modalOptionIcon}
-            />}
-            label="Import PDF"
-          />
-          <ModalOptionButton
-            onPress={() => handlePickFile(NoteType.AUDIO)}
-            disabled={isPicking}
-            icon={<MaterialCommunityIcons
+            />
+          }
+          label="Import PDF"
+        />
+        <ModalOptionButton
+          onPress={() => handlePickFile(NoteType.AUDIO)}
+          disabled={isPicking || createNoteMutation.isPending}
+          icon={
+            <MaterialCommunityIcons
               name="file-music-outline"
               size={24}
               color="#1976d2"
               style={styles.modalOptionIcon}
-            />}
-            label="Import Audio"
-          />
-          <ModalOptionButton
-            onPress={onAddYouTube}
-            disabled={isPicking}
-            icon={<MaterialCommunityIcons
+            />
+          }
+          label="Import Audio"
+        />
+        <ModalOptionButton
+          onPress={() => {
+            bottomSheetRef.current?.close();
+            onAddYouTube();
+          }}
+          disabled={isPicking || createNoteMutation.isPending}
+          icon={
+            <MaterialCommunityIcons
               name="youtube"
               size={24}
               color="#ff0000"
               style={styles.modalOptionIcon}
-            />}
-            label="Add YouTube Video"
-          />
-        </View>
+            />
+          }
+          label="Add YouTube Video"
+        />
+      </View>
     </CommonBottomSheet>
   );
 };
