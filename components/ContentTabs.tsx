@@ -11,12 +11,7 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-type TabName =
-  | "note"
-  | "transcript"
-  | "summary"
-  | "quiz"
-  | "flashcards";
+type TabName = "note" | "transcript" | "summary" | "quiz" | "flashcards";
 
 const TABS: {
   name: TabName;
@@ -40,10 +35,14 @@ export default function ContentTabs({
   onTabPress,
 }: ContentTabsProps) {
   const scrollRef = useRef<ScrollView>(null);
-  const [tabLayouts, setTabLayouts] = useState<{ x: number; width: number }[]>([]);
+  const [tabLayouts, setTabLayouts] = useState<{ x: number; width: number }[]>(
+    []
+  );
   const underlineX = useRef(new Animated.Value(0)).current;
   const underlineWidth = useRef(new Animated.Value(0)).current;
-  const [containerWidth, setContainerWidth] = useState(Dimensions.get("window").width);
+  const [containerWidth, setContainerWidth] = useState(
+    Dimensions.get("window").width
+  );
 
   useEffect(() => {
     if (tabLayouts.length !== TABS.length) return;
@@ -79,7 +78,10 @@ export default function ContentTabs({
   };
 
   return (
-    <View style={styles.container} onLayout={e => setContainerWidth(e.nativeEvent.layout.width)}>
+    <View
+      style={styles.container}
+      onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
+    >
       <ScrollView
         ref={scrollRef}
         horizontal
@@ -94,7 +96,7 @@ export default function ContentTabs({
               style={[styles.tab, activeTab === tab.name && styles.activeTab]}
               onPress={() => onTabPress(tab.name)}
               activeOpacity={0.8}
-              onLayout={e => onTabLayout(idx, e)}
+              onLayout={(e) => onTabLayout(idx, e)}
             >
               <View style={styles.tabContent}>
                 <MaterialCommunityIcons
@@ -114,7 +116,6 @@ export default function ContentTabs({
               </View>
             </TouchableOpacity>
           ))}
-
         </View>
       </ScrollView>
     </View>
@@ -125,48 +126,66 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "transparent",
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(44, 62, 80, 0.1)",
   },
   scrollContent: {
     paddingHorizontal: 4,
   },
   tabsContainer: {
     flexDirection: "row",
-    backgroundColor: "rgba(255,255,255,0.92)",
-    borderRadius: 14,
-    paddingVertical: 2,
-    paddingHorizontal: 2,
-    alignItems: 'center',
-    position: 'relative',
+    backgroundColor: "#f5f7fa",
+    borderRadius: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+    alignItems: "center",
+    position: "relative",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
   },
   tab: {
-    borderRadius: 12,
-    marginHorizontal: 4,
-    minWidth: 72,
-    paddingHorizontal: 14,
-    paddingVertical: 5,
-    backgroundColor: 'transparent',
+    borderRadius: 6,
+    marginHorizontal: 2,
+    minWidth: 84,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: "transparent",
   },
   activeTab: {
     backgroundColor: "#2c3e50",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   tabContent: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 5,
+    gap: 6,
   },
   tabIcon: {
     marginRight: 4,
+    opacity: 0.9,
   },
   tabText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "600",
     color: "#2c3e50",
-    letterSpacing: 0.06,
+    letterSpacing: 0.3,
   },
   activeTabText: {
     color: "#fff",
   },
-
 });

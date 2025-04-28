@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import BottomSheet from '@gorhom/bottom-sheet';
+import BottomSheet from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Link, useRouter } from "expo-router";
 import AuthComponent from "./auth";
@@ -34,18 +34,20 @@ export default function Note() {
   const createFolderModalRef = useRef<any>(null);
   const youtubeBottomSheetRef = useRef<BottomSheet>(null);
 
-  // YouTube modal state
-  const [youtubeModalVisible, setYoutubeModalVisible] = useState(false);
-  const [youtubeUrl, setYoutubeUrl] = useState("");
-  const [youtubeLoading, setYoutubeLoading] = useState(false);
-
   const { folders, newFolderName, setNewFolderName, handleCreateFolder } =
     useFolders();
 
-  const { data: notes = [], isLoading: isNotesLoading } = useNotes(
-    user?.uid,
-    selectedFolderId
-  );
+  const {
+    notes,
+    isNotesLoading,
+    youtubeModalVisible,
+    youtubeUrl,
+    youtubeLoading,
+    setYoutubeUrl,
+    handleAddYouTube,
+    handleCloseYouTubeModal,
+    handleSubmitYouTube,
+  } = useNotes(user?.uid, selectedFolderId);
 
   const onOpenNoteOptions = () => {
     noteOptionsBottomSheetRef.current?.snapToIndex(1);
@@ -54,45 +56,6 @@ export default function Note() {
   const openFolderDrawer = () => {
     folderDrawerRef.current?.expand();
   };
-
-  // YouTube note creation logic
-  const { mutate: createNote, isLoading: isCreatingNote } = require("../lib/services").createNote ? require("@tanstack/react-query").useMutation({
-    mutationFn: require("../lib/services").createNote,
-    onSuccess: (newNote: any) => {
-      noteOptionsBottomSheetRef.current?.close();
-      setYoutubeModalVisible(false);
-      setYoutubeUrl("");
-      setYoutubeLoading(false);
-      // Invalidate notes query if needed
-      // router.push(`/note/${newNote?.data?.id}`);
-    },
-    onError: () => {
-      setYoutubeLoading(false);
-      alert("Failed to create note. Please try again.");
-    },
-  }) : { mutate: () => {}, isLoading: false };
-
-  const handleAddYouTube = () => {
-    noteOptionsBottomSheetRef.current?.close();
-    setYoutubeUrl("");
-    setYoutubeModalVisible(true);
-  };
-
-  const handleCloseYouTubeModal = () => {
-    setYoutubeModalVisible(false);
-    setYoutubeUrl("");
-    setYoutubeLoading(false);
-  };
-
-  const handleSubmitYouTube = () => {
-    if (!youtubeUrl || !/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(youtubeUrl)) {
-      alert("Please enter a valid YouTube URL.");
-      return;
-    }
-    setYoutubeLoading(true);
-    createNote({ noteType: "YOUTUBE", youtubeUrl });
-  };
-
 
   if (loading) {
     return <LoadingScreen />;
@@ -158,7 +121,6 @@ export default function Note() {
                   <NoteCard
                     id={item.id}
                     title={item.title}
-                    content={item.content}
                     createdAt={
                       new Date(
                         item.createdAt?._seconds
@@ -166,7 +128,7 @@ export default function Note() {
                           : item.createdAt
                       )
                     }
-                    icon={item.icon || item.noteType}
+                    icon={item.noteType}
                     onPress={() => router.push(`/note/${item.id}`)}
                   />
                 </View>

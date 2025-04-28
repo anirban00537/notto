@@ -157,7 +157,12 @@ export default function FlashcardComponent({
                 style={[styles.flashcardContainer, animatedFrontStyle]}
               >
                 <Text style={styles.question}>{currentFlashcard.question}</Text>
-                <Text style={styles.tapToFlip}>Tap to flip</Text>
+                <MaterialCommunityIcons
+                  name="rotate-3d-variant"
+                  size={18}
+                  color="#B0B0B0"
+                  style={styles.flipIndicator}
+                />
               </Reanimated.View>
 
               <Reanimated.View
@@ -179,19 +184,10 @@ export default function FlashcardComponent({
       <View style={styles.hintsSection}>
         <View style={styles.hintsHeader}>
           <Text style={styles.hintsTitle}>Hints</Text>
-          {currentFlashcard.hints &&
-            visibleHintCount < currentFlashcard.hints.length && (
-              <TouchableOpacity
-                onPress={() => setVisibleHintCount((prev) => prev + 1)}
-                style={styles.moreHintsButton}
-              >
-                <Text style={styles.moreHintsText}>Show More</Text>
-              </TouchableOpacity>
-            )}
         </View>
-        <ScrollView style={styles.hintsContainer}>
+        <View style={styles.hintsContainer}>
           {currentFlashcard.hints && currentFlashcard.hints.length > 0 ? (
-            currentFlashcard.hints.slice(0, visibleHintCount).map((hint, i) => (
+            currentFlashcard.hints.map((hint, i) => (
               <View key={`hint-${i}`} style={styles.hintRow}>
                 <MaterialCommunityIcons
                   name="lightbulb-outline"
@@ -206,7 +202,7 @@ export default function FlashcardComponent({
               No hints available for this card.
             </Text>
           )}
-        </ScrollView>
+        </View>
       </View>
 
       {/* Navigation Hint */}
@@ -218,150 +214,152 @@ export default function FlashcardComponent({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: 16,
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
+    backgroundColor: "transparent",
   },
   progressContainer: {
     width: "100%",
-    marginBottom: 20,
+    marginBottom: 24,
   },
   progressBackground: {
-    height: 6,
-    backgroundColor: "#E0E0E0",
-    borderRadius: 3,
+    height: 8,
+    backgroundColor: "#EAEAEA",
+    borderRadius: 4,
     overflow: "hidden",
   },
   progressFill: {
     height: "100%",
-    backgroundColor: "#2c3e50",
-    borderRadius: 3,
+    backgroundColor: "#3a4d6d",
+    borderRadius: 4,
   },
   progressText: {
     textAlign: "center",
     marginTop: 8,
-    color: "#666",
-    fontSize: 14,
+    color: "#555",
+    fontSize: 13,
+    fontWeight: "500",
   },
   swipeContainer: {
     width: "100%",
     alignItems: "center",
     flex: 1,
+    justifyContent: "center",
   },
   flipTouchable: {
-    width: SCREEN_WIDTH * 0.85,
-    aspectRatio: 3 / 4,
-    marginBottom: 12,
+    width: SCREEN_WIDTH * 0.88,
+    aspectRatio: 16 / 11,
+    marginBottom: 24,
   },
   flashcardContainer: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    padding: 24,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    padding: 28,
     width: "100%",
     height: "100%",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E0E0E0",
+    borderColor: "#F0F0F0",
     backfaceVisibility: "hidden",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 4,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 6,
   },
   flashcardBack: {
-    backgroundColor: "#f8f9fa",
+    backgroundColor: "#FDFDFD",
   },
   question: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "600",
+    color: "#2c3e50",
+    textAlign: "center",
+    lineHeight: 30,
+    marginBottom: 20,
+  },
+  flipIndicator: {
+    position: "absolute",
+    bottom: 18,
+    opacity: 0.6,
+  },
+  answerTitle: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#888",
+    marginBottom: 16,
+    textTransform: "uppercase",
+    letterSpacing: 1.2,
+  },
+  answer: {
+    fontSize: 20,
     color: "#2c3e50",
     textAlign: "center",
     lineHeight: 28,
   },
-  tapToFlip: {
-    position: "absolute",
-    bottom: 20,
-    color: "#999",
-    fontSize: 12,
-  },
-  answerTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#666",
-    marginBottom: 12,
-    textTransform: "uppercase",
-    letterSpacing: 1,
-  },
-  answer: {
-    fontSize: 18,
-    color: "#2c3e50",
-    textAlign: "center",
-    lineHeight: 26,
-  },
   hintsSection: {
     width: "100%",
-    maxHeight: "30%",
-    backgroundColor: "#f8f9fa",
-    borderRadius: 16,
-    padding: 16,
-    marginTop: 20,
+    backgroundColor: "transparent",
+    borderRadius: 0,
+    paddingVertical: 16,
+    paddingHorizontal: 0,
+    marginTop: "auto",
+    borderTopWidth: 1,
+    borderTopColor: "#EAEAEA",
   },
   hintsHeader: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignItems: "center",
     marginBottom: 12,
+    paddingHorizontal: 18,
   },
   hintsTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "600",
-    color: "#2c3e50",
-  },
-  moreHintsButton: {
-    backgroundColor: "#e8f0fe",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  moreHintsText: {
-    color: "#2c3e50",
-    fontSize: 12,
-    fontWeight: "500",
+    color: "#4a4a4a",
   },
   hintsContainer: {
-    maxHeight: 150,
+    width: "100%",
+    paddingHorizontal: 18,
   },
   hintRow: {
     flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    padding: 12,
-    borderRadius: 8,
+    alignItems: "flex-start",
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 10,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: "#E0E0E0",
+    borderColor: "#F0F0F0",
   },
   hintText: {
     fontSize: 14,
     color: "#4a4a4a",
-    marginLeft: 8,
+    marginLeft: 10,
     flex: 1,
+    lineHeight: 21,
   },
   noHintsText: {
     textAlign: "center",
-    color: "#999",
+    color: "#AAA",
     fontSize: 14,
     fontStyle: "italic",
+    paddingVertical: 10,
   },
   swipeHint: {
-    color: "#999",
+    color: "#B0B0B0",
     fontSize: 12,
     marginTop: 16,
     textAlign: "center",
+    paddingBottom: 8,
   },
 });
