@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { View, Text, StyleSheet, Alert, Platform, Modal, TextInput, ActivityIndicator, Pressable, Animated } from "react-native";
 import { pick, types as docTypes } from '@react-native-documents/picker';
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Modalize } from "react-native-modalize";
+import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { router } from "expo-router";
 import { useUser } from "../app/context/UserContext";
 import { createNote } from "../lib/services";
@@ -10,7 +10,7 @@ import { CreateNoteDto, NoteType, NoteStatus } from "../lib/types/note";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface NoteOptionsModalProps {
-  modalRef: React.RefObject<Modalize>;
+  bottomSheetRef: React.RefObject<BottomSheet>;
   onAddYouTube: () => void;
 }
 
@@ -58,7 +58,7 @@ const ModalOptionButton: React.FC<ModalOptionButtonProps> = ({ onPress, disabled
 };
 
 const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
-  modalRef,
+  bottomSheetRef,
   onAddYouTube,
 }) => {
   const { user } = useUser();
@@ -91,7 +91,7 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
     mutationFn: createNote,
     onSuccess: (newNote) => {
       console.log('Note created:', newNote);
-      modalRef.current?.close();
+      bottomSheetRef.current?.close();
       queryClient.invalidateQueries({ queryKey: ["notes"] });
       // Support both {id} and {data: {id}}
       const noteId = newNote?.data?.id;
@@ -135,53 +135,59 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
     }
   };
 
+  // Define snap points for the bottom sheet
+  const snapPoints = [1, 320]; // 1px (closed), 320px (open)
+
   return (
-    <Modalize
-      ref={modalRef}
-      adjustToContentHeight
-      HeaderComponent={
+    <BottomSheet
+      ref={bottomSheetRef}
+      index={0} // closed by default
+      snapPoints={snapPoints}
+      enablePanDownToClose
+      backgroundStyle={{ backgroundColor: '#fff' }}
+      handleIndicatorStyle={{ backgroundColor: '#ccc' }}
+    >
+      <BottomSheetView>
         <View style={styles.modalHeader}>
           <Text style={styles.modalHeaderText}>Create New Note</Text>
         </View>
-      }
-    >
-      <View style={styles.modalContent}>
-        <ModalOptionButton
-          onPress={() => handlePickFile(NoteType.PDF)}
-          disabled={isPicking}
-          icon={<MaterialCommunityIcons
-            name="file-pdf-box"
-            size={24}
-            color="#d32f2f"
-            style={styles.modalOptionIcon}
-          />}
-          label="Import PDF"
-        />
-        <ModalOptionButton
-          onPress={() => handlePickFile(NoteType.AUDIO)}
-          disabled={isPicking}
-          icon={<MaterialCommunityIcons
-            name="file-music-outline"
-            size={24}
-            color="#1976d2"
-            style={styles.modalOptionIcon}
-          />}
-          label="Import Audio"
-        />
-        <ModalOptionButton
-          onPress={onAddYouTube}
-          disabled={isPicking}
-          icon={<MaterialCommunityIcons
-            name="youtube"
-            size={24}
-            color="#ff0000"
-            style={styles.modalOptionIcon}
-          />}
-          label="Add YouTube Video"
-        />
-      </View>
-
-    </Modalize>
+        <View style={styles.modalContent}>
+          <ModalOptionButton
+            onPress={() => handlePickFile(NoteType.PDF)}
+            disabled={isPicking}
+            icon={<MaterialCommunityIcons
+              name="file-pdf-box"
+              size={24}
+              color="#d32f2f"
+              style={styles.modalOptionIcon}
+            />}
+            label="Import PDF"
+          />
+          <ModalOptionButton
+            onPress={() => handlePickFile(NoteType.AUDIO)}
+            disabled={isPicking}
+            icon={<MaterialCommunityIcons
+              name="file-music-outline"
+              size={24}
+              color="#1976d2"
+              style={styles.modalOptionIcon}
+            />}
+            label="Import Audio"
+          />
+          <ModalOptionButton
+            onPress={onAddYouTube}
+            disabled={isPicking}
+            icon={<MaterialCommunityIcons
+              name="youtube"
+              size={24}
+              color="#ff0000"
+              style={styles.modalOptionIcon}
+            />}
+            label="Add YouTube Video"
+          />
+        </View>
+      </BottomSheetView>
+    </BottomSheet>
   );
 };
 

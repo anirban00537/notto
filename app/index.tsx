@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Modalize } from "react-native-modalize";
+import BottomSheet from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Link, useRouter } from "expo-router";
 import AuthComponent from "./auth";
@@ -29,9 +29,9 @@ export default function Note() {
   const { user, loading } = useUser();
   const router = useRouter();
   const [selectedFolderId, setSelectedFolderId] = useState<string>("all");
-  const noteOptionsModalRef = useRef<Modalize>(null);
-  const folderDrawerRef = useRef<Modalize>(null);
-  const createFolderModalRef = useRef<Modalize>(null);
+  const noteOptionsBottomSheetRef = useRef<BottomSheet>(null);
+  const folderDrawerRef = useRef<any>(null);
+  const createFolderModalRef = useRef<any>(null);
 
   // YouTube modal state
   const [youtubeModalVisible, setYoutubeModalVisible] = useState(false);
@@ -47,7 +47,7 @@ export default function Note() {
   );
 
   const onOpenNoteOptions = () => {
-    noteOptionsModalRef.current?.open();
+    noteOptionsBottomSheetRef.current?.snapToIndex(1);
   };
 
   const openFolderDrawer = () => {
@@ -58,7 +58,7 @@ export default function Note() {
   const { mutate: createNote, isLoading: isCreatingNote } = require("../lib/services").createNote ? require("@tanstack/react-query").useMutation({
     mutationFn: require("../lib/services").createNote,
     onSuccess: (newNote: any) => {
-      noteOptionsModalRef.current?.close();
+      noteOptionsBottomSheetRef.current?.close();
       setYoutubeModalVisible(false);
       setYoutubeUrl("");
       setYoutubeLoading(false);
@@ -72,7 +72,7 @@ export default function Note() {
   }) : { mutate: () => {}, isLoading: false };
 
   const handleAddYouTube = () => {
-    noteOptionsModalRef.current?.close();
+    noteOptionsBottomSheetRef.current?.close();
     setYoutubeUrl("");
     setYoutubeModalVisible(true);
   };
@@ -198,7 +198,7 @@ export default function Note() {
       </SafeAreaView>
 
       <NoteOptionsModal
-        modalRef={noteOptionsModalRef}
+        bottomSheetRef={noteOptionsBottomSheetRef}
         onAddYouTube={handleAddYouTube}
       />
 
