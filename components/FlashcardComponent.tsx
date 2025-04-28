@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
-  Modal,
   ScrollView,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -20,7 +19,7 @@ import Reanimated, {
 } from "react-native-reanimated";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.25; // Lower threshold for easier swipe
+const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.25;
 
 type Flashcard = {
   question: string;
@@ -36,18 +35,15 @@ export default function FlashcardComponent({
   flashcards,
 }: FlashcardComponentProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [showHints, setShowHints] = useState(false);
   const [visibleHintCount, setVisibleHintCount] = useState(1);
-  const [isHintModalVisible, setIsHintModalVisible] = useState(false);
-  // Use shared values for animations
   const isFlipped = useSharedValue(false);
-  const flipAnim = useSharedValue(0); // 0 for front, 1 for back
-  const translateX = useSharedValue(0); // For swipe gesture
-  const rotateZ = useSharedValue(0); // For card rotation during swipe
+  const flipAnim = useSharedValue(0);
+  const translateX = useSharedValue(0);
+  const rotateZ = useSharedValue(0);
 
   const currentFlashcard = flashcards[currentIndex];
+  const progress = ((currentIndex + 1) / flashcards.length) * 100;
 
-  // --- Flip Animation Logic (Reanimated) ---
   const animatedFrontStyle = useAnimatedStyle(() => {
     const rotateY = interpolate(flipAnim.value, [0, 1], [0, 180]);
     return {
@@ -73,16 +69,14 @@ export default function FlashcardComponent({
     flipAnim.value = withTiming(isFlipped.value ? 1 : 0, { duration: 400 });
   };
 
-  // --- Swipe Gesture Logic (Setup) ---
   const cardAnimatedStyle = useAnimatedStyle(() => {
-    // Rotate card slightly during swipe
     const rotateVal = interpolate(
       translateX.value,
       [-SCREEN_WIDTH / 2, 0, SCREEN_WIDTH / 2],
       [-10, 0, 10],
       Extrapolate.CLAMP
     );
-    rotateZ.value = rotateVal; // Update rotateZ for potential future use/sync
+    rotateZ.value = rotateVal;
 
     return {
       transform: [
@@ -93,14 +87,12 @@ export default function FlashcardComponent({
   });
 
   const goToNextCard = () => {
-    // Needs to be run on JS thread
     const nextIndex = (currentIndex + 1) % flashcards.length;
     setCurrentIndex(nextIndex);
     resetCardState();
   };
 
   const goToPrevCard = () => {
-    // Needs to be run on JS thread
     const prevIndex =
       (currentIndex - 1 + flashcards.length) % flashcards.length;
     setCurrentIndex(prevIndex);
@@ -108,12 +100,10 @@ export default function FlashcardComponent({
   };
 
   const resetCardState = () => {
-    // Reset shared values non-animated for new card
     translateX.value = 0;
     rotateZ.value = 0;
     flipAnim.value = 0;
     isFlipped.value = false;
-    // Reset component state
     setVisibleHintCount(1);
   };
 
@@ -123,26 +113,20 @@ export default function FlashcardComponent({
     })
     .onEnd((event) => {
       if (Math.abs(event.translationX) > SWIPE_THRESHOLD) {
-        const direction = event.translationX > 0 ? 1 : -1; // 1 for right, -1 for left
-        // Animate card off screen
+        const direction = event.translationX > 0 ? 1 : -1;
         translateX.value = withTiming(
-          direction * SCREEN_WIDTH * 1.2, // Move further than screen width
+          direction * SCREEN_WIDTH * 1.2,
           { duration: 250 },
           () => {
-            // Callback after animation completes
             if (direction === 1) {
-              // Swiped Right (-> Previous Card)
               runOnJS(goToPrevCard)();
             } else {
-              // Swiped Left (-> Next Card)
               runOnJS(goToNextCard)();
             }
           }
         );
-        // Optionally add rotation during exit animation
         rotateZ.value = withTiming(direction * 20, { duration: 200 });
       } else {
-        // Snap back to center
         translateX.value = withTiming(0, { duration: 200 });
         rotateZ.value = withTiming(0, { duration: 200 });
       }
@@ -150,23 +134,32 @@ export default function FlashcardComponent({
 
   return (
     <View style={styles.container}>
+      {/* Progress Bar */}
+      <View style={styles.progressContainer}>
+        <View style={styles.progressBackground}>
+          <View style={[styles.progressFill, { width: `${progress}%` }]} />
+        </View>
+        <Text style={styles.progressText}>
+          {currentIndex + 1} / {flashcards.length}
+        </Text>
+      </View>
+
+      {/* Flashcard */}
       <GestureDetector gesture={panGesture}>
         <Reanimated.View style={[styles.swipeContainer, cardAnimatedStyle]}>
-          {/* Flip Card */}
           <TouchableOpacity
-            activeOpacity={1} // Less feedback needed as swipe is main interaction
+            activeOpacity={1}
             onPress={handleFlip}
             style={styles.flipTouchable}
           >
             <View>
-              {/* Card Front */}
               <Reanimated.View
                 style={[styles.flashcardContainer, animatedFrontStyle]}
               >
                 <Text style={styles.question}>{currentFlashcard.question}</Text>
+                <Text style={styles.tapToFlip}>Tap to flip</Text>
               </Reanimated.View>
 
-              {/* Card Back */}
               <Reanimated.View
                 style={[
                   styles.flashcardContainer,
@@ -175,86 +168,49 @@ export default function FlashcardComponent({
                 ]}
               >
                 <Text style={styles.answerTitle}>Answer</Text>
-                <View style={styles.answerContainer}>
-                  <Text style={styles.answer}>{currentFlashcard.answer}</Text>
-                </View>
+                <Text style={styles.answer}>{currentFlashcard.answer}</Text>
               </Reanimated.View>
             </View>
           </TouchableOpacity>
         </Reanimated.View>
       </GestureDetector>
 
-      {/* Hints and Controls - Only Hint Button now */}
-      <View style={styles.controlsContainer}>
-        <View style={styles.centerButtons}>
-          <TouchableOpacity
-            onPress={() => {
-              // Close modal if open, otherwise toggle
-              setIsHintModalVisible(true);
-              // Reset hint count when opening modal
-              setVisibleHintCount(1);
-            }}
-            style={styles.hintButton}
-          >
-            <MaterialCommunityIcons
-              name="lightbulb-on-outline"
-              size={20}
-              color="#2c3e50"
-            />
-            <Text style={styles.buttonText}>Hints</Text>
-          </TouchableOpacity>
+      {/* Hints Section */}
+      <View style={styles.hintsSection}>
+        <View style={styles.hintsHeader}>
+          <Text style={styles.hintsTitle}>Hints</Text>
+          {currentFlashcard.hints &&
+            visibleHintCount < currentFlashcard.hints.length && (
+              <TouchableOpacity
+                onPress={() => setVisibleHintCount((prev) => prev + 1)}
+                style={styles.moreHintsButton}
+              >
+                <Text style={styles.moreHintsText}>Show More</Text>
+              </TouchableOpacity>
+            )}
         </View>
+        <ScrollView style={styles.hintsContainer}>
+          {currentFlashcard.hints && currentFlashcard.hints.length > 0 ? (
+            currentFlashcard.hints.slice(0, visibleHintCount).map((hint, i) => (
+              <View key={`hint-${i}`} style={styles.hintRow}>
+                <MaterialCommunityIcons
+                  name="lightbulb-outline"
+                  size={16}
+                  color="#2c3e50"
+                />
+                <Text style={styles.hintText}>{hint}</Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.noHintsText}>
+              No hints available for this card.
+            </Text>
+          )}
+        </ScrollView>
       </View>
 
-      <Text style={styles.counterText}>
-        {currentIndex + 1} / {flashcards.length}
-      </Text>
-
-      {/* Hint Modal */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={isHintModalVisible}
-        onRequestClose={() => {
-          setIsHintModalVisible(false);
-        }}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <ScrollView style={styles.hintsScrollView}>
-              <Text style={styles.hintsTitle}>Hints</Text>
-              {currentFlashcard.hints && currentFlashcard.hints.length > 0 ? (
-                currentFlashcard.hints
-                  .slice(0, visibleHintCount)
-                  .map((hint, i) => (
-                    <View key={`hint-${i}`} style={styles.hintRow}>
-                      <View style={styles.hintDot} />
-                      <Text style={styles.hintText}>{hint}</Text>
-                    </View>
-                  ))
-              ) : (
-                <Text style={styles.hintText}>No hints available.</Text>
-              )}
-              {currentFlashcard.hints &&
-                visibleHintCount < currentFlashcard.hints.length && (
-                  <TouchableOpacity
-                    style={styles.moreHintButton}
-                    onPress={() => setVisibleHintCount((prev) => prev + 1)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.moreHintText}>More</Text>
-                  </TouchableOpacity>
-                )}
-            </ScrollView>
-            <TouchableOpacity
-              style={styles.closeModalButton}
-              onPress={() => setIsHintModalVisible(false)}
-            >
-              <Text style={styles.closeModalButtonText}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      {/* Navigation Hint */}
+      <Text style={styles.swipeHint}>Swipe left or right to navigate</Text>
     </View>
   );
 }
@@ -264,184 +220,148 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-between",
+  },
+  progressContainer: {
+    width: "100%",
+    marginBottom: 20,
+  },
+  progressBackground: {
+    height: 6,
+    backgroundColor: "#E0E0E0",
+    borderRadius: 3,
     overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: "#2c3e50",
+    borderRadius: 3,
+  },
+  progressText: {
+    textAlign: "center",
+    marginTop: 8,
+    color: "#666",
+    fontSize: 14,
   },
   swipeContainer: {
     width: "100%",
     alignItems: "center",
+    flex: 1,
   },
   flipTouchable: {
-    width: "95%",
-    minHeight: 250,
+    width: SCREEN_WIDTH * 0.85,
+    aspectRatio: 3 / 4,
     marginBottom: 12,
+  },
+  flashcardContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    padding: 24,
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    backfaceVisibility: "hidden",
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  flashcardContainer: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 20,
-    width: "100%",
-    minHeight: 250,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#eee",
-    backfaceVisibility: "hidden",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   flashcardBack: {
-    backgroundColor: "#f8f8ff",
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    alignItems: "center",
-    justifyContent: "center",
-    backfaceVisibility: "hidden",
+    backgroundColor: "#f8f9fa",
   },
   question: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "600",
     color: "#2c3e50",
-    marginBottom: 16,
     textAlign: "center",
+    lineHeight: 28,
+  },
+  tapToFlip: {
+    position: "absolute",
+    bottom: 20,
+    color: "#999",
+    fontSize: 12,
   },
   answerTitle: {
     fontSize: 14,
-    fontWeight: "bold",
-    color: "#2c3e50",
-    marginBottom: 10,
-    textAlign: "center",
-  },
-  answerContainer: {
-    marginTop: 0,
-    paddingTop: 0,
-    borderTopWidth: 0,
+    fontWeight: "600",
+    color: "#666",
+    marginBottom: 12,
+    textTransform: "uppercase",
+    letterSpacing: 1,
   },
   answer: {
-    fontSize: 15,
-    color: "#555",
+    fontSize: 18,
+    color: "#2c3e50",
     textAlign: "center",
+    lineHeight: 26,
+  },
+  hintsSection: {
+    width: "100%",
+    maxHeight: "30%",
+    backgroundColor: "#f8f9fa",
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 20,
+  },
+  hintsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  hintsTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#2c3e50",
+  },
+  moreHintsButton: {
+    backgroundColor: "#e8f0fe",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  moreHintsText: {
+    color: "#2c3e50",
+    fontSize: 12,
+    fontWeight: "500",
   },
   hintsContainer: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
+    maxHeight: 150,
   },
   hintRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 6,
-    gap: 8,
-  },
-  moreHintButton: {
-    marginTop: 10,
-    alignSelf: "center",
-    backgroundColor: "#2c3e50",
-    paddingHorizontal: 18,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  moreHintText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 15,
-    letterSpacing: 0.2,
-  },
-  hintDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#2c3e50",
-    marginRight: 8,
-  },
-  hintsTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#2c3e50",
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 8,
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
   },
   hintText: {
-    fontSize: 13,
-    color: "#666",
-    marginBottom: 4,
-  },
-  controlsContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-    marginTop: 24,
-  },
-  centerButtons: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 16,
-  },
-  hintButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: "#e8f0fe",
-    borderWidth: 1,
-    borderColor: "#d6e4ff",
-  },
-  buttonText: {
     fontSize: 14,
-    color: "#2c3e50",
-  },
-  counterText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: "#666",
-  },
-  modalOverlay: {
+    color: "#4a4a4a",
+    marginLeft: 8,
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
   },
-  modalContent: {
-    width: "85%",
-    maxHeight: "60%",
-    backgroundColor: "#fff",
-    borderRadius: 15,
-    padding: 25,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+  noHintsText: {
+    textAlign: "center",
+    color: "#999",
+    fontSize: 14,
+    fontStyle: "italic",
   },
-  hintsScrollView: {
-    width: "100%",
-    marginBottom: 15,
-  },
-  closeModalButton: {
-    marginTop: 15,
-    backgroundColor: "#e74c3c",
-    paddingVertical: 10,
-    paddingHorizontal: 25,
-    borderRadius: 25,
-  },
-  closeModalButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
+  swipeHint: {
+    color: "#999",
+    fontSize: 12,
+    marginTop: 16,
+    textAlign: "center",
   },
 });
