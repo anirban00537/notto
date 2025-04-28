@@ -1,7 +1,7 @@
 import React, { RefObject, useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Pressable, Animated, Alert, TextInput, ActivityIndicator } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import CommonBottomSheet from "./CommonBottomSheet";
 import { Folder } from "../lib/types/folder";
 import FolderListItem, { FolderItem } from "./FolderListItem";
 import CreateFolderForm from "./CreateFolderForm";
@@ -9,8 +9,8 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { updateFolder, deleteFolder } from "../lib/services/folderService";
 
 interface FolderModalsProps {
-  bottomSheetRef: RefObject<BottomSheet>;
-  bottomSheetCreateRef: RefObject<BottomSheet>;
+  bottomSheetRef: RefObject<any>;
+  bottomSheetCreateRef: RefObject<any>;
   selectedFolderId: string;
   onFolderSelect: (folderId: string) => void;
   userId: string;
@@ -66,16 +66,14 @@ const FolderOptionsModal: React.FC<{
   const [newName, setNewName] = useState(folder?.name || "");
   useEffect(() => { setNewName(folder?.name || ""); }, [folder]);
   return (
-    <BottomSheet
+    <CommonBottomSheet
       ref={bottomSheetRef}
-      index={-1}
+      visible={!!folder}
       snapPoints={[1, 260]}
-      enablePanDownToClose
       backgroundStyle={{ backgroundColor: '#fff' }}
       handleIndicatorStyle={{ backgroundColor: '#ccc' }}
-      onChange={idx => { if (idx === 0) { setIsRenaming(false); onClose(); } }}
+      onClose={() => { setIsRenaming(false); onClose(); }}
     >
-      <BottomSheetView>
         <View style={styles.modalHeader}>
           <Text style={styles.modalHeaderText}>Folder Options</Text>
         </View>
@@ -114,8 +112,7 @@ const FolderOptionsModal: React.FC<{
             </>
           )}
         </View>
-      </BottomSheetView>
-    </BottomSheet>
+      </CommonBottomSheet>
   );
 };
 
@@ -129,6 +126,7 @@ const FolderModals: React.FC<FolderModalsProps> = ({
 }) => {
   // Track if create folder sheet is open
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
+  const [isFolderSheetOpen, setIsFolderSheetOpen] = useState(false);
   const queryClient = useQueryClient();
 
   // Ensure folders is always an array
@@ -210,21 +208,14 @@ const FolderModals: React.FC<FolderModalsProps> = ({
 
   return (
     <>
-      <BottomSheet
+      <CommonBottomSheet
         ref={bottomSheetRef}
-        index={0}
+        visible={isFolderSheetOpen}
         snapPoints={[1, 320]}
-        enablePanDownToClose
         backgroundStyle={{ backgroundColor: '#fff' }}
         handleIndicatorStyle={{ backgroundColor: '#ccc' }}
-        onChange={(index) => {
-          // index 1 = open, index 0 = closed
-          if (index === 1) {
-            queryClient.refetchQueries({ queryKey: ["folders"] });
-          }
-        }}
+        onClose={() => setIsFolderSheetOpen(false)}
       >
-        <BottomSheetView>
           <View style={styles.drawerHeader}>
             <Text style={styles.drawerTitle}>Select Folder</Text>
           </View>
@@ -247,28 +238,21 @@ const FolderModals: React.FC<FolderModalsProps> = ({
               />
             ))} 
           </View>
-        </BottomSheetView>
-      </BottomSheet>
+      </CommonBottomSheet>
 
-      <BottomSheet
+      <CommonBottomSheet
         ref={bottomSheetCreateRef}
-        index={-1}
+        visible={isCreateSheetOpen}
         snapPoints={[1, 320]}
-        enablePanDownToClose
         backgroundStyle={{ backgroundColor: '#fff' }}
         handleIndicatorStyle={{ backgroundColor: '#ccc' }}
-        onChange={(index) => {
-          // index 1 = open, index 0 = closed
-          setIsCreateSheetOpen(index === 1);
-        }}
+        onClose={() => setIsCreateSheetOpen(false)}
       >
-        <BottomSheetView>
           <View style={styles.drawerHeader}>
             <Text style={styles.drawerTitle}>Create New Folder</Text>
           </View>
           <CreateFolderForm userId={userId} onClose={handleCreateFolderClose} autoFocus={isCreateSheetOpen} />
-        </BottomSheetView>
-      </BottomSheet>
+      </CommonBottomSheet>
       <FolderOptionsModal
         bottomSheetRef={folderOptionsSheetRef}
         folder={optionsFolder}

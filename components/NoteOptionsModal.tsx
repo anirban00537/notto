@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { View, Text, StyleSheet, Alert, Platform, Modal, TextInput, ActivityIndicator, Pressable, Animated } from "react-native";
 import { pick, types as docTypes } from '@react-native-documents/picker';
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import CommonBottomSheet from './CommonBottomSheet';
 import { router } from "expo-router";
 import { useUser } from "../app/context/UserContext";
 import { createNote } from "../lib/services";
@@ -10,7 +10,7 @@ import { CreateNoteDto, NoteType, NoteStatus } from "../lib/types/note";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface NoteOptionsModalProps {
-  bottomSheetRef: React.RefObject<BottomSheet>;
+  bottomSheetRef: React.RefObject<any>;
   onAddYouTube: () => void;
 }
 
@@ -139,16 +139,14 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
   const snapPoints = [1, 320]; // 1px (closed), 320px (open)
 
   return (
-    <BottomSheet
+    <CommonBottomSheet
       ref={bottomSheetRef}
-      index={0} // closed by default
+      visible={false} // controlled by parent via ref
       snapPoints={snapPoints}
-      enablePanDownToClose
       backgroundStyle={{ backgroundColor: '#fff' }}
       handleIndicatorStyle={{ backgroundColor: '#ccc' }}
     >
-      <BottomSheetView>
-        <View style={styles.modalHeader}>
+      <View style={styles.modalHeader}>
           <Text style={styles.modalHeaderText}>Create New Note</Text>
         </View>
         <View style={styles.modalContent}>
@@ -186,8 +184,7 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
             label="Add YouTube Video"
           />
         </View>
-      </BottomSheetView>
-    </BottomSheet>
+    </CommonBottomSheet>
   );
 };
 

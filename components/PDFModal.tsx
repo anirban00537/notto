@@ -7,7 +7,7 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
-import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
+import CommonBottomSheet from './CommonBottomSheet';
 
 interface PDFModalProps {
   visible: boolean;
@@ -16,7 +16,7 @@ interface PDFModalProps {
   onUrlChange: (url: string) => void;
   onClose: () => void;
   onSubmit: () => void;
-  bottomSheetRef?: React.RefObject<BottomSheet>; // Optional external ref for control
+  bottomSheetRef?: React.RefObject<any>; // Optional external ref for control
 }
 
 const PDFModal: React.FC<PDFModalProps> = ({
@@ -28,7 +28,7 @@ const PDFModal: React.FC<PDFModalProps> = ({
   onSubmit,
   bottomSheetRef: externalRef,
 }) => {
-  const bottomSheetRef = externalRef || useRef<BottomSheet>(null);
+  const bottomSheetRef = externalRef || useRef<any>(null);
   const [step, setStep] = React.useState(1);
 
   React.useEffect(() => {
@@ -45,16 +45,15 @@ const PDFModal: React.FC<PDFModalProps> = ({
   };
 
   return (
-    <BottomSheet
+    <CommonBottomSheet
       ref={bottomSheetRef}
-      index={visible ? 1 : -1}
+      visible={visible}
       snapPoints={[1, 340]}
-      enablePanDownToClose={!loading}
       onClose={onClose}
+      enablePanDownToClose={!loading}
       backgroundStyle={{ backgroundColor: '#fff' }}
       handleIndicatorStyle={{ backgroundColor: '#ccc' }}
     >
-      <BottomSheetView>
       <View style={styles.pdfModalContent}>
         <View
           style={{
@@ -119,8 +118,7 @@ const PDFModal: React.FC<PDFModalProps> = ({
           </>
         )}
       </View>
-      </BottomSheetView>
-    </BottomSheet>
+    </CommonBottomSheet>
   );
 };
 
