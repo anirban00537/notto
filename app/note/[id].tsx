@@ -13,6 +13,7 @@ import {
 import { Stack, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNoteDetail } from "../../hooks/useNoteDetail";
+import Markdown from "react-native-markdown-display";
 
 // Import the new components
 import NoteDetailHeader from "../../components/NoteDetailHeader";
@@ -43,6 +44,56 @@ export default function NoteDetailScreen() {
     generationError,
     handleGenerateMaterials,
   } = useNoteDetail(id);
+
+  const markdownStyles = {
+    body: {
+      color: "#333",
+      fontSize: 16,
+      lineHeight: 24,
+    },
+    heading1: {
+      fontSize: 24,
+      fontWeight: "bold",
+      marginBottom: 16,
+      color: "#2c3e50",
+    },
+    heading2: {
+      fontSize: 20,
+      fontWeight: "bold",
+      marginBottom: 12,
+      color: "#2c3e50",
+    },
+    heading3: {
+      fontSize: 18,
+      fontWeight: "bold",
+      marginBottom: 10,
+      color: "#2c3e50",
+    },
+    link: {
+      color: "#1976D2",
+    },
+    blockquote: {
+      backgroundColor: "#f5f5f5",
+      borderLeftColor: "#ccc",
+      borderLeftWidth: 4,
+      paddingLeft: 16,
+      paddingVertical: 8,
+      marginVertical: 8,
+    },
+    code_inline: {
+      backgroundColor: "#f5f5f5",
+      padding: 4,
+      borderRadius: 4,
+      fontFamily: "monospace",
+    },
+    code_block: {
+      backgroundColor: "#f5f5f5",
+      padding: 16,
+      borderRadius: 8,
+      marginVertical: 8,
+      fontFamily: "monospace",
+    },
+  };
 
   if (loading) return <LoadingScreen />;
   if (!note) return <Text>Note not found</Text>;
@@ -92,7 +143,7 @@ export default function NoteDetailScreen() {
                 {note.note && (
                   <View style={styles.contentSection}>
                     <Text style={styles.sectionTitle}>Note</Text>
-                    <Text style={styles.noteContentText}>{note.note}</Text>
+                    <Markdown style={markdownStyles}>{note.note}</Markdown>
                   </View>
                 )}
               </View>
@@ -104,7 +155,7 @@ export default function NoteDetailScreen() {
           {activeContentTab === "summary" && (
             <View style={styles.textContentPadding}>
               {note.summary ? (
-                <Text style={styles.noteContentText}>{note.summary}</Text>
+                <Markdown style={markdownStyles}>{note.summary}</Markdown>
               ) : (
                 <Text style={styles.noteContentText}>No summary available</Text>
               )}
