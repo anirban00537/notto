@@ -5,6 +5,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Dimensions,
+  Modal,
+  ScrollView,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { GestureDetector, Gesture } from "react-native-gesture-handler";
@@ -18,7 +20,7 @@ import Reanimated, {
 } from "react-native-reanimated";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.4; // Threshold to trigger swipe
+const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.25; // Lower threshold for easier swipe
 
 type Flashcard = {
   question: string;
@@ -36,6 +38,7 @@ export default function FlashcardComponent({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showHints, setShowHints] = useState(false);
   const [visibleHintCount, setVisibleHintCount] = useState(1);
+  const [isHintModalVisible, setIsHintModalVisible] = useState(false);
   // Use shared values for animations
   const isFlipped = useSharedValue(false);
   const flipAnim = useSharedValue(0); // 0 for front, 1 for back
@@ -111,7 +114,6 @@ export default function FlashcardComponent({
     flipAnim.value = 0;
     isFlipped.value = false;
     // Reset component state
-    setShowHints(false);
     setVisibleHintCount(1);
   };
 
@@ -138,7 +140,7 @@ export default function FlashcardComponent({
           }
         );
         // Optionally add rotation during exit animation
-        rotateZ.value = withTiming(direction * 20, { duration: 250 });
+        rotateZ.value = withTiming(direction * 20, { duration: 200 });
       } else {
         // Snap back to center
         translateX.value = withTiming(0, { duration: 200 });
@@ -182,16 +184,15 @@ export default function FlashcardComponent({
         </Reanimated.View>
       </GestureDetector>
 
-      {/* Hints and Controls */}
+      {/* Hints and Controls - Only Hint Button now */}
       <View style={styles.controlsContainer}>
         <View style={styles.centerButtons}>
           <TouchableOpacity
             onPress={() => {
-              // Reset flip state if hints are opened/closed while card is flipped
-              if (isFlipped.value) {
-                handleFlip(); // Flip back to front smoothly
-              }
-              setShowHints((prev) => !prev);
+              // Close modal if open, otherwise toggle
+              setIsHintModalVisible(true);
+              // Reset hint count when opening modal
+              setVisibleHintCount(1);
             }}
             style={styles.hintButton}
           >
@@ -209,31 +210,51 @@ export default function FlashcardComponent({
         {currentIndex + 1} / {flashcards.length}
       </Text>
 
-      {/* Hints shown at bottom, outside the card */}
-      {showHints &&
-        currentFlashcard.hints &&
-        currentFlashcard.hints.length > 0 && (
-          <View style={styles.hintsContainerBottom}>
-            <Text style={styles.hintsTitle}>Hints</Text>
-            {currentFlashcard.hints
-              .slice(0, visibleHintCount)
-              .map((hint, i) => (
-                <View key={`hint-${i}`} style={styles.hintRow}>
-                  <View style={styles.hintDot} />
-                  <Text style={styles.hintText}>{hint}</Text>
-                </View>
-              ))}
-            {visibleHintCount < currentFlashcard.hints.length && (
-              <TouchableOpacity
-                style={styles.moreHintButton}
-                onPress={() => setVisibleHintCount((prev) => prev + 1)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.moreHintText}>More</Text>
-              </TouchableOpacity>
-            )}
+      {/* Hint Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isHintModalVisible}
+        onRequestClose={() => {
+          setIsHintModalVisible(false);
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <ScrollView style={styles.hintsScrollView}>
+              <Text style={styles.hintsTitle}>Hints</Text>
+              {currentFlashcard.hints && currentFlashcard.hints.length > 0 ? (
+                currentFlashcard.hints
+                  .slice(0, visibleHintCount)
+                  .map((hint, i) => (
+                    <View key={`hint-${i}`} style={styles.hintRow}>
+                      <View style={styles.hintDot} />
+                      <Text style={styles.hintText}>{hint}</Text>
+                    </View>
+                  ))
+              ) : (
+                <Text style={styles.hintText}>No hints available.</Text>
+              )}
+              {currentFlashcard.hints &&
+                visibleHintCount < currentFlashcard.hints.length && (
+                  <TouchableOpacity
+                    style={styles.moreHintButton}
+                    onPress={() => setVisibleHintCount((prev) => prev + 1)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.moreHintText}>More</Text>
+                  </TouchableOpacity>
+                )}
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.closeModalButton}
+              onPress={() => setIsHintModalVisible(false)}
+            >
+              <Text style={styles.closeModalButtonText}>Close</Text>
+            </TouchableOpacity>
           </View>
-        )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -243,18 +264,17 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     alignItems: "center",
-    justifyContent: "center", // Adjust alignment for swipe container
-    overflow: "hidden", // Prevent swiped card from showing outside bounds prematurely
+    justifyContent: "center",
+    overflow: "hidden",
   },
   swipeContainer: {
     width: "100%",
-    alignItems: "center", // Center the flipTouchable within the swipe container
+    alignItems: "center",
   },
   flipTouchable: {
-    width: "95%", // Make card slightly smaller than container
-    minHeight: 250, // Increase min height for better presence
+    width: "95%",
+    minHeight: 250,
     marginBottom: 12,
-    // Add subtle shadow for depth
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -269,7 +289,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 20,
     width: "100%",
-    minHeight: 250, // Match flipTouchable
+    minHeight: 250,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
@@ -317,25 +337,12 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#eee",
   },
-  hintsContainerBottom: {
-    marginTop: 24,
-    padding: 18,
-    backgroundColor: "#f0f6ff",
-    borderRadius: 14,
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#e3eaf5",
-    flexDirection: "column",
-    alignItems: "flex-start",
-    gap: 8,
-  },
   hintRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 6,
     gap: 8,
   },
-
   moreHintButton: {
     marginTop: 10,
     alignSelf: "center",
@@ -370,14 +377,14 @@ const styles = StyleSheet.create({
   },
   controlsContainer: {
     flexDirection: "row",
-    justifyContent: "center", // Center the remaining buttons
+    justifyContent: "center",
     alignItems: "center",
     width: "100%",
-    marginTop: 20,
+    marginTop: 24,
   },
   centerButtons: {
     flexDirection: "row",
-    justifyContent: "center", // Ensure buttons are centered
+    justifyContent: "center",
     gap: 16,
   },
   hintButton: {
@@ -386,7 +393,7 @@ const styles = StyleSheet.create({
     gap: 4,
     padding: 8,
     borderRadius: 8,
-    backgroundColor: "#e8f0fe", // Lighter blue for subtle highlight
+    backgroundColor: "#e8f0fe",
     borderWidth: 1,
     borderColor: "#d6e4ff",
   },
@@ -398,5 +405,43 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 14,
     color: "#666",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+  },
+  modalContent: {
+    width: "85%",
+    maxHeight: "60%",
+    backgroundColor: "#fff",
+    borderRadius: 15,
+    padding: 25,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  hintsScrollView: {
+    width: "100%",
+    marginBottom: 15,
+  },
+  closeModalButton: {
+    marginTop: 15,
+    backgroundColor: "#e74c3c",
+    paddingVertical: 10,
+    paddingHorizontal: 25,
+    borderRadius: 25,
+  },
+  closeModalButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });
