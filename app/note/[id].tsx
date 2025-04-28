@@ -13,7 +13,6 @@ import {
 import { Stack, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNoteDetail } from "../../hooks/useNoteDetail";
-import Markdown from "react-native-markdown-display";
 
 // Import the new components
 import NoteDetailHeader from "../../components/NoteDetailHeader";
@@ -26,6 +25,8 @@ import LoadingScreen from "@/components/LoadingScreen";
 import QuizComponent from "@/components/QuizComponent";
 import FlashcardComponent from "@/components/FlashcardComponent";
 import EmptyState from "../../components/EmptyState";
+import NoteContent from "../../components/NoteContent";
+import SummaryContent from "../../components/SummaryContent";
 
 export default function NoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -47,51 +48,161 @@ export default function NoteDetailScreen() {
 
   const markdownStyles = {
     body: {
-      color: "#333",
+      color: "#24292e",
       fontSize: 16,
-      lineHeight: 24,
+      lineHeight: 1.6,
+      fontFamily:
+        '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
     },
     heading1: {
-      fontSize: 24,
-      fontWeight: "bold",
+      fontSize: 32,
+      fontWeight: "600" as const,
+      marginTop: 24,
       marginBottom: 16,
-      color: "#2c3e50",
+      paddingBottom: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: "#eaecef",
+      color: "#24292e",
     },
     heading2: {
-      fontSize: 20,
-      fontWeight: "bold",
-      marginBottom: 12,
-      color: "#2c3e50",
+      fontSize: 24,
+      fontWeight: "600" as const,
+      marginTop: 24,
+      marginBottom: 16,
+      paddingBottom: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: "#eaecef",
+      color: "#24292e",
     },
     heading3: {
-      fontSize: 18,
-      fontWeight: "bold",
-      marginBottom: 10,
-      color: "#2c3e50",
+      fontSize: 20,
+      fontWeight: "600" as const,
+      marginTop: 24,
+      marginBottom: 16,
+      color: "#24292e",
+    },
+    heading4: {
+      fontSize: 16,
+      fontWeight: "600" as const,
+      marginTop: 24,
+      marginBottom: 16,
+      color: "#24292e",
+    },
+    heading5: {
+      fontSize: 14,
+      fontWeight: "600" as const,
+      marginTop: 24,
+      marginBottom: 16,
+      color: "#24292e",
+    },
+    heading6: {
+      fontSize: 12,
+      fontWeight: "600" as const,
+      marginTop: 24,
+      marginBottom: 16,
+      color: "#24292e",
+    },
+    paragraph: {
+      marginTop: 0,
+      marginBottom: 16,
     },
     link: {
-      color: "#1976D2",
+      color: "#0366d6",
+      textDecorationLine: "none" as const,
     },
     blockquote: {
-      backgroundColor: "#f5f5f5",
-      borderLeftColor: "#ccc",
+      backgroundColor: "#f6f8fa",
+      borderLeftColor: "#dfe2e5",
       borderLeftWidth: 4,
       paddingLeft: 16,
       paddingVertical: 8,
-      marginVertical: 8,
+      marginVertical: 16,
+      marginHorizontal: 0,
+      color: "#6a737d",
     },
     code_inline: {
-      backgroundColor: "#f5f5f5",
+      backgroundColor: "rgba(27, 31, 35, 0.05)",
       padding: 4,
-      borderRadius: 4,
-      fontFamily: "monospace",
+      paddingHorizontal: 6,
+      borderRadius: 3,
+      fontFamily:
+        'SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace',
+      fontSize: 14,
+      color: "#24292e",
     },
     code_block: {
-      backgroundColor: "#f5f5f5",
+      backgroundColor: "#f6f8fa",
       padding: 16,
-      borderRadius: 8,
-      marginVertical: 8,
-      fontFamily: "monospace",
+      borderRadius: 6,
+      marginVertical: 16,
+      fontFamily:
+        'SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace',
+      fontSize: 14,
+      lineHeight: 1.45,
+      overflow: "scroll" as const,
+    },
+    list_item: {
+      marginBottom: 4,
+    },
+    bullet_list: {
+      marginTop: 0,
+      marginBottom: 16,
+      paddingLeft: 32,
+    },
+    ordered_list: {
+      marginTop: 0,
+      marginBottom: 16,
+      paddingLeft: 32,
+    },
+    list_item_bullet: {
+      color: "#24292e",
+    },
+    list_item_number: {
+      color: "#24292e",
+    },
+    strong: {
+      fontWeight: "600" as const,
+    },
+    em: {
+      fontStyle: "italic" as const,
+    },
+    strikethrough: {
+      textDecorationLine: "line-through" as const,
+    },
+    table: {
+      marginVertical: 16,
+      borderWidth: 1,
+      borderColor: "#dfe2e5",
+      borderRadius: 6,
+    },
+    tableHeader: {
+      backgroundColor: "#f6f8fa",
+      borderBottomWidth: 1,
+      borderBottomColor: "#dfe2e5",
+      padding: 8,
+    },
+    tableHeaderCell: {
+      color: "#24292e",
+      fontWeight: "600" as const,
+      padding: 8,
+    },
+    tableCell: {
+      padding: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: "#dfe2e5",
+    },
+    tableRow: {
+      borderBottomWidth: 1,
+      borderBottomColor: "#dfe2e5",
+    },
+    image: {
+      marginVertical: 16,
+      borderRadius: 6,
+    },
+    hr: {
+      height: 1,
+      backgroundColor: "#e1e4e8",
+      marginVertical: 24,
     },
   };
 
@@ -140,12 +251,7 @@ export default function NoteDetailScreen() {
                 iconBackgroundColor={iconProps.bgColor}
               />
               <View style={styles.textContentPadding}>
-                {note.note && (
-                  <View style={styles.contentSection}>
-                    <Text style={styles.sectionTitle}>Note</Text>
-                    <Markdown style={markdownStyles}>{note.note}</Markdown>
-                  </View>
-                )}
+                {note.note && <NoteContent content={note.note} />}
               </View>
             </>
           )}
@@ -154,11 +260,7 @@ export default function NoteDetailScreen() {
           )}
           {activeContentTab === "summary" && (
             <View style={styles.textContentPadding}>
-              {note.summary ? (
-                <Markdown style={markdownStyles}>{note.summary}</Markdown>
-              ) : (
-                <Text style={styles.noteContentText}>No summary available</Text>
-              )}
+              <SummaryContent content={note.summary} />
             </View>
           )}
           {activeContentTab === "quiz" && (
@@ -223,101 +325,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     flex: 1,
-  },
-  contentSection: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#2c3e50",
-    marginBottom: 8,
-  },
-  noteContentText: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: "#333",
-  },
-
-  quizItem: {
-    marginBottom: 15,
-    padding: 10,
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#eee",
-  },
-  quizQuestion: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 8,
-    color: "#333",
-  },
-  quizOption: {
-    fontSize: 14,
-    color: "#555",
-    marginLeft: 10,
-    marginBottom: 4,
-  },
-  quizExplanation: {
-    fontSize: 13,
-    color: "#777",
-    marginTop: 5,
-    fontStyle: "italic",
-  },
-  flashcardItem: {
-    marginBottom: 15,
-    padding: 15,
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#eee",
-  },
-  flashcardQuestion: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 8,
-    color: "#333",
-  },
-  flashcardAnswer: {
-    fontSize: 14,
-    color: "#555",
-    marginBottom: 8,
-  },
-  flashcardHints: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 4,
-  },
-  generateContainer: {
-    padding: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  generateText: {
-    fontSize: 16,
-    color: "#666",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  actionButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    flex: 1,
-    marginHorizontal: 4,
-  },
-  noteToolsButton: {
-    backgroundColor: "#2c3e50",
-  },
-  noteToolsButtonText: {
-    color: "#fff",
-    fontSize: 15,
-    fontWeight: "600",
-    textAlign: "center",
   },
   loadingContainer: {
     flex: 1,
