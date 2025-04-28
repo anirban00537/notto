@@ -202,7 +202,6 @@ export default function Note() {
                 progressBackgroundColor="rgba(240, 247, 255, 0.95)"
               />
             }
-            ItemSeparatorComponent={() => <View style={styles.separator} />}
           />
         )}
 
@@ -330,11 +329,6 @@ const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: 0,
     paddingBottom: 24,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: "#E5E5EA",
-    marginLeft: 16 + 48 + 14,
   },
   bottomActions: {
     flexDirection: "row",
