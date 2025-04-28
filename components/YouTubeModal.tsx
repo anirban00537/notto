@@ -5,9 +5,9 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
 } from "react-native";
-import CommonBottomSheet from './CommonBottomSheet';
+import CommonBottomSheet from "./CommonBottomSheet";
+import LoadingScreen from "./LoadingScreen";
 
 interface YouTubeModalProps {
   bottomSheetRef: React.RefObject<any>;
@@ -35,11 +35,11 @@ const YouTubeModal: React.FC<YouTubeModalProps> = ({
       ref={bottomSheetRef}
       visible={visible}
       snapPoints={snapPoints}
-      backgroundStyle={{ backgroundColor: '#fff' }}
-      handleIndicatorStyle={{ backgroundColor: '#ccc' }}
+      backgroundStyle={{ backgroundColor: "rgb(240, 247, 255)" }}
+      handleIndicatorStyle={{ backgroundColor: "#ccc" }}
       onClose={onClose}
     >
-        <View style={styles.youtubeModalContent}>
+      <View style={styles.youtubeModalContent}>
         <View
           style={{
             flexDirection: "row",
@@ -56,19 +56,8 @@ const YouTubeModal: React.FC<YouTubeModalProps> = ({
           </TouchableOpacity>
         </View>
         {loading ? (
-          <View
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-              minHeight: 80,
-            }}
-          >
-            <Text style={{ marginBottom: 12, fontSize: 16 }}>
-              Processing...
-            </Text>
-            <View style={{ marginBottom: 8 }}>
-              <ActivityIndicator size="large" color="#1976d2" />
-            </View>
+          <View style={styles.loadingContainer}>
+            <LoadingScreen />
           </View>
         ) : (
           <>
@@ -93,7 +82,7 @@ const YouTubeModal: React.FC<YouTubeModalProps> = ({
             </View>
           </>
         )}
-        </View>
+      </View>
     </CommonBottomSheet>
   );
 };
@@ -101,7 +90,7 @@ const YouTubeModal: React.FC<YouTubeModalProps> = ({
 const styles = StyleSheet.create({
   youtubeModalContent: {
     width: "100%",
-    backgroundColor: "#fff",
+    backgroundColor: "rgb(240, 247, 255)",
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     padding: 24,
@@ -147,6 +136,10 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 15,
     fontWeight: "600",
+  },
+  loadingContainer: {
+    height: 120,
+    position: "relative",
   },
 });
 

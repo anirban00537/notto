@@ -8,6 +8,7 @@ import {
   StatusBar,
   Platform,
   TouchableOpacity,
+  RefreshControl,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
@@ -33,6 +34,7 @@ export default function Note() {
   const folderDrawerRef = useRef<any>(null);
   const createFolderModalRef = useRef<any>(null);
   const youtubeBottomSheetRef = useRef<BottomSheet>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const { folders, newFolderName, setNewFolderName, handleCreateFolder } =
     useFolders();
@@ -47,6 +49,7 @@ export default function Note() {
     handleAddYouTube,
     handleCloseYouTubeModal,
     handleSubmitYouTube,
+    refetchNotes,
   } = useNotes(user?.uid, selectedFolderId);
 
   const onOpenNoteOptions = () => {
@@ -55,6 +58,15 @@ export default function Note() {
 
   const openFolderDrawer = () => {
     folderDrawerRef.current?.expand();
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refetchNotes();
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   if (loading) {
@@ -85,7 +97,7 @@ export default function Note() {
 
         {notes.length > 0 && <Text style={styles.sectionTitle}>Notes</Text>}
 
-        {isNotesLoading ? (
+        {isNotesLoading && !refreshing ? (
           <View style={styles.emptyStateContainer}>
             <LoadingScreen />
           </View>
@@ -109,6 +121,17 @@ export default function Note() {
             keyExtractor={(item) => item.id}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={["#2c3e50"]}
+                tintColor="#2c3e50"
+                title="Loading notes..."
+                titleColor="#2c3e50"
+                progressBackgroundColor="rgba(240, 247, 255, 0.95)"
+              />
+            }
             renderItem={({ item }) => (
               <Link
                 href={{

@@ -133,5 +133,9 @@ export const useNotes = (userId?: string, folderId: string = "all") => {
     handleAddYouTube,
     handleCloseYouTubeModal,
     handleSubmitYouTube,
+    refetchNotes: () =>
+      queryClient.refetchQueries({
+        queryKey: ["notes", { userId, folderId }],
+      }),
   };
 };
