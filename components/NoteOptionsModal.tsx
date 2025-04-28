@@ -188,7 +188,7 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
       ref={bottomSheetRef}
       visible={false} // controlled by parent via ref
       snapPoints={snapPoints}
-      backgroundStyle={{ backgroundColor: "#fff" }}
+      backgroundStyle={{ backgroundColor: "rgba(240, 247, 255, 0.95)" }}
       handleIndicatorStyle={{ backgroundColor: "#ccc" }}
     >
       <View style={styles.modalHeader}>
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: "rgba(240, 247, 255, 0.95)",
   },
   modalHeaderText: {
     fontSize: 18,

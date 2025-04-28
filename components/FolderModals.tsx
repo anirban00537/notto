@@ -1,5 +1,15 @@
 import React, { RefObject, useEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Pressable, Animated, Alert, TextInput, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Pressable,
+  Animated,
+  Alert,
+  TextInput,
+  ActivityIndicator,
+} from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import CommonBottomSheet from "./CommonBottomSheet";
 import { Folder } from "../lib/types/folder";
@@ -17,7 +27,12 @@ interface FolderModalsProps {
   folders: Folder[];
 }
 
-const ModalOptionButton: React.FC<{ onPress: () => void; disabled?: boolean; icon: React.ReactNode; label: string; }> = ({ onPress, disabled, icon, label }) => {
+const ModalOptionButton: React.FC<{
+  onPress: () => void;
+  disabled?: boolean;
+  icon: React.ReactNode;
+  label: string;
+}> = ({ onPress, disabled, icon, label }) => {
   const scale = useRef(new Animated.Value(1)).current;
   const animateIn = () => {
     Animated.spring(scale, {
@@ -62,57 +77,89 @@ const FolderOptionsModal: React.FC<{
   isRenaming: boolean;
   setIsRenaming: (v: boolean) => void;
   isLoading: boolean;
-}> = ({ bottomSheetRef, folder, onClose, onRename, onDelete, isRenaming, setIsRenaming, isLoading }) => {
+}> = ({
+  bottomSheetRef,
+  folder,
+  onClose,
+  onRename,
+  onDelete,
+  isRenaming,
+  setIsRenaming,
+  isLoading,
+}) => {
   const [newName, setNewName] = useState(folder?.name || "");
-  useEffect(() => { setNewName(folder?.name || ""); }, [folder]);
+  useEffect(() => {
+    setNewName(folder?.name || "");
+  }, [folder]);
   return (
     <CommonBottomSheet
       ref={bottomSheetRef}
       visible={!!folder}
       snapPoints={[1, 260]}
-      backgroundStyle={{ backgroundColor: '#fff' }}
-      handleIndicatorStyle={{ backgroundColor: '#ccc' }}
-      onClose={() => { setIsRenaming(false); onClose(); }}
+      backgroundStyle={{ backgroundColor: "rgba(240, 247, 255, 0.95)" }}
+      handleIndicatorStyle={{ backgroundColor: "#ccc" }}
+      onClose={() => {
+        setIsRenaming(false);
+        onClose();
+      }}
     >
-        <View style={styles.modalHeader}>
-          <Text style={styles.modalHeaderText}>Folder Options</Text>
-        </View>
-        <View style={styles.modalContent}>
-          {isRenaming ? (
-            <View style={{ marginBottom: 16 }}>
-              <TextInput
-                style={styles.renameInput}
-                value={newName}
-                onChangeText={setNewName}
-                placeholder="Enter new folder name"
-                autoFocus
-              />
-              <TouchableOpacity
-                style={styles.saveFolderButton}
-                onPress={() => onRename(newName)}
-                disabled={isLoading || !newName.trim()}
-              >
-                {isLoading ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveFolderButtonText}>Save</Text>}
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <>
-              <ModalOptionButton
-                onPress={() => setIsRenaming(true)}
-                disabled={isLoading}
-                icon={<MaterialCommunityIcons name="pencil-outline" size={24} color="#1976d2" style={styles.modalOptionIcon} />}
-                label="Rename Folder"
-              />
-              <ModalOptionButton
-                onPress={onDelete}
-                disabled={isLoading}
-                icon={<MaterialCommunityIcons name="trash-can-outline" size={24} color="#d32f2f" style={styles.modalOptionIcon} />}
-                label="Delete Folder"
-              />
-            </>
-          )}
-        </View>
-      </CommonBottomSheet>
+      <View style={styles.modalHeader}>
+        <Text style={styles.modalHeaderText}>Folder Options</Text>
+      </View>
+      <View style={styles.modalContent}>
+        {isRenaming ? (
+          <View style={{ marginBottom: 16 }}>
+            <TextInput
+              style={styles.renameInput}
+              value={newName}
+              onChangeText={setNewName}
+              placeholder="Enter new folder name"
+              autoFocus
+            />
+            <TouchableOpacity
+              style={styles.saveFolderButton}
+              onPress={() => onRename(newName)}
+              disabled={isLoading || !newName.trim()}
+            >
+              {isLoading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.saveFolderButtonText}>Save</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            <ModalOptionButton
+              onPress={() => setIsRenaming(true)}
+              disabled={isLoading}
+              icon={
+                <MaterialCommunityIcons
+                  name="pencil-outline"
+                  size={24}
+                  color="#1976d2"
+                  style={styles.modalOptionIcon}
+                />
+              }
+              label="Rename Folder"
+            />
+            <ModalOptionButton
+              onPress={onDelete}
+              disabled={isLoading}
+              icon={
+                <MaterialCommunityIcons
+                  name="trash-can-outline"
+                  size={24}
+                  color="#d32f2f"
+                  style={styles.modalOptionIcon}
+                />
+              }
+              label="Delete Folder"
+            />
+          </>
+        )}
+      </View>
+    </CommonBottomSheet>
   );
 };
 
@@ -133,7 +180,12 @@ const FolderModals: React.FC<FolderModalsProps> = ({
   const folderArray = Array.isArray(folders) ? folders : [];
 
   const folderItems: FolderItem[] = [
-    { id: "all" as const, name: "All Notes", icon: "view-list" as const, userId },
+    {
+      id: "all" as const,
+      name: "All Notes",
+      icon: "view-list" as const,
+      userId,
+    },
     ...folderArray.map((folder) => ({
       ...folder,
       icon: "folder" as const,
@@ -148,7 +200,8 @@ const FolderModals: React.FC<FolderModalsProps> = ({
 
   // Mutations
   const updateFolderMutation = useMutation({
-    mutationFn: ({ id, name }: { id: string; name: string }) => updateFolder(id, { name }),
+    mutationFn: ({ id, name }: { id: string; name: string }) =>
+      updateFolder(id, { name }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["folders"] });
       setIsRenaming(false);
@@ -183,7 +236,7 @@ const FolderModals: React.FC<FolderModalsProps> = ({
         }, 150);
       }}
       activeOpacity={0.6}
-      hitSlop={{top: 15, bottom: 15, left: 15, right: 15}}
+      hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
     >
       <MaterialCommunityIcons name="folder-plus" size={22} color="#fff" />
       <Text style={styles.createFolderButtonText}>Create New Folder</Text>
@@ -212,46 +265,50 @@ const FolderModals: React.FC<FolderModalsProps> = ({
         ref={bottomSheetRef}
         visible={isFolderSheetOpen}
         snapPoints={[1, 320]}
-        backgroundStyle={{ backgroundColor: '#fff' }}
-        handleIndicatorStyle={{ backgroundColor: '#ccc' }}
+        backgroundStyle={{ backgroundColor: "rgba(240, 247, 255, 0.95)" }}
+        handleIndicatorStyle={{ backgroundColor: "#ccc" }}
         onClose={() => setIsFolderSheetOpen(false)}
       >
-          <View style={styles.drawerHeader}>
-            <Text style={styles.drawerTitle}>Select Folder</Text>
-          </View>
-          <View style={styles.listDrawerContent}>
-            {renderHeader()}
-            {folderItems.map((item) => (
-              <FolderListItem
-                key={item.id}
-                item={item}
-                isSelected={selectedFolderId === item.id}
-                onSelect={handleFolderSelect}
-                onDelete={handleFolderDelete}
-                onOptions={() => {
-                  if (item.id !== "all") {
-                    setOptionsFolder(item as Folder);
-                    setIsRenaming(false);
-                    folderOptionsSheetRef.current?.expand();
-                  }
-                }}
-              />
-            ))} 
-          </View>
+        <View style={styles.drawerHeader}>
+          <Text style={styles.drawerTitle}>Select Folder</Text>
+        </View>
+        <View style={styles.listDrawerContent}>
+          {renderHeader()}
+          {folderItems.map((item) => (
+            <FolderListItem
+              key={item.id}
+              item={item}
+              isSelected={selectedFolderId === item.id}
+              onSelect={handleFolderSelect}
+              onDelete={handleFolderDelete}
+              onOptions={() => {
+                if (item.id !== "all") {
+                  setOptionsFolder(item as Folder);
+                  setIsRenaming(false);
+                  folderOptionsSheetRef.current?.expand();
+                }
+              }}
+            />
+          ))}
+        </View>
       </CommonBottomSheet>
 
       <CommonBottomSheet
         ref={bottomSheetCreateRef}
         visible={isCreateSheetOpen}
         snapPoints={[1, 320]}
-        backgroundStyle={{ backgroundColor: '#fff' }}
-        handleIndicatorStyle={{ backgroundColor: '#ccc' }}
+        backgroundStyle={{ backgroundColor: "rgba(240, 247, 255, 0.95)" }}
+        handleIndicatorStyle={{ backgroundColor: "#ccc" }}
         onClose={() => setIsCreateSheetOpen(false)}
       >
-          <View style={styles.drawerHeader}>
-            <Text style={styles.drawerTitle}>Create New Folder</Text>
-          </View>
-          <CreateFolderForm userId={userId} onClose={handleCreateFolderClose} autoFocus={isCreateSheetOpen} />
+        <View style={styles.drawerHeader}>
+          <Text style={styles.drawerTitle}>Create New Folder</Text>
+        </View>
+        <CreateFolderForm
+          userId={userId}
+          onClose={handleCreateFolderClose}
+          autoFocus={isCreateSheetOpen}
+        />
       </CommonBottomSheet>
       <FolderOptionsModal
         bottomSheetRef={folderOptionsSheetRef}
@@ -259,11 +316,18 @@ const FolderModals: React.FC<FolderModalsProps> = ({
         onClose={() => setOptionsFolder(null)}
         isRenaming={isRenaming}
         setIsRenaming={setIsRenaming}
-        isLoading={isLoading || updateFolderMutation.isPending || deleteFolderMutation.isPending}
+        isLoading={
+          isLoading ||
+          updateFolderMutation.isPending ||
+          deleteFolderMutation.isPending
+        }
         onRename={(newName: string) => {
           if (!optionsFolder || !newName.trim()) return;
           setIsLoading(true);
-          updateFolderMutation.mutate({ id: optionsFolder.id, name: newName.trim() });
+          updateFolderMutation.mutate({
+            id: optionsFolder.id,
+            name: newName.trim(),
+          });
         }}
         onDelete={() => {
           if (!optionsFolder) return;
@@ -293,7 +357,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "rgba(240, 247, 255, 0.95)",
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     shadowColor: "#000",
@@ -311,7 +375,7 @@ const styles = StyleSheet.create({
   },
   listDrawerContent: {
     paddingVertical: 8,
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "rgba(240, 247, 255, 0.95)",
   },
   createFolderButton: {
     flexDirection: "row",
@@ -325,8 +389,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 10,
     marginBottom: 10,
-    transitionProperty: 'transform',
-    transitionDuration: '150ms',
+    transitionProperty: "transform",
+    transitionDuration: "150ms",
   },
   createFolderButtonText: {
     fontSize: 16,
@@ -344,7 +408,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: "rgba(240, 247, 255, 0.95)",
   },
   modalHeaderText: {
     fontSize: 18,

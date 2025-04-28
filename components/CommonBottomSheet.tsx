@@ -1,5 +1,9 @@
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
-import BottomSheet, { BottomSheetView, BottomSheetProps, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+import React, { forwardRef, useImperativeHandle, useRef } from "react";
+import BottomSheet, {
+  BottomSheetView,
+  BottomSheetProps,
+  BottomSheetBackdrop,
+} from "@gorhom/bottom-sheet";
 
 interface CommonBottomSheetProps extends Partial<BottomSheetProps> {
   visible?: boolean;
@@ -17,8 +21,8 @@ const CommonBottomSheet = forwardRef<BottomSheet, CommonBottomSheetProps>(
       onClose,
       snapPoints = [1, 320],
       children,
-      backgroundStyle = { backgroundColor: '#fff' },
-      handleIndicatorStyle = { backgroundColor: '#ccc' },
+      backgroundStyle = { backgroundColor: "#fff" },
+      handleIndicatorStyle = { backgroundColor: "#ccc" },
       ...rest
     },
     ref
@@ -51,14 +55,12 @@ const CommonBottomSheet = forwardRef<BottomSheet, CommonBottomSheetProps>(
             {...backdropProps}
             appearsOnIndex={1}
             disappearsOnIndex={-1}
-            pressBehavior={onClose ? 'close' : 'none'}
+            pressBehavior="close"
           />
         )}
         {...rest}
       >
-        <BottomSheetView>
-          {children}
-        </BottomSheetView>
+        <BottomSheetView>{children}</BottomSheetView>
       </BottomSheet>
     );
   }

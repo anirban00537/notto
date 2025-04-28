@@ -11,6 +11,14 @@ interface NoteCardProps {
   onPress: () => void;
 }
 
+// Define the icon names type to match available MaterialCommunityIcons
+type IconName =
+  | "file-pdf-box"
+  | "volume-high"
+  | "youtube"
+  | "palette"
+  | "note-text-outline";
+
 const NoteCard: React.FC<NoteCardProps> = ({
   id,
   title = "Untitled Note",
@@ -34,40 +42,74 @@ const NoteCard: React.FC<NoteCardProps> = ({
       "Nov",
       "Dec",
     ];
-    return `${months[date.getMonth()]} ${date.getDate()} ${date.getFullYear()}`;
+    return `${
+      months[date.getMonth()]
+    } ${date.getDate()}, ${date.getFullYear()}`;
   };
 
-  const getTagData = (iconType?: string) => {
+  // Get icon and color based on note type
+  const getTypeData = (iconType?: string) => {
     switch (iconType) {
       case "pdf":
-        return { name: "PDF", color: "#D32F2F", bgColor: "#FFEBEE" };
+        return {
+          name: "file-pdf-box" as IconName,
+          color: "#D32F2F",
+          bgColor: "#FFEBEE",
+          label: "PDF",
+        };
       case "audio":
-        return { name: "AUDIO", color: "#1976D2", bgColor: "#E3F2FD" };
+        return {
+          name: "volume-high" as IconName,
+          color: "#1976D2",
+          bgColor: "#E3F2FD",
+          label: "AUDIO",
+        };
       case "youtube":
-        return { name: "YOUTUBE", color: "#FF0000", bgColor: "#FFEBEE" };
+        return {
+          name: "youtube" as IconName,
+          color: "#FF0000",
+          bgColor: "#FFEBEE",
+          label: "YOUTUBE",
+        };
       case "palette":
-        return { name: "PALETTE", color: "#EB6C3E", bgColor: "#FFF5EC" };
+        return {
+          name: "palette" as IconName,
+          color: "#EB6C3E",
+          bgColor: "#FFF5EC",
+          label: "PALETTE",
+        };
       default:
-        return null;
+        return {
+          name: "note-text-outline" as IconName,
+          color: "#4CAF50",
+          bgColor: "#E8F5E9",
+          label: null,
+        };
     }
   };
 
-  const tagData = getTagData(icon);
+  const typeData = getTypeData(icon);
 
   return (
-    <TouchableOpacity style={styles.noteCard} onPress={onPress}>
+    <TouchableOpacity
+      style={styles.noteCard}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View
+        style={[styles.iconContainer, { backgroundColor: typeData.bgColor }]}
+      >
+        <MaterialCommunityIcons
+          name={typeData.name}
+          size={26}
+          color={typeData.color}
+        />
+      </View>
       <View style={styles.noteContent}>
-        <Text style={styles.noteTitle}>{title}</Text>
-        <View style={styles.bottomContent}>
-          <Text style={styles.noteDate}>{formatDate(createdAt)}</Text>
-          {tagData && (
-            <View style={[styles.tag, { backgroundColor: tagData.bgColor }]}>
-              <Text style={[styles.tagText, { color: tagData.color }]}>
-                {tagData.name}
-              </Text>
-            </View>
-          )}
-        </View>
+        <Text style={styles.noteTitle} numberOfLines={1} ellipsizeMode="tail">
+          {title}
+        </Text>
+        <Text style={styles.dateText}>{formatDate(createdAt)}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -77,42 +119,36 @@ const styles = StyleSheet.create({
   noteCard: {
     flexDirection: "row",
     alignItems: "flex-start",
-    marginBottom: 8,
-    padding: 10,
-    borderRadius: 14,
-    backgroundColor: "#fff",
+    marginBottom: 12,
+    padding: 14,
+    borderRadius: 16,
+    backgroundColor: "rgba(249, 252, 255, 0.97)",
     borderWidth: 1,
-    borderColor: "#e0e8f5", 
+    borderColor: "#f0f4fa",
+  },
+  iconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 14,
   },
   noteContent: {
     flex: 1,
+    paddingVertical: 2,
   },
   noteTitle: {
-    fontSize: 15,
-    fontWeight: "500", // Medium bold
-    color: "#111", // Dark text for light theme
-    marginBottom: 6,
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#2c3e50",
+    marginBottom: 4,
     letterSpacing: -0.3,
   },
-  bottomContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  noteDate: {
-    fontSize: 10,
-    color: "#999", // Subtle gray for date
-  },
-  tag: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 3,
-    backgroundColor: "#f7faff", // Light tag background
-  },
-  tagText: {
-    fontSize: 9,
+  dateText: {
+    fontSize: 13,
+    color: "#95a5a6",
     fontWeight: "500",
-    color: "#222", // Dark tag text for light theme
   },
 });
 
