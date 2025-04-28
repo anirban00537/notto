@@ -61,15 +61,10 @@ const LoadingScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(240, 247, 255, 0.95)",
-    zIndex: 9999,
   },
   waveContainer: {
     alignItems: "center",

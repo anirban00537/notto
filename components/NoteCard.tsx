@@ -128,22 +128,22 @@ const NoteCard: React.FC<NoteCardProps> = ({
   // Interpolate shadow and transform properties for smooth animation
   const animatedShadowOpacity = shadowAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.06, 0.18],
+    outputRange: [0.12, 0.22],
   });
 
   const animatedShadowRadius = shadowAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [6, 16],
+    outputRange: [10, 18],
   });
 
   const animatedElevation = shadowAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [2, 8],
+    outputRange: [6, 12],
   });
 
   const animatedTranslateY = shadowAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, -2],
+    outputRange: [0, -3],
   });
 
   return (
@@ -210,16 +210,17 @@ const styles = StyleSheet.create({
   noteCard: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 18,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
     borderRadius: 24,
-    backgroundColor: "white",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
     borderWidth: 1,
-    borderColor: "rgba(240, 244, 250, 0.6)",
+    borderColor: "rgba(0, 0, 0, 0.05)",
     shadowColor: "rgba(0, 0, 0, 0.2)",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 6,
     overflow: "hidden",
     backfaceVisibility: "hidden",
   },
