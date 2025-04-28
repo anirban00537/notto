@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Animated,
   PanResponder,
+  Easing,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
@@ -45,13 +46,15 @@ export default function FlashcardComponent({
     if (!isFlipped) {
       Animated.timing(flipAnim, {
         toValue: 1,
-        duration: 500,
+        duration: 300,
+        easing: Easing.inOut(Easing.ease),
         useNativeDriver: true,
       }).start(() => setIsFlipped(true));
     } else {
       Animated.timing(flipAnim, {
         toValue: 0,
-        duration: 500,
+        duration: 300,
+        easing: Easing.inOut(Easing.ease),
         useNativeDriver: true,
       }).start(() => setIsFlipped(false));
     }
