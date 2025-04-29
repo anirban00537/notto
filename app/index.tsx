@@ -197,7 +197,7 @@ export default function Note() {
           onFolderPress={openFolderDrawer}
         />
 
-        {notes.length > 0 && <Text style={styles.sectionTitle}>Notes</Text>}
+        {/* {notes.length > 0 && <Text style={styles.sectionTitle}>Notes</Text>} */}
 
         {isNotesLoading && !refreshing ? (
           <View style={styles.emptyStateContainer}>
@@ -344,16 +344,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 14,
     color: "#111",
     marginLeft: 24,
-    marginTop: 8,
     marginBottom: 16,
-    fontWeight: "500",
+    fontWeight: "400",
   },
   listContent: {
     paddingHorizontal: 0,
-    paddingBottom: 24,
+    paddingBottom: 100,
   },
   bottomActions: {
     flexDirection: "row",
@@ -362,8 +361,10 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === "ios" ? 34 : 24,
     paddingTop: 12,
     backgroundColor: "transparent",
-    position: "relative",
-    // zIndex: -1,
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
   recordButton: {
     flexDirection: "row",
