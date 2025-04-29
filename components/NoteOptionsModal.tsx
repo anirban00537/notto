@@ -256,6 +256,7 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
   return (
     <>
       <CommonBottomSheet
+        containerStyle={styles.bottomSheetContainer}
         ref={bottomSheetRef}
         visible={false}
         snapPoints={snapPoints}
@@ -334,6 +335,9 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
 };
 
 const styles = StyleSheet.create({
+  bottomSheetContainer: {
+    zIndex: 100,
+  },
   pressed: {
     opacity: 0.7,
   },

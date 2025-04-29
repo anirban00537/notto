@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     backgroundColor: "transparent",
     position: "relative",
-    zIndex: 1,
+    // zIndex: -1,
   },
   recordButton: {
     flexDirection: "row",
