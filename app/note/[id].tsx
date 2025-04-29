@@ -76,15 +76,15 @@ export default function NoteDetailScreen() {
             activeTab={activeContentTab}
             onTabPress={handleTabPress}
           />
-          <NoteTitleSection
-            title={note.title}
-            lastModified={note.updatedAt || note.lastModified || ""}
-            iconName={iconProps.name as any}
-            iconColor={iconProps.color}
-            iconBackgroundColor={iconProps.bgColor}
-          />
           {activeContentTab === "note" && (
             <>
+              <NoteTitleSection
+                title={note.title}
+                lastModified={note.updatedAt || note.lastModified || ""}
+                iconName={iconProps.name as any}
+                iconColor={iconProps.color}
+                iconBackgroundColor={iconProps.bgColor}
+              />
               {note.sourceUrl && note.noteType === "youtube" && (
                 <YouTubePreview directPlayableUrl={note.sourceUrl} />
               )}
