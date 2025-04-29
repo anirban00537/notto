@@ -12,6 +12,7 @@ import {
   Animated,
 } from "react-native";
 import { pick, types as docTypes } from "@react-native-documents/picker";
+import * as ImagePicker from "expo-image-picker";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import CommonBottomSheet from "./CommonBottomSheet";
 import { router } from "expo-router";
@@ -89,7 +90,7 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
   const queryClient = useQueryClient();
   const [isPicking, setIsPicking] = useState(false);
   const [processingType, setProcessingType] = useState<
-    "pdf" | "audio" | "youtube" | null
+    "pdf" | "audio" | "youtube" | "image" | null
   >(null);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -189,7 +190,7 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
         setProcessingType(null);
         Alert.alert(
           "Error",
-          `File selection failed: ${e.message || "Unknown error"}`
+          `File selection/creation failed: ${e.message || "Unknown error"}`
         );
       }
     } finally {
@@ -197,8 +198,60 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
     }
   };
 
+  const handleTakePhoto = async () => {
+    setIsPicking(true);
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission Denied",
+          "Camera permission is required to take photos."
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.5, // Reduce quality to save space/upload time
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const imageAsset = result.assets[0];
+        setProcessingType("image");
+
+        // Determine filename and type
+        const uriParts = imageAsset.uri.split(".");
+        const fileType = uriParts[uriParts.length - 1];
+        const mimeType = `image/${fileType}`;
+        const fileName = imageAsset.uri.split("/").pop() || `photo.${fileType}`;
+
+        const noteDto: CreateNoteDto = {
+          noteType: NoteType.IMAGE,
+          file: {
+            uri: imageAsset.uri,
+            name: fileName,
+            mimeType: mimeType,
+            type: mimeType,
+          },
+        };
+        bottomSheetRef.current?.close();
+        createNoteMutation.mutate(noteDto);
+      }
+    } catch (e: any) {
+      setProcessingType(null);
+      Alert.alert(
+        "Error",
+        `Could not take photo: ${e.message || "Unknown error"}`
+      );
+    } finally {
+      setIsPicking(false);
+    }
+  };
+
   // Define snap points for the bottom sheet
-  const snapPoints = [1, 320]; // 1px (closed), 320px (open)
+  const snapPoints = [1, 380]; // Increased size for the new option
 
   return (
     <>
@@ -254,6 +307,19 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
               />
             }
             label="Add YouTube Video"
+          />
+          <ModalOptionButton
+            onPress={handleTakePhoto}
+            disabled={isPicking || createNoteMutation.isPending}
+            icon={
+              <MaterialCommunityIcons
+                name="camera-outline"
+                size={24}
+                color="#9C27B0" // Purple color
+                style={styles.modalOptionIcon}
+              />
+            }
+            label="Take Photo"
           />
         </View>
       </CommonBottomSheet>

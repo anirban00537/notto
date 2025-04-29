@@ -1,15 +1,16 @@
 export enum NoteType {
-  PDF = 'pdf',
-  AUDIO = 'audio',
-  YOUTUBE = 'youtube',
-  TEXT = 'text'
+  PDF = "pdf",
+  AUDIO = "audio",
+  YOUTUBE = "youtube",
+  TEXT = "text",
+  IMAGE = "image",
 }
 
 export enum NoteStatus {
-  ACTIVE = 'active',
-  ARCHIVED = 'archived',
-  DELETED = 'deleted',
-  DRAFT = 'draft'
+  ACTIVE = "active",
+  ARCHIVED = "archived",
+  DELETED = "deleted",
+  DRAFT = "draft",
 }
 
 export interface Flashcard {
@@ -92,7 +93,7 @@ export interface Note {
   lastEditedBy?: string;
 }
 
-export interface CreateNoteDto  {
+export interface CreateNoteDto {
   noteType: NoteType;
   youtubeUrl?: string;
   file?: {

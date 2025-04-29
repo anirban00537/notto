@@ -13,7 +13,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 interface ProcessingModalProps {
   visible: boolean;
   isSuccess?: boolean;
-  type: "pdf" | "audio" | "youtube";
+  type: "pdf" | "audio" | "youtube" | "image";
 }
 
 const ProcessingModal: React.FC<ProcessingModalProps> = ({
@@ -31,6 +31,8 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
         return "Processing Audio";
       case "youtube":
         return "Processing Video";
+      case "image":
+        return "Processing Image";
     }
   };
 
@@ -49,6 +51,8 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
         return "file-music-outline";
       case "youtube":
         return "youtube";
+      case "image":
+        return "image-outline";
     }
   };
 
@@ -62,6 +66,8 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
         return "#1976d2";
       case "youtube":
         return "#ff0000";
+      case "image":
+        return "#9C27B0";
     }
   };
 
