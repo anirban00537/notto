@@ -23,7 +23,8 @@ type IconName =
   | "volume-high"
   | "youtube"
   | "palette"
-  | "note-text-outline";
+  | "note-text-outline"
+  | "image-outline";
 
 const NoteCard: React.FC<NoteCardProps> = ({
   id,
@@ -60,31 +61,32 @@ const NoteCard: React.FC<NoteCardProps> = ({
         return {
           name: "file-pdf-box" as IconName,
           color: "#D32F2F",
-          bgColor: "rgba(255, 235, 238, 0.7)",
         };
       case "audio":
         return {
           name: "volume-high" as IconName,
           color: "#1976D2",
-          bgColor: "rgba(227, 242, 253, 0.7)",
         };
       case "youtube":
         return {
           name: "youtube" as IconName,
           color: "#FF0000",
-          bgColor: "rgba(255, 235, 238, 0.7)",
         };
       case "palette":
         return {
           name: "palette" as IconName,
           color: "#EB6C3E",
-          bgColor: "rgba(255, 245, 236, 0.9)",
+        };
+      case "image":
+        return {
+          name: "image-outline" as IconName,
+          color: "#9C27B0",
+          bgColor: "rgba(243, 229, 245, 0.9)",
         };
       default:
         return {
           name: "note-text-outline" as IconName,
           color: "#4CAF50",
-          bgColor: "rgba(232, 245, 233, 0.9)",
         };
     }
   };
@@ -126,12 +128,10 @@ const NoteCard: React.FC<NoteCardProps> = ({
           },
         ]}
       >
-        <View
-          style={[styles.iconContainer, { backgroundColor: typeData.bgColor }]}
-        >
+        <View style={styles.iconContainer}>
           <MaterialCommunityIcons
             name={typeData.name}
-            size={26}
+            size={28}
             color={typeData.color}
           />
         </View>
@@ -179,10 +179,11 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 42,
     height: 42,
-    borderRadius: 21,
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
   },
   noteContent: {
     flex: 1,
