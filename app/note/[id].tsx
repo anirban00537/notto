@@ -1,5 +1,7 @@
 import React from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import AudioPreview from "../../components/AudioPreview";
+import PDFPreview from "../../components/PDFPreview";
 import {
   View,
   Text,
@@ -46,166 +48,6 @@ export default function NoteDetailScreen() {
     handleGenerateMaterials,
   } = useNoteDetail(id);
 
-  const markdownStyles = {
-    body: {
-      color: "#24292e",
-      fontSize: 16,
-      lineHeight: 1.6,
-      fontFamily:
-        '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-    },
-    heading1: {
-      fontSize: 32,
-      fontWeight: "600" as const,
-      marginTop: 24,
-      marginBottom: 16,
-      paddingBottom: 8,
-      borderBottomWidth: 1,
-      borderBottomColor: "#eaecef",
-      color: "#24292e",
-    },
-    heading2: {
-      fontSize: 24,
-      fontWeight: "600" as const,
-      marginTop: 24,
-      marginBottom: 16,
-      paddingBottom: 8,
-      borderBottomWidth: 1,
-      borderBottomColor: "#eaecef",
-      color: "#24292e",
-    },
-    heading3: {
-      fontSize: 20,
-      fontWeight: "600" as const,
-      marginTop: 24,
-      marginBottom: 16,
-      color: "#24292e",
-    },
-    heading4: {
-      fontSize: 16,
-      fontWeight: "600" as const,
-      marginTop: 24,
-      marginBottom: 16,
-      color: "#24292e",
-    },
-    heading5: {
-      fontSize: 14,
-      fontWeight: "600" as const,
-      marginTop: 24,
-      marginBottom: 16,
-      color: "#24292e",
-    },
-    heading6: {
-      fontSize: 12,
-      fontWeight: "600" as const,
-      marginTop: 24,
-      marginBottom: 16,
-      color: "#24292e",
-    },
-    paragraph: {
-      marginTop: 0,
-      marginBottom: 16,
-    },
-    link: {
-      color: "#0366d6",
-      textDecorationLine: "none" as const,
-    },
-    blockquote: {
-      backgroundColor: "#f6f8fa",
-      borderLeftColor: "#dfe2e5",
-      borderLeftWidth: 4,
-      paddingLeft: 16,
-      paddingVertical: 8,
-      marginVertical: 16,
-      marginHorizontal: 0,
-      color: "#6a737d",
-    },
-    code_inline: {
-      backgroundColor: "rgba(27, 31, 35, 0.05)",
-      padding: 4,
-      paddingHorizontal: 6,
-      borderRadius: 3,
-      fontFamily:
-        'SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace',
-      fontSize: 14,
-      color: "#24292e",
-    },
-    code_block: {
-      backgroundColor: "#f6f8fa",
-      padding: 16,
-      borderRadius: 6,
-      marginVertical: 16,
-      fontFamily:
-        'SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace',
-      fontSize: 14,
-      lineHeight: 1.45,
-      overflow: "scroll" as const,
-    },
-    list_item: {
-      marginBottom: 4,
-    },
-    bullet_list: {
-      marginTop: 0,
-      marginBottom: 16,
-      paddingLeft: 32,
-    },
-    ordered_list: {
-      marginTop: 0,
-      marginBottom: 16,
-      paddingLeft: 32,
-    },
-    list_item_bullet: {
-      color: "#24292e",
-    },
-    list_item_number: {
-      color: "#24292e",
-    },
-    strong: {
-      fontWeight: "600" as const,
-    },
-    em: {
-      fontStyle: "italic" as const,
-    },
-    strikethrough: {
-      textDecorationLine: "line-through" as const,
-    },
-    table: {
-      marginVertical: 16,
-      borderWidth: 1,
-      borderColor: "#dfe2e5",
-      borderRadius: 6,
-    },
-    tableHeader: {
-      backgroundColor: "#f6f8fa",
-      borderBottomWidth: 1,
-      borderBottomColor: "#dfe2e5",
-      padding: 8,
-    },
-    tableHeaderCell: {
-      color: "#24292e",
-      fontWeight: "600" as const,
-      padding: 8,
-    },
-    tableCell: {
-      padding: 8,
-      borderBottomWidth: 1,
-      borderBottomColor: "#dfe2e5",
-    },
-    tableRow: {
-      borderBottomWidth: 1,
-      borderBottomColor: "#dfe2e5",
-    },
-    image: {
-      marginVertical: 16,
-      borderRadius: 6,
-    },
-    hr: {
-      height: 1,
-      backgroundColor: "#e1e4e8",
-      marginVertical: 24,
-    },
-  };
-
   if (loading) return <LoadingScreen />;
   if (!note) return <Text>Note not found</Text>;
 
@@ -236,8 +78,14 @@ export default function NoteDetailScreen() {
           />
           {activeContentTab === "note" && (
             <>
-              {note.sourceUrl && (
+              {note.sourceUrl && note.noteType === "youtube" && (
                 <YouTubePreview directPlayableUrl={note.sourceUrl} />
+              )}
+              {note.sourceUrl && note.noteType === "audio" && (
+                <AudioPreview directPlayableUrl={note.sourceUrl} />
+              )}
+              {note.sourceUrl && note.noteType === "pdf" && (
+                <PDFPreview directPlayableUrl={note.sourceUrl} />
               )}
               <ActionButtons
                 onNoteToolsPress={handleNoteToolsPress}
