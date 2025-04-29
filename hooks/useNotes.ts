@@ -1,16 +1,30 @@
 import { useState, useRef } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useQueryClient,
+  useMutation,
+} from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { getAllNotes, createNote } from "../lib/services/noteService";
 import { CreateNoteDto, Note, NoteType } from "../lib/types/note";
 import { Alert } from "react-native";
 
-// Define a potential API response structure
+// Define the API response structure
+interface NotesApiResponse {
+  message: string;
+  data: Note[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalNotes: number;
+    limit: number;
+  };
+}
+
 interface CreateNoteResponse {
-  data?: Note; // Assuming the actual note data might be nested under 'data'
-  id?: string; // Or the ID might be directly available
+  data?: Note;
+  id?: string;
   noteType?: NoteType;
-  // Add other potential top-level properties if needed
 }
 
 export function useNotes(userId: string | undefined, folderId: string) {
@@ -22,28 +36,47 @@ export function useNotes(userId: string | undefined, folderId: string) {
   const queryClient = useQueryClient();
   const router = useRouter();
 
-  // Fetching Notes Query
+  // Fetching Notes Query using useInfiniteQuery
   const {
-    data: notes = [],
+    data,
     isLoading: isNotesLoading,
     isError: isNotesError,
-  } = useQuery<Note[]>({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetch,
+  } = useInfiniteQuery<NotesApiResponse>({
     queryKey: ["notes", { userId, folderId }],
-    queryFn: async () => {
+    queryFn: async ({ pageParam = 1 }) => {
+      const limit = 6; // Set the desired limit for notes per page
       console.log(
-        `Fetching notes for userId: ${userId}, folderId: ${folderId}`
+        `Fetching notes page: ${pageParam}, limit: ${limit} for userId: ${userId}, folderId: ${folderId}`
       );
-      // TODO: Update getAllNotes to accept folderId for filtering if needed
-      const response = await getAllNotes();
-      const allNotes: Note[] = response.data || [];
-      // Filter client-side if backend doesn't support it yet
-      if (folderId !== "all") {
-        return allNotes.filter((note) => note.folderId === folderId);
-      }
-      return allNotes;
+      const response = await getAllNotes({ page: pageParam, folderId, limit });
+      console.log(
+        `Data received for page ${pageParam}:`,
+        JSON.stringify(
+          response.data.map((note) => note.id),
+          null,
+          2
+        )
+      );
+      return response; // Expecting the response structure: { data: Note[], pagination: {...} }
     },
+    getNextPageParam: (lastPage) => {
+      if (lastPage.pagination.currentPage < lastPage.pagination.totalPages) {
+        return lastPage.pagination.currentPage + 1;
+      }
+      return undefined; // No more pages
+    },
+    initialPageParam: 1,
     enabled: !!userId,
+    refetchOnWindowFocus: false,
+    structuralSharing: false,
   });
+
+  // Flatten the pages data into a single array of notes
+  const notes = data?.pages.flatMap((page) => page.data) ?? [];
 
   // Create Note Mutation
   const createNoteMutation = useMutation<
@@ -54,26 +87,31 @@ export function useNotes(userId: string | undefined, folderId: string) {
     mutationFn: (newNoteData: CreateNoteDto) => createNote(newNoteData),
     onSuccess: (newNoteResponse: CreateNoteResponse) => {
       console.log("Note creation successful:", newNoteResponse);
-      // Invalidate the notes query to refetch the list
+      // Invalidate the infinite notes query to refetch from page 1
       queryClient.invalidateQueries({
         queryKey: ["notes", { userId, folderId }],
       });
 
-      // Extract note data and ID, handling potential nesting
       const noteData = newNoteResponse?.data;
       const noteId = noteData?.id || newNoteResponse?.id;
 
-      // Reset YouTube modal state if it was a YouTube note
       const noteType = noteData?.noteType || newNoteResponse?.noteType;
       if (noteType === NoteType.YOUTUBE) {
-        setYoutubeModalVisible(false);
-        setYoutubeUrl("");
-      }
-
-      // Navigate to the new note's detail page
-      if (noteId) {
-        console.log(`Navigating to /note/${noteId}`);
-        router.push(`/note/${noteId}`);
+        // Reset state and maybe show success briefly before closing modal
+        setYoutubeSuccess(true);
+        setTimeout(() => {
+          setYoutubeSuccess(false);
+          setYoutubeLoading(false);
+          setYoutubeModalVisible(false);
+          setYoutubeUrl("");
+          if (noteId) {
+            router.push(`/note/${noteId}`);
+          }
+        }, 1500);
+      } else if (noteId) {
+        // For PDF/Audio, navigate immediately after success is shown in NoteOptionsModal
+        // The processing modal in NoteOptionsModal handles the success display
+        // Navigation is triggered from there after a delay
       } else {
         console.error(
           "Failed to get new note ID for navigation from response:",
@@ -87,17 +125,19 @@ export function useNotes(userId: string | undefined, folderId: string) {
       // Ensure loading state is reset even on error
       const variables = (createNoteMutation.error?.cause as any)?.variables as
         | CreateNoteDto
-        | undefined; // Access variables if needed
+        | undefined;
       if (variables?.noteType === NoteType.YOUTUBE) {
-        setYoutubeModalVisible(false); // Consider keeping modal open or closing based on UX preference
-        setYoutubeUrl(""); // Optionally clear URL
+        setYoutubeLoading(false);
+        setYoutubeSuccess(false); // Ensure success state is reset on error
+        // Decide if you want to keep modal open or close on error
       }
+      // PDF/Audio errors are handled in NoteOptionsModal
     },
   });
 
   // Handlers for YouTube Modal
   const handleAddYouTube = () => {
-    setYoutubeUrl(""); // Clear previous URL
+    setYoutubeUrl("");
     setYoutubeModalVisible(true);
   };
 
@@ -108,41 +148,26 @@ export function useNotes(userId: string | undefined, folderId: string) {
 
   const handleSubmitYouTube = async () => {
     if (!youtubeUrl) return;
-
     setYoutubeLoading(true);
+    setYoutubeSuccess(false); // Reset success state on new submission
     try {
       const noteDto: CreateNoteDto = {
         noteType: NoteType.YOUTUBE,
         youtubeUrl: youtubeUrl,
       };
-
-      const response = await createNote(noteDto);
-      queryClient.invalidateQueries({ queryKey: ["notes"] });
-
-      const noteId = response?.data?.id || response?.id;
-      if (noteId) {
-        setYoutubeSuccess(true);
-        setTimeout(() => {
-          setYoutubeSuccess(false);
-          setYoutubeLoading(false);
-          setYoutubeModalVisible(false);
-          setYoutubeUrl("");
-          router.push(`/note/${noteId}`);
-        }, 1500);
-      }
+      // Use the mutation to create the note
+      createNoteMutation.mutate(noteDto);
     } catch (error: any) {
-      Alert.alert("Error", error.message || "Failed to create note");
+      // This catch might not be necessary if mutation handles errors
+      Alert.alert("Error", error.message || "Failed to submit YouTube note");
       setYoutubeLoading(false);
     }
   };
 
   return {
-    notes,
+    notes, // Use the flattened notes array
     isNotesLoading,
     isNotesError,
-    createNote: createNoteMutation.mutate,
-    isCreatingNote: createNoteMutation.isPending,
-    createNoteError: createNoteMutation.error,
     // YouTube Modal State & Handlers
     youtubeModalVisible,
     youtubeUrl,
@@ -152,9 +177,10 @@ export function useNotes(userId: string | undefined, folderId: string) {
     handleAddYouTube,
     handleCloseYouTubeModal,
     handleSubmitYouTube,
-    refetchNotes: () =>
-      queryClient.refetchQueries({
-        queryKey: ["notes", { userId, folderId }],
-      }),
+    // Pagination handlers
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    refetchNotes: refetch, // Use refetch from useInfiniteQuery
   };
 }

@@ -2,9 +2,31 @@ import request from "./request";
 import { Note, NoteType, NoteStatus, CreateNoteDto } from "../types/note";
 
 // API Services
-export const getAllNotes = async () => {
-  const response = await request.get("/notes");
-  return response.data;
+export const getAllNotes = async (params?: {
+  page?: number;
+  folderId?: string;
+  limit?: number; // Optional limit, defaults on backend
+}) => {
+  const queryParams = new URLSearchParams();
+  if (params?.page) {
+    queryParams.append("page", params.page.toString());
+  }
+  if (params?.limit) {
+    // Backend defaults to 10, only send if explicitly provided
+    queryParams.append("limit", params.limit.toString());
+  }
+  if (params?.folderId && params.folderId !== "all") {
+    // Assuming the backend expects 'folderId' query param for filtering
+    queryParams.append("folderId", params.folderId);
+  }
+
+  const queryString = queryParams.toString();
+  const url = `/notes${queryString ? `?${queryString}` : ""}`;
+
+  console.log(`Fetching notes from URL: ${url}`); // Log the URL being requested
+
+  const response = await request.get(url);
+  return response.data; // Assuming response.data matches NotesApiResponse structure
 };
 
 export const getNoteById = async (id: string) => {

@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   RefreshControl,
   Animated,
+  ActivityIndicator,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
@@ -48,13 +49,28 @@ export default function Note() {
     youtubeModalVisible,
     youtubeUrl,
     youtubeLoading,
+    youtubeSuccess,
     setYoutubeUrl,
     handleAddYouTube,
     handleCloseYouTubeModal,
     handleSubmitYouTube,
     refetchNotes,
-    youtubeSuccess,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
   } = useNotes(user?.uid, selectedFolderId);
+
+  useEffect(() => {
+    const noteIds = notes.map((note) => note.id);
+    const uniqueIds = new Set(noteIds);
+    if (noteIds.length !== uniqueIds.size) {
+      console.warn("Duplicate note IDs found in the flattened list:", noteIds);
+      const duplicates = noteIds.filter(
+        (id, index) => noteIds.indexOf(id) !== index
+      );
+      console.warn("Duplicate IDs are:", duplicates);
+    }
+  }, [notes]);
 
   useEffect(() => {
     if (notes.length > 0) {
@@ -65,7 +81,7 @@ export default function Note() {
         useNativeDriver: true,
       }).start();
     }
-  }, [notes]);
+  }, [notes.length]);
 
   const onOpenNoteOptions = () => {
     noteOptionsBottomSheetRef.current?.snapToIndex(1);
@@ -81,6 +97,12 @@ export default function Note() {
       await refetchNotes();
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const loadMore = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
     }
   };
 
@@ -156,6 +178,15 @@ export default function Note() {
     );
   };
 
+  const renderFooter = () => {
+    if (!isFetchingNextPage) return null;
+    return (
+      <View style={styles.footerLoadingContainer}>
+        <ActivityIndicator size="small" color="#2c3e50" />
+      </View>
+    );
+  };
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
@@ -177,10 +208,13 @@ export default function Note() {
         ) : (
           <FlatList
             data={notes}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.id.toString()}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
             renderItem={renderAnimatedItem}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={renderFooter}
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -328,6 +362,8 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === "ios" ? 34 : 24,
     paddingTop: 12,
     backgroundColor: "transparent",
+    position: "relative",
+    zIndex: 1,
   },
   recordButton: {
     flexDirection: "row",
@@ -367,5 +403,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 24,
     marginTop: 40,
+  },
+  footerLoadingContainer: {
+    paddingVertical: 20,
   },
 });
