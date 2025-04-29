@@ -76,6 +76,13 @@ export default function NoteDetailScreen() {
             activeTab={activeContentTab}
             onTabPress={handleTabPress}
           />
+          <NoteTitleSection
+            title={note.title}
+            lastModified={note.updatedAt || note.lastModified || ""}
+            iconName={iconProps.name as any}
+            iconColor={iconProps.color}
+            iconBackgroundColor={iconProps.bgColor}
+          />
           {activeContentTab === "note" && (
             <>
               {note.sourceUrl && note.noteType === "youtube" && (
@@ -87,17 +94,7 @@ export default function NoteDetailScreen() {
               {note.sourceUrl && note.noteType === "pdf" && (
                 <PDFPreview directPlayableUrl={note.sourceUrl} />
               )}
-              <ActionButtons
-                onNoteToolsPress={handleNoteToolsPress}
-                onEditNotePress={handleEditNotePress}
-              />
-              <NoteTitleSection
-                title={note.title}
-                lastModified={note.updatedAt || note.lastModified || ""}
-                iconName={iconProps.name as any}
-                iconColor={iconProps.color}
-                iconBackgroundColor={iconProps.bgColor}
-              />
+
               <View style={styles.textContentPadding}>
                 {note.note && <NoteContent content={note.note} />}
               </View>
