@@ -53,6 +53,7 @@ export default function Note() {
     handleCloseYouTubeModal,
     handleSubmitYouTube,
     refetchNotes,
+    youtubeSuccess,
   } = useNotes(user?.uid, selectedFolderId);
 
   useEffect(() => {
@@ -236,6 +237,7 @@ export default function Note() {
         onUrlChange={setYoutubeUrl}
         onClose={handleCloseYouTubeModal}
         onSubmit={handleSubmitYouTube}
+        isSuccess={youtubeSuccess}
       />
 
       <FolderModals

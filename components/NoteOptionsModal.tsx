@@ -19,6 +19,7 @@ import { useUser } from "../app/context/UserContext";
 import { createNote } from "../lib/services";
 import { CreateNoteDto, NoteType, NoteStatus, Note } from "../lib/types/note";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import ProcessingModal from "./ProcessingModal";
 
 interface NoteOptionsModalProps {
   bottomSheetRef: React.RefObject<any>;
@@ -87,6 +88,10 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
   const { user } = useUser();
   const queryClient = useQueryClient();
   const [isPicking, setIsPicking] = useState(false);
+  const [processingType, setProcessingType] = useState<
+    "pdf" | "audio" | "youtube" | null
+  >(null);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   // Animated values for scaling
   const scalePDF = useRef(new Animated.Value(1)).current;
@@ -124,7 +129,12 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
       const noteId = noteData?.id || newNote?.id;
 
       if (noteId) {
-        router.push(`/note/${noteId}`);
+        setIsSuccess(true);
+        setTimeout(() => {
+          setProcessingType(null);
+          setIsSuccess(false);
+          router.push(`/note/${noteId}`);
+        }, 1500);
       } else {
         console.error(
           "Failed to get new note ID for navigation from response:",
@@ -133,6 +143,7 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
       }
     },
     onError: (error: Error) => {
+      setProcessingType(null);
       Alert.alert(
         "Error",
         `Failed to create note: ${error.message || "Please try again."}`
@@ -145,13 +156,21 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
     setIsPicking(true);
     try {
       let pickerTypes: string[] = [];
-      if (type === NoteType.PDF) pickerTypes = [docTypes.pdf];
-      if (type === NoteType.AUDIO) pickerTypes = [docTypes.audio];
+      if (type === NoteType.PDF) {
+        pickerTypes = [docTypes.pdf];
+        setProcessingType("pdf");
+      }
+      if (type === NoteType.AUDIO) {
+        pickerTypes = [docTypes.audio];
+        setProcessingType("audio");
+      }
+
       const [result] = await pick({
         type: pickerTypes,
         allowMultiSelection: false,
         mode: "import",
       });
+
       if (result) {
         const noteDto: CreateNoteDto = {
           noteType: type,
@@ -167,6 +186,7 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
       }
     } catch (e: any) {
       if (!(e.code && e.code === "DOCUMENT_PICKER_CANCELED")) {
+        setProcessingType(null);
         Alert.alert(
           "Error",
           `File selection failed: ${e.message || "Unknown error"}`
@@ -174,9 +194,6 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
       }
     } finally {
       setIsPicking(false);
-      if (!createNoteMutation.isPending) {
-        // bottomSheetRef.current?.close(); // Already closed before mutation starts
-      }
     }
   };
 
@@ -184,61 +201,69 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
   const snapPoints = [1, 320]; // 1px (closed), 320px (open)
 
   return (
-    <CommonBottomSheet
-      ref={bottomSheetRef}
-      visible={false} // controlled by parent via ref
-      snapPoints={snapPoints}
-      backgroundStyle={{ backgroundColor: "rgba(240, 247, 255, 0.95)" }}
-      handleIndicatorStyle={{ backgroundColor: "#ccc" }}
-    >
-      <View style={styles.modalHeader}>
-        <Text style={styles.modalHeaderText}>Create New Note</Text>
-      </View>
-      <View style={styles.modalContent}>
-        <ModalOptionButton
-          onPress={() => handlePickFile(NoteType.PDF)}
-          disabled={isPicking || createNoteMutation.isPending}
-          icon={
-            <MaterialCommunityIcons
-              name="file-pdf-box"
-              size={24}
-              color="#d32f2f"
-              style={styles.modalOptionIcon}
-            />
-          }
-          label="Import PDF"
-        />
-        <ModalOptionButton
-          onPress={() => handlePickFile(NoteType.AUDIO)}
-          disabled={isPicking || createNoteMutation.isPending}
-          icon={
-            <MaterialCommunityIcons
-              name="file-music-outline"
-              size={24}
-              color="#1976d2"
-              style={styles.modalOptionIcon}
-            />
-          }
-          label="Import Audio"
-        />
-        <ModalOptionButton
-          onPress={() => {
-            bottomSheetRef.current?.close();
-            onAddYouTube();
-          }}
-          disabled={isPicking || createNoteMutation.isPending}
-          icon={
-            <MaterialCommunityIcons
-              name="youtube"
-              size={24}
-              color="#ff0000"
-              style={styles.modalOptionIcon}
-            />
-          }
-          label="Add YouTube Video"
-        />
-      </View>
-    </CommonBottomSheet>
+    <>
+      <CommonBottomSheet
+        ref={bottomSheetRef}
+        visible={false}
+        snapPoints={snapPoints}
+        backgroundStyle={{ backgroundColor: "rgba(240, 247, 255, 0.95)" }}
+        handleIndicatorStyle={{ backgroundColor: "#ccc" }}
+      >
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalHeaderText}>Create New Note</Text>
+        </View>
+        <View style={styles.modalContent}>
+          <ModalOptionButton
+            onPress={() => handlePickFile(NoteType.PDF)}
+            disabled={isPicking || createNoteMutation.isPending}
+            icon={
+              <MaterialCommunityIcons
+                name="file-pdf-box"
+                size={24}
+                color="#d32f2f"
+                style={styles.modalOptionIcon}
+              />
+            }
+            label="Import PDF"
+          />
+          <ModalOptionButton
+            onPress={() => handlePickFile(NoteType.AUDIO)}
+            disabled={isPicking || createNoteMutation.isPending}
+            icon={
+              <MaterialCommunityIcons
+                name="file-music-outline"
+                size={24}
+                color="#1976d2"
+                style={styles.modalOptionIcon}
+              />
+            }
+            label="Import Audio"
+          />
+          <ModalOptionButton
+            onPress={() => {
+              bottomSheetRef.current?.close();
+              onAddYouTube();
+            }}
+            disabled={isPicking || createNoteMutation.isPending}
+            icon={
+              <MaterialCommunityIcons
+                name="youtube"
+                size={24}
+                color="#ff0000"
+                style={styles.modalOptionIcon}
+              />
+            }
+            label="Add YouTube Video"
+          />
+        </View>
+      </CommonBottomSheet>
+
+      <ProcessingModal
+        visible={!!processingType}
+        type={processingType || "pdf"}
+        isSuccess={isSuccess}
+      />
+    </>
   );
 };
 

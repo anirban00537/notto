@@ -2,12 +2,13 @@ import React from "react";
 import {
   View,
   Text,
+  StyleSheet,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import CommonBottomSheet from "./CommonBottomSheet";
-import LoadingScreen from "./LoadingScreen";
+import ProcessingModal from "./ProcessingModal";
 
 interface YouTubeModalProps {
   bottomSheetRef: React.RefObject<any>;
@@ -17,6 +18,7 @@ interface YouTubeModalProps {
   onUrlChange: (url: string) => void;
   onClose: () => void;
   onSubmit: () => void;
+  isSuccess?: boolean;
 }
 
 const YouTubeModal: React.FC<YouTubeModalProps> = ({
@@ -27,119 +29,81 @@ const YouTubeModal: React.FC<YouTubeModalProps> = ({
   onUrlChange,
   onClose,
   onSubmit,
+  isSuccess = false,
 }) => {
-  const snapPoints = [1, 340]; // closed, open height
+  const snapPoints = [1, 280];
 
   return (
-    <CommonBottomSheet
-      ref={bottomSheetRef}
-      visible={visible}
-      snapPoints={snapPoints}
-      backgroundStyle={{ backgroundColor: "rgb(240, 247, 255)" }}
-      handleIndicatorStyle={{ backgroundColor: "#ccc" }}
-      onClose={onClose}
-    >
-      <View style={styles.youtubeModalContent}>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 24,
-          }}
-        >
-          <Text style={styles.youtubeModalTitle}>Add YouTube Video</Text>
-          <TouchableOpacity onPress={onClose} disabled={loading}>
-            <Text style={{ color: "#1976d2", fontSize: 16, fontWeight: "600" }}>
-              Cancel
-            </Text>
+    <>
+      <CommonBottomSheet
+        ref={bottomSheetRef}
+        visible={visible}
+        snapPoints={snapPoints}
+        backgroundStyle={{ backgroundColor: "rgba(240, 247, 255, 0.95)" }}
+        handleIndicatorStyle={{ backgroundColor: "#ccc" }}
+      >
+        <View style={styles.modalHeader}>
+          <Text style={styles.modalHeaderText}>Add YouTube Video</Text>
+        </View>
+        <View style={styles.modalContent}>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter YouTube URL"
+            value={url}
+            onChangeText={onUrlChange}
+            autoCapitalize="none"
+            autoCorrect={false}
+            editable={!loading}
+          />
+          <TouchableOpacity
+            style={styles.submitButton}
+            onPress={onSubmit}
+            disabled={loading || !url}
+          >
+            <Text style={styles.submitButtonText}>Add Video</Text>
           </TouchableOpacity>
         </View>
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <LoadingScreen />
-          </View>
-        ) : (
-          <>
-            <TextInput
-              style={styles.youtubeInput}
-              placeholder="Paste YouTube URL"
-              value={url}
-              onChangeText={onUrlChange}
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="url"
-              editable={!loading}
-            />
-            <View style={styles.actionButtonsContainer}>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.submitButton]}
-                onPress={onSubmit}
-                disabled={loading}
-              >
-                <Text style={styles.submitButtonText}>Submit</Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
-      </View>
-    </CommonBottomSheet>
+      </CommonBottomSheet>
+
+      <ProcessingModal visible={loading} type="youtube" isSuccess={isSuccess} />
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  youtubeModalContent: {
-    width: "100%",
-    backgroundColor: "rgb(240, 247, 255)",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    padding: 24,
-    paddingBottom: 32,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-  },
-  youtubeModalTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#1a1a1a",
-  },
-  youtubeInput: {
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-    fontSize: 16,
-    backgroundColor: "#f8f9fa",
-  },
-  actionButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginBottom: 16,
-  },
-  actionButton: {
-    flexDirection: "row",
+  modalHeader: {
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    marginHorizontal: 0,
+  },
+  modalHeaderText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+  },
+  modalContent: {
+    padding: 16,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    marginBottom: 16,
+    backgroundColor: "#fff",
   },
   submitButton: {
     backgroundColor: "#2c3e50",
-    width: "100%",
+    padding: 14,
+    borderRadius: 8,
+    alignItems: "center",
   },
   submitButtonText: {
     color: "#fff",
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "600",
-  },
-  loadingContainer: {
-    height: 120,
-    position: "relative",
   },
 });
 

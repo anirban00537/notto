@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { getAllNotes, createNote } from "../lib/services/noteService";
 import { CreateNoteDto, Note, NoteType } from "../lib/types/note";
+import { Alert } from "react-native";
 
 // Define a potential API response structure
 interface CreateNoteResponse {
@@ -12,13 +13,14 @@ interface CreateNoteResponse {
   // Add other potential top-level properties if needed
 }
 
-export const useNotes = (userId?: string, folderId: string = "all") => {
-  const queryClient = useQueryClient();
-  const router = useRouter();
-
-  // State for YouTube Modal
+export function useNotes(userId: string | undefined, folderId: string) {
   const [youtubeModalVisible, setYoutubeModalVisible] = useState(false);
   const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [youtubeLoading, setYoutubeLoading] = useState(false);
+  const [youtubeSuccess, setYoutubeSuccess] = useState(false);
+  const youtubeBottomSheetRef = useRef<any>(null);
+  const queryClient = useQueryClient();
+  const router = useRouter();
 
   // Fetching Notes Query
   const {
@@ -81,7 +83,7 @@ export const useNotes = (userId?: string, folderId: string = "all") => {
     },
     onError: (error: any) => {
       console.error("Error creating note:", error);
-      alert(`Failed to create note: ${error.message || "Please try again."}`);
+      Alert.alert("Error", error.message || "Failed to create note");
       // Ensure loading state is reset even on error
       const variables = (createNoteMutation.error?.cause as any)?.variables as
         | CreateNoteDto
@@ -104,15 +106,34 @@ export const useNotes = (userId?: string, folderId: string = "all") => {
     setYoutubeUrl("");
   };
 
-  const handleSubmitYouTube = () => {
-    if (
-      !youtubeUrl ||
-      !/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(youtubeUrl)
-    ) {
-      alert("Please enter a valid YouTube URL.");
-      return;
+  const handleSubmitYouTube = async () => {
+    if (!youtubeUrl) return;
+
+    setYoutubeLoading(true);
+    try {
+      const noteDto: CreateNoteDto = {
+        noteType: NoteType.YOUTUBE,
+        youtubeUrl: youtubeUrl,
+      };
+
+      const response = await createNote(noteDto);
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+
+      const noteId = response?.data?.id || response?.id;
+      if (noteId) {
+        setYoutubeSuccess(true);
+        setTimeout(() => {
+          setYoutubeSuccess(false);
+          setYoutubeLoading(false);
+          setYoutubeModalVisible(false);
+          setYoutubeUrl("");
+          router.push(`/note/${noteId}`);
+        }, 1500);
+      }
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Failed to create note");
+      setYoutubeLoading(false);
     }
-    createNoteMutation.mutate({ noteType: NoteType.YOUTUBE, youtubeUrl });
   };
 
   return {
@@ -125,10 +146,8 @@ export const useNotes = (userId?: string, folderId: string = "all") => {
     // YouTube Modal State & Handlers
     youtubeModalVisible,
     youtubeUrl,
-    youtubeLoading:
-      createNoteMutation.isPending &&
-      (createNoteMutation.variables as CreateNoteDto)?.noteType ===
-        NoteType.YOUTUBE, // Check pending mutation variables
+    youtubeLoading,
+    youtubeSuccess,
     setYoutubeUrl,
     handleAddYouTube,
     handleCloseYouTubeModal,
@@ -138,4 +157,4 @@ export const useNotes = (userId?: string, folderId: string = "all") => {
         queryKey: ["notes", { userId, folderId }],
       }),
   };
-};
+}
