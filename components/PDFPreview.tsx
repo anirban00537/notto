@@ -8,7 +8,8 @@ interface PDFPreviewProps {
 
 const PDFPreview: React.FC<PDFPreviewProps> = ({ directPlayableUrl }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    console.log(directPlayableUrl,"directPlayableUrl")
 
   return (
     <View style={styles.container}>
