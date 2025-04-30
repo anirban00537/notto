@@ -117,8 +117,10 @@ export default function Note() {
     setIsRecordingModalVisible(false);
   };
 
-  const handleStopRecording = (duration: number) => {
-    console.log(`Recording stopped. Duration: ${duration} seconds`);
+  const handleStopRecording = (uri: string, duration: number) => {
+    console.log(
+      `Recording stopped. URI: ${uri}, Duration: ${duration} seconds`
+    );
     handleCloseRecordingModal();
   };
 
@@ -306,7 +308,7 @@ export default function Note() {
       <RecordingModal
         visible={isRecordingModalVisible}
         onClose={handleCloseRecordingModal}
-        onStopRecording={handleStopRecording}
+        onSaveRecording={handleStopRecording}
       />
     </GestureHandlerRootView>
   );
