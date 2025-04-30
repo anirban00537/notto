@@ -26,7 +26,7 @@ export const HomeHeader: React.FC<HomeHeaderProps> = ({
       </TouchableOpacity>
       <View style={styles.headerRight}>
         <TouchableOpacity style={styles.proButton}>
-          <MaterialCommunityIcons name="rocket-launch" size={16} color="#fff" />
+          <MaterialCommunityIcons name="rocket-launch" size={14} color="#fff" />
           <Text style={styles.proText}>PRO</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -45,8 +45,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 8,
-    paddingHorizontal: 24,
+    paddingVertical: 2,
+    paddingHorizontal: 2,
     backgroundColor: "#f0f7ff",
   },
   folderButton: {
@@ -74,8 +74,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#2c3e50",
-    paddingHorizontal: 12,
-    paddingVertical: 7,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
     borderRadius: 20,
     marginRight: 16,
   },
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     marginLeft: 6,
-    fontSize: 13,
+    fontSize: 12,
   },
   profileButton: {
     width: 40,

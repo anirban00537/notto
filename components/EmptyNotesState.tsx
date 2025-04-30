@@ -51,12 +51,12 @@ const EmptyNotesState: React.FC<EmptyNotesStateProps> = ({ onCreateNote }) => {
         your ideas, thoughts, and inspirations.
       </Text>
 
-      {onCreateNote && (
+      {/* {onCreateNote && (
         <TouchableOpacity style={styles.createButton} onPress={onCreateNote}>
           <MaterialCommunityIcons name="plus" size={24} color="#FFFFFF" />
           <Text style={styles.createButtonText}>Create New Note</Text>
         </TouchableOpacity>
-      )}
+      )} */}
     </View>
   );
 };
