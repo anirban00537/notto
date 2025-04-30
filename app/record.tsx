@@ -10,15 +10,27 @@ import {
   ActivityIndicator,
   SafeAreaView,
   StatusBar,
+  Alert,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
 import Slider from "@react-native-community/slider";
 import { useRouter } from "expo-router";
 import { PermissionsAndroid } from "react-native";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createNote } from "../lib/services";
+import { CreateNoteDto, NoteType, Note } from "../lib/types/note";
+import ProcessingModal from "../components/ProcessingModal";
+
+interface CreateNoteResponse {
+  data?: Note;
+  id?: string;
+  noteType?: NoteType;
+}
 
 export default function RecordScreen() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [mode, setMode] = useState<"idle" | "recording" | "preview" | "error">(
     "idle"
   );
@@ -28,9 +40,51 @@ export default function RecordScreen() {
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [playbackStatus, setPlaybackStatus] = useState<any>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const pulseAnimation = useRef(new Animated.Value(1)).current;
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Create note mutation
+  const createNoteMutation = useMutation<
+    CreateNoteResponse,
+    Error,
+    CreateNoteDto
+  >({
+    mutationFn: createNote,
+    onSuccess: (newNote: CreateNoteResponse) => {
+      console.log("Note created:", newNote);
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+
+      const noteData = newNote?.data;
+      const noteId = noteData?.id || newNote?.id;
+
+      if (noteId) {
+        setIsSuccess(true);
+        setTimeout(() => {
+          setIsProcessing(false);
+          setIsSuccess(false);
+          router.push(`/note/${noteId}`);
+        }, 1500);
+      } else {
+        console.error(
+          "Failed to get new note ID for navigation from response:",
+          newNote
+        );
+        setIsProcessing(false);
+        Alert.alert("Error", "Failed to create note. Please try again.");
+      }
+    },
+    onError: (error: Error) => {
+      setIsProcessing(false);
+      Alert.alert(
+        "Error",
+        `Failed to create note: ${error.message || "Please try again."}`
+      );
+      console.error("Error creating note:", error);
+    },
+  });
 
   useEffect(() => {
     checkPermissions();
@@ -222,11 +276,31 @@ export default function RecordScreen() {
   };
 
   const handleSave = async () => {
-    if (recordingUri) {
-      // Here you would typically save the recording to your backend/storage
-      console.log("Saving recording:", recordingUri);
-      // Navigate back with the recording data
-      router.back();
+    if (!recordingUri) return;
+
+    try {
+      setIsProcessing(true);
+
+      // Get the filename from the URI
+      const fileName = recordingUri.split("/").pop() || "recording.m4a";
+
+      // Create the note DTO
+      const noteDto: CreateNoteDto = {
+        noteType: NoteType.AUDIO,
+        file: {
+          uri: recordingUri,
+          name: fileName,
+          type: "audio/m4a",
+          mimeType: "audio/m4a",
+        },
+      };
+
+      // Submit the mutation
+      createNoteMutation.mutate(noteDto);
+    } catch (err) {
+      console.error("Failed to save recording:", err);
+      setIsProcessing(false);
+      Alert.alert("Error", "Failed to save recording. Please try again.");
     }
   };
 
@@ -287,13 +361,28 @@ export default function RecordScreen() {
           <TouchableOpacity
             style={styles.discardButton}
             onPress={() => setMode("idle")}
+            disabled={isProcessing}
           >
             <MaterialCommunityIcons name="delete" size={24} color="#666" />
             <Text style={styles.discardButtonText}>Discard</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-            <MaterialCommunityIcons name="check" size={24} color="#FFF" />
-            <Text style={styles.buttonText}>Save</Text>
+          <TouchableOpacity
+            style={[styles.saveButton, isProcessing && styles.disabledButton]}
+            onPress={handleSave}
+            disabled={isProcessing}
+          >
+            {isProcessing ? (
+              <ActivityIndicator
+                color="#FFF"
+                size="small"
+                style={{ marginRight: 8 }}
+              />
+            ) : (
+              <MaterialCommunityIcons name="check" size={24} color="#FFF" />
+            )}
+            <Text style={styles.buttonText}>
+              {isProcessing ? "Saving..." : "Save"}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -316,6 +405,7 @@ export default function RecordScreen() {
         <TouchableOpacity
           style={styles.closeButton}
           onPress={() => router.back()}
+          disabled={isProcessing}
         >
           <MaterialCommunityIcons name="close" size={24} color="#333" />
         </TouchableOpacity>
@@ -327,6 +417,12 @@ export default function RecordScreen() {
       {mode === "recording" && renderRecording()}
       {mode === "preview" && renderPreview()}
       {mode === "idle" && renderIdle()}
+
+      <ProcessingModal
+        visible={isProcessing}
+        type="audio"
+        isSuccess={isSuccess}
+      />
     </SafeAreaView>
   );
 }
@@ -474,5 +570,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 25,
+  },
+  disabledButton: {
+    opacity: 0.7,
   },
 });
