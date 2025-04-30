@@ -29,7 +29,6 @@ import LoadingScreen from "../components/LoadingScreen";
 import { HomeHeader } from "../components/HomeHeader";
 import { useNotes } from "../hooks/useNotes";
 import { useFolders } from "../hooks/useFolders";
-import RecordingModal from "../components/RecordingModal";
 
 export default function Note() {
   const { user, loading } = useUser();
@@ -41,7 +40,6 @@ export default function Note() {
   const youtubeBottomSheetRef = useRef<BottomSheet>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [listAnimation] = useState(new Animated.Value(0));
-  const [isRecordingModalVisible, setIsRecordingModalVisible] = useState(false);
 
   const { folders, newFolderName, setNewFolderName, handleCreateFolder } =
     useFolders();
@@ -107,21 +105,6 @@ export default function Note() {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
-  };
-
-  const handleOpenRecordingModal = () => {
-    setIsRecordingModalVisible(true);
-  };
-
-  const handleCloseRecordingModal = () => {
-    setIsRecordingModalVisible(false);
-  };
-
-  const handleStopRecording = (uri: string, duration: number) => {
-    console.log(
-      `Recording stopped. URI: ${uri}, Duration: ${duration} seconds`
-    );
-    handleCloseRecordingModal();
   };
 
   if (loading) {
@@ -215,8 +198,6 @@ export default function Note() {
           onFolderPress={openFolderDrawer}
         />
 
-        {/* {notes.length > 0 && <Text style={styles.sectionTitle}>Notes</Text>} */}
-
         {isNotesLoading && !refreshing ? (
           <View style={styles.emptyStateContainer}>
             <LoadingScreen />
@@ -251,7 +232,7 @@ export default function Note() {
           <TouchableOpacity
             style={styles.recordButton}
             activeOpacity={0.8}
-            onPress={handleOpenRecordingModal}
+            onPress={() => router.push("/record")}
           >
             <MaterialCommunityIcons
               name="microphone-plus"
@@ -303,12 +284,6 @@ export default function Note() {
         onFolderSelect={setSelectedFolderId}
         userId={user.uid}
         folders={folders}
-      />
-
-      <RecordingModal
-        visible={isRecordingModalVisible}
-        onClose={handleCloseRecordingModal}
-        onSaveRecording={handleStopRecording}
       />
     </GestureHandlerRootView>
   );
