@@ -65,7 +65,7 @@ export default function RecordScreen() {
         setTimeout(() => {
           setIsProcessing(false);
           setIsSuccess(false);
-          router.push(`/note/${noteId}`);
+          router.replace(`/note/${noteId}`);
         }, 1500);
       } else {
         console.error(
@@ -331,10 +331,14 @@ export default function RecordScreen() {
           { transform: [{ scale: pulseAnimation }] },
         ]}
       >
-        <MaterialCommunityIcons name="microphone" size={64} color="#e74c3c" />
+        <MaterialCommunityIcons name="microphone" size={64} color="#2c3e50" />
       </Animated.View>
       <Text style={styles.timerText}>{formatTime(recordingDuration)}</Text>
-      <TouchableOpacity style={styles.stopButton} onPress={stopRecording}>
+      <TouchableOpacity
+        style={styles.stopButton}
+        onPress={stopRecording}
+        activeOpacity={0.8}
+      >
         <MaterialCommunityIcons name="stop-circle" size={32} color="#FFF" />
         <Text style={styles.buttonText}>Stop Recording</Text>
       </TouchableOpacity>
@@ -345,31 +349,48 @@ export default function RecordScreen() {
     const isPlaying = playbackStatus?.isPlaying;
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.previewTitle}>Preview Recording</Text>
-        <TouchableOpacity
-          style={styles.playButton}
-          onPress={isPlaying ? pausePreview : playPreview}
-        >
-          <MaterialCommunityIcons
-            name={isPlaying ? "pause" : "play"}
-            size={48}
-            color="#e74c3c"
-          />
-        </TouchableOpacity>
-        <Text style={styles.durationText}>{formatTime(recordingDuration)}</Text>
+        <View style={styles.previewHeader}>
+          <MaterialCommunityIcons name="waveform" size={24} color="#2c3e50" />
+          <Text style={styles.previewTitle}>Preview Recording</Text>
+        </View>
+        <View style={styles.previewCard}>
+          <TouchableOpacity
+            style={styles.playButton}
+            onPress={isPlaying ? pausePreview : playPreview}
+            activeOpacity={0.8}
+          >
+            <MaterialCommunityIcons
+              name={isPlaying ? "pause" : "play"}
+              size={48}
+              color="#2c3e50"
+            />
+          </TouchableOpacity>
+          <Text style={styles.durationText}>
+            {formatTime(recordingDuration)}
+          </Text>
+        </View>
         <View style={styles.previewActions}>
           <TouchableOpacity
             style={styles.discardButton}
             onPress={() => setMode("idle")}
             disabled={isProcessing}
+            activeOpacity={0.8}
           >
-            <MaterialCommunityIcons name="delete" size={24} color="#666" />
+            <MaterialCommunityIcons
+              name="delete-outline"
+              size={24}
+              color="#666"
+            />
             <Text style={styles.discardButtonText}>Discard</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.saveButton, isProcessing && styles.disabledButton]}
+            style={[
+              styles.createNoteButton,
+              isProcessing && styles.disabledButton,
+            ]}
             onPress={handleSave}
             disabled={isProcessing}
+            activeOpacity={0.8}
           >
             {isProcessing ? (
               <ActivityIndicator
@@ -378,10 +399,10 @@ export default function RecordScreen() {
                 style={{ marginRight: 8 }}
               />
             ) : (
-              <MaterialCommunityIcons name="check" size={24} color="#FFF" />
+              <MaterialCommunityIcons name="note-plus" size={24} color="#FFF" />
             )}
             <Text style={styles.buttonText}>
-              {isProcessing ? "Saving..." : "Save"}
+              {isProcessing ? "Creating..." : "Create Note"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -391,8 +412,23 @@ export default function RecordScreen() {
 
   const renderIdle = () => (
     <View style={styles.centerContainer}>
-      <TouchableOpacity style={styles.startButton} onPress={startRecording}>
-        <MaterialCommunityIcons name="microphone" size={32} color="#FFF" />
+      <View style={styles.recordingHint}>
+        <MaterialCommunityIcons
+          name="microphone"
+          size={32}
+          color="#2c3e50"
+          style={styles.hintIcon}
+        />
+        <Text style={styles.hintText}>
+          Tap the button below to start recording your note
+        </Text>
+      </View>
+      <TouchableOpacity
+        style={styles.startButton}
+        onPress={startRecording}
+        activeOpacity={0.8}
+      >
+        <MaterialCommunityIcons name="microphone-plus" size={32} color="#FFF" />
         <Text style={styles.buttonText}>Start Recording</Text>
       </TouchableOpacity>
     </View>
@@ -400,14 +436,14 @@ export default function RecordScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="#f0f7ff" />
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.closeButton}
           onPress={() => router.back()}
           disabled={isProcessing}
         >
-          <MaterialCommunityIcons name="close" size={24} color="#333" />
+          <MaterialCommunityIcons name="close" size={24} color="#2c3e50" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Voice Recording</Text>
         <View style={styles.headerRight} />
@@ -437,32 +473,50 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#E5E5EA",
+    backgroundColor: "#f0f7ff",
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: "600",
-    color: "#333",
+    color: "#2c3e50",
   },
   closeButton: {
     padding: 8,
   },
   headerRight: {
-    width: 40, // For layout balance
+    width: 40,
   },
   centerContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 24,
+    backgroundColor: "#f0f7ff",
+  },
+  recordingHint: {
+    alignItems: "center",
+    marginBottom: 40,
+    padding: 20,
+    backgroundColor: "rgba(44, 62, 80, 0.05)",
+    borderRadius: 16,
+  },
+  hintIcon: {
+    marginBottom: 12,
+  },
+  hintText: {
+    fontSize: 16,
+    color: "#2c3e50",
+    textAlign: "center",
+    lineHeight: 22,
   },
   recordingIndicator: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: "rgba(231, 76, 60, 0.1)",
+    backgroundColor: "rgba(44, 62, 80, 0.1)",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 24,
@@ -470,14 +524,15 @@ const styles = StyleSheet.create({
   timerText: {
     fontSize: 48,
     fontWeight: "300",
-    color: "#333",
+    color: "#2c3e50",
     marginBottom: 32,
     fontVariant: ["tabular-nums"],
   },
   startButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#e74c3c",
+    justifyContent: "center",
+    backgroundColor: "#2c3e50",
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 30,
@@ -486,14 +541,17 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+    minWidth: 200,
   },
   stopButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#e74c3c",
+    justifyContent: "center",
+    backgroundColor: "#2c3e50",
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 30,
+    minWidth: 200,
   },
   buttonText: {
     color: "#FFF",
@@ -501,49 +559,76 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginLeft: 8,
   },
+  previewHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 24,
+  },
   previewTitle: {
     fontSize: 24,
     fontWeight: "600",
-    color: "#333",
+    color: "#2c3e50",
+    marginLeft: 12,
+  },
+  previewCard: {
+    backgroundColor: "white",
+    padding: 24,
+    borderRadius: 16,
+    alignItems: "center",
+    width: "100%",
     marginBottom: 32,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   playButton: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "rgba(231, 76, 60, 0.1)",
+    backgroundColor: "rgba(44, 62, 80, 0.1)",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
   },
   durationText: {
     fontSize: 18,
-    color: "#666",
-    marginBottom: 32,
+    color: "#2c3e50",
+    fontWeight: "500",
   },
   previewActions: {
     flexDirection: "row",
     justifyContent: "space-around",
     width: "100%",
-    paddingHorizontal: 24,
+    paddingHorizontal: 16,
   },
-  saveButton: {
+  createNoteButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#4CAF50",
+    justifyContent: "center",
+    backgroundColor: "#2c3e50",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 25,
-    minWidth: 140,
+    minWidth: 160,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   discardButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f5f5f5",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 25,
     minWidth: 140,
+    borderWidth: 1,
+    borderColor: "#E5E5EA",
   },
   discardButtonText: {
     color: "#666",
@@ -551,10 +636,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginLeft: 8,
   },
+  disabledButton: {
+    opacity: 0.7,
+  },
   errorTitle: {
     fontSize: 24,
     fontWeight: "600",
-    color: "#333",
+    color: "#2c3e50",
     marginTop: 16,
     marginBottom: 8,
   },
@@ -566,12 +654,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   retryButton: {
-    backgroundColor: "#2196F3",
+    backgroundColor: "#2c3e50",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 25,
-  },
-  disabledButton: {
-    opacity: 0.7,
   },
 });
