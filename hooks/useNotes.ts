@@ -3,6 +3,7 @@ import {
   useInfiniteQuery,
   useQueryClient,
   useMutation,
+  InfiniteData
 } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { getAllNotes, createNote } from "../lib/services/noteService";
@@ -45,9 +46,10 @@ export function useNotes(userId: string | undefined, folderId: string) {
     hasNextPage,
     isFetchingNextPage,
     refetch,
-  } = useInfiniteQuery<NotesApiResponse>({
+  } = useInfiniteQuery<NotesApiResponse, Error, InfiniteData<NotesApiResponse, unknown>, readonly [string, { userId: string | undefined; folderId: string; }], number>({
     queryKey: ["notes", { userId, folderId }],
-    queryFn: async ({ pageParam = 1 }) => {
+    queryFn: async (context) => {
+      const pageParam = context.pageParam as number;
       const limit = 6; // Set the desired limit for notes per page
       console.log(
         `Fetching notes page: ${pageParam}, limit: ${limit} for userId: ${userId}, folderId: ${folderId}`
@@ -56,7 +58,7 @@ export function useNotes(userId: string | undefined, folderId: string) {
       console.log(
         `Data received for page ${pageParam}:`,
         JSON.stringify(
-          response.data.map((note) => note.id),
+          response.data.map((note: Note) => note.id),
           null,
           2
         )
@@ -76,7 +78,7 @@ export function useNotes(userId: string | undefined, folderId: string) {
   });
 
   // Flatten the pages data into a single array of notes
-  const notes = data?.pages.flatMap((page) => page.data) ?? [];
+  const notes = data?.pages.flatMap((page: NotesApiResponse) => page.data) ?? [];
 
   // Create Note Mutation
   const createNoteMutation = useMutation<
@@ -84,7 +86,7 @@ export function useNotes(userId: string | undefined, folderId: string) {
     Error,
     CreateNoteDto
   >({
-    mutationFn: (newNoteData: CreateNoteDto) => createNote(newNoteData),
+    mutationFn: (newNoteData: CreateNoteDto): Promise<CreateNoteResponse> => createNote(newNoteData),
     onSuccess: (newNoteResponse: CreateNoteResponse) => {
       console.log("Note creation successful:", newNoteResponse);
       // Invalidate the infinite notes query to refetch from page 1
@@ -93,7 +95,7 @@ export function useNotes(userId: string | undefined, folderId: string) {
       });
 
       const noteData = newNoteResponse?.data;
-      const noteId = noteData?.id || newNoteResponse?.id;
+      const noteId = noteData?.id ?? newNoteResponse?.id;
 
       const noteType = noteData?.noteType || newNoteResponse?.noteType;
       if (noteType === NoteType.YOUTUBE) {
@@ -182,5 +184,21 @@ export function useNotes(userId: string | undefined, folderId: string) {
     hasNextPage,
     isFetchingNextPage,
     refetchNotes: refetch, // Use refetch from useInfiniteQuery
+  } satisfies {
+    notes: Note[];
+    isNotesLoading: boolean;
+    isNotesError: boolean;
+    youtubeModalVisible: boolean;
+    youtubeUrl: string;
+    youtubeLoading: boolean;
+    youtubeSuccess: boolean;
+    setYoutubeUrl: (url: string) => void;
+    handleAddYouTube: () => void;
+    handleCloseYouTubeModal: () => void;
+    handleSubmitYouTube: () => void;
+    fetchNextPage: () => void;
+    hasNextPage: boolean | undefined;
+    isFetchingNextPage: boolean;
+    refetchNotes: () => void;
   };
 }

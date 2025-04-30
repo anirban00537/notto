@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import type { Note } from "../lib/types/note";
 import {
   StyleSheet,
   View,
@@ -61,12 +62,12 @@ export default function Note() {
   } = useNotes(user?.uid, selectedFolderId);
 
   useEffect(() => {
-    const noteIds = notes.map((note) => note.id);
+    const noteIds = notes.map((note: Note) => note.id);
     const uniqueIds = new Set(noteIds);
     if (noteIds.length !== uniqueIds.size) {
       console.warn("Duplicate note IDs found in the flattened list:", noteIds);
       const duplicates = noteIds.filter(
-        (id, index) => noteIds.indexOf(id) !== index
+        (id: string, index: number) => noteIds.indexOf(id) !== index
       );
       console.warn("Duplicate IDs are:", duplicates);
     }
