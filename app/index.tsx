@@ -29,6 +29,7 @@ import LoadingScreen from "../components/LoadingScreen";
 import { HomeHeader } from "../components/HomeHeader";
 import { useNotes } from "../hooks/useNotes";
 import { useFolders } from "../hooks/useFolders";
+import RecordingModal from "../components/RecordingModal";
 
 export default function Note() {
   const { user, loading } = useUser();
@@ -40,6 +41,7 @@ export default function Note() {
   const youtubeBottomSheetRef = useRef<BottomSheet>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [listAnimation] = useState(new Animated.Value(0));
+  const [isRecordingModalVisible, setIsRecordingModalVisible] = useState(false);
 
   const { folders, newFolderName, setNewFolderName, handleCreateFolder } =
     useFolders();
@@ -105,6 +107,19 @@ export default function Note() {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
+  };
+
+  const handleOpenRecordingModal = () => {
+    setIsRecordingModalVisible(true);
+  };
+
+  const handleCloseRecordingModal = () => {
+    setIsRecordingModalVisible(false);
+  };
+
+  const handleStopRecording = (duration: number) => {
+    console.log(`Recording stopped. Duration: ${duration} seconds`);
+    handleCloseRecordingModal();
   };
 
   if (loading) {
@@ -231,7 +246,11 @@ export default function Note() {
         )}
 
         <View style={styles.bottomActions}>
-          <TouchableOpacity style={styles.recordButton} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={styles.recordButton}
+            activeOpacity={0.8}
+            onPress={handleOpenRecordingModal}
+          >
             <MaterialCommunityIcons
               name="microphone-plus"
               size={24}
@@ -282,6 +301,12 @@ export default function Note() {
         onFolderSelect={setSelectedFolderId}
         userId={user.uid}
         folders={folders}
+      />
+
+      <RecordingModal
+        visible={isRecordingModalVisible}
+        onClose={handleCloseRecordingModal}
+        onStopRecording={handleStopRecording}
       />
     </GestureHandlerRootView>
   );
