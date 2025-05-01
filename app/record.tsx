@@ -30,35 +30,39 @@ interface CreateNoteResponse {
 // Enhanced Waveform Animation Component
 const WaveformAnimation = () => {
   const numBars = 50; // Number of vertical bars
-  const baseDuration = 600; // Base animation cycle duration
+  const baseDuration = 1200; // Increased duration for slower animation
   const maxHeight = 80; // Maximum height of a bar
   const minHeight = 5; // Minimum height of a bar
+  const scrollDelayFactor = 25; // Increased delay for slower scroll
 
   const animatedValues = useRef(
-    [...Array(numBars)].map(() => new Animated.Value(minHeight)) // Initialize height
+    [...Array(numBars)].map(() => new Animated.Value(minHeight / maxHeight)) // Initialize scaleY
   ).current;
 
   useEffect(() => {
-    const animations = animatedValues.map((val) => {
-      const randomDuration = baseDuration + Math.random() * 400 - 200;
-      const randomTargetHeight =
-        minHeight + Math.random() * (maxHeight - minHeight);
-      const randomDelay = Math.random() * (baseDuration / 3);
+    const animations = animatedValues.map((val, index) => {
+      // Reduced randomness range for duration
+      const randomDuration = baseDuration + Math.random() * 200 - 100;
+      // Calculate target scale based on min/max height
+      const randomTargetScale =
+        minHeight / maxHeight + Math.random() * (1.0 - minHeight / maxHeight);
+      // Introduce a delay based on index for scrolling effect
+      const scrollDelay = index * scrollDelayFactor;
 
       return Animated.loop(
         Animated.sequence([
           Animated.timing(val, {
-            toValue: randomTargetHeight, // Animate to random height
+            toValue: randomTargetScale, // Animate to random scale
             duration: randomDuration / 2,
-            easing: Easing.inOut(Easing.ease), // Smooth easing
-            delay: randomDelay,
-            useNativeDriver: false, // height animation not supported by native driver
+            easing: Easing.bezier(0.42, 0, 0.58, 1), // Smoother bezier easing
+            delay: scrollDelay, // Apply scroll delay only on the first part
+            useNativeDriver: true, // Use native driver for scaleY
           }),
           Animated.timing(val, {
-            toValue: minHeight, // Animate back to minimum height
+            toValue: minHeight / maxHeight, // Animate back to minimum scale
             duration: randomDuration / 2,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: false,
+            easing: Easing.bezier(0.42, 0, 0.58, 1),
+            useNativeDriver: true,
           }),
         ])
       );
@@ -69,18 +73,21 @@ const WaveformAnimation = () => {
     return () => {
       animations.forEach((anim) => anim.stop());
     };
-  }, [animatedValues, minHeight, maxHeight]);
+    // Added maxHeight, minHeight, scrollDelayFactor to dependencies
+  }, [animatedValues, minHeight, maxHeight, scrollDelayFactor]);
 
   return (
     <View style={styles.waveformContainer}>
       <View style={styles.dotsContainer}>
-        {animatedValues.map((animatedHeight, index) => {
+        {" "}
+        // Keep container name for simplicity
+        {animatedValues.map((animatedScaleY, index) => {
           return (
             <Animated.View
               key={index}
               style={[
-                styles.bar, // Use new bar style
-                { height: animatedHeight }, // Apply animated height
+                styles.bar, // Use bar style
+                { transform: [{ scaleY: animatedScaleY }] }, // Apply animated scaleY
               ]}
             />
           );
@@ -466,16 +473,18 @@ const styles = StyleSheet.create({
   },
   dotsContainer: {
     flexDirection: "row",
-    alignItems: "center", // Align bars to the center vertically
-    height: 100,
+    alignItems: "flex-end", // Align bars to the bottom
+    height: 80, // Set container height to max bar height
     width: "95%",
     justifyContent: "space-around",
+    overflow: "hidden", // Prevent bars from exceeding container during animation peaks
   },
   bar: {
-    // New style for bars
     width: 4, // Width of each bar
+    height: 80, // Set fixed height to maxHeight
     borderRadius: 2,
     backgroundColor: "#4A90E2", // Keep the blue color
+    // Removed height animation, using scaleY now
   },
   controlsContainer: {
     alignItems: "center",
