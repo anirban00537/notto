@@ -27,6 +27,7 @@ import { useUser } from "./context/UserContext";
 import { Folder } from "../lib/types/folder";
 import LoadingScreen from "../components/LoadingScreen";
 import { HomeHeader } from "../components/HomeHeader";
+import { FolderSelector } from "../components/FolderSelector";
 import { useNotes } from "../hooks/useNotes";
 import { useFolders } from "../hooks/useFolders";
 
@@ -193,7 +194,8 @@ export default function Note() {
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" backgroundColor="#f0f7ff" />
 
-        <HomeHeader
+        <HomeHeader />
+        <FolderSelector
           selectedFolder={selectedFolder}
           onFolderPress={openFolderDrawer}
         />

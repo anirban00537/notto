@@ -2,28 +2,14 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Folder } from "../lib/types/folder";
 
-interface HomeHeaderProps {
-  selectedFolder: Folder;
-  onFolderPress: () => void;
-}
-
-export const HomeHeader: React.FC<HomeHeaderProps> = ({
-  selectedFolder,
-  onFolderPress,
-}) => {
+export const HomeHeader: React.FC = () => {
   return (
     <View style={styles.header}>
-      <TouchableOpacity
-        style={styles.folderButton}
-        onPress={onFolderPress}
-        activeOpacity={0.7}
-      >
-        <MaterialCommunityIcons name="folder-outline" size={22} color="#555" />
-        <Text style={styles.folderName}>{selectedFolder.name}</Text>
-        <MaterialCommunityIcons name="chevron-down" size={20} color="#555" />
-      </TouchableOpacity>
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>Notto</Text>
+        <Text style={styles.aiText}>AI</Text>
+      </View>
       <View style={styles.headerRight}>
         <TouchableOpacity style={styles.proButton}>
           <MaterialCommunityIcons name="rocket-launch" size={14} color="#fff" />
@@ -45,26 +31,24 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 2,
-    paddingHorizontal: 2,
+    paddingVertical: 12,
+    paddingHorizontal: 22,
     backgroundColor: "#f0f7ff",
   },
-  folderButton: {
+  titleContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f0f7ff",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    flex: 1,
-    marginRight: 16,
   },
-  folderName: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#111",
-    marginLeft: 10,
+  title: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#2c3e50",
+  },
+  aiText: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#3498db",
+    marginLeft: 4,
   },
   headerRight: {
     flexDirection: "row",
