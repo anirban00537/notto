@@ -14,7 +14,6 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
-import Slider from "@react-native-community/slider";
 import { useRouter } from "expo-router";
 import { PermissionsAndroid } from "react-native";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -28,25 +27,101 @@ interface CreateNoteResponse {
   noteType?: NoteType;
 }
 
+// Enhanced Waveform Animation Component
+const WaveformAnimation = () => {
+  const numDots = 70; // Keep number of dots
+  const baseDuration = 800;
+  const animatedValues = useRef(
+    [...Array(numDots)].map(() => new Animated.Value(0))
+  ).current;
+
+  useEffect(() => {
+    const animations = animatedValues.map((val, index) => {
+      const randomDuration = baseDuration + Math.random() * 400 - 200; // Randomize duration +/- 200ms
+      const randomDelay = Math.random() * (baseDuration / 2); // Randomize start delay
+
+      return Animated.loop(
+        Animated.sequence([
+          Animated.timing(val, {
+            toValue: 1,
+            duration: randomDuration / 2,
+            easing: Easing.bezier(0.42, 0, 0.58, 1), // Smoother easing
+            delay: randomDelay,
+            useNativeDriver: true,
+          }),
+          Animated.timing(val, {
+            toValue: 0,
+            duration: randomDuration / 2,
+            easing: Easing.bezier(0.42, 0, 0.58, 1),
+            useNativeDriver: true,
+          }),
+        ])
+      );
+    });
+
+    animations.forEach((anim) => anim.start());
+
+    return () => {
+      animations.forEach((anim) => anim.stop());
+    };
+  }, [animatedValues]); // Dependency array remains the same
+
+  return (
+    <View style={styles.waveformContainer}>
+      <View style={styles.dotsContainer}>
+        {animatedValues.map((val, index) => {
+          // Interpolate scale with more variation and intensity
+          const scale = val.interpolate({
+            inputRange: [0, 0.5, 1],
+            outputRange: [0.5, 1 + Math.random() * 1.0, 0.5], // Random peak scale up to 2.0x (increased intensity)
+          });
+          // Interpolate opacity for smoother fade
+          const opacity = val.interpolate({
+            inputRange: [0, 0.1, 0.9, 1],
+            outputRange: [0.3, 1, 1, 0.3], // Fade in/out more gently
+          });
+
+          // More complex positioning with increased amplitude
+          const sin1 = Math.sin((index / numDots) * Math.PI * 2) * 25; // Increased amplitude for base wave
+          const sin2 =
+            Math.sin((index / numDots) * Math.PI * 4 + Math.PI / 2) * 12; // Increased amplitude for second wave
+          const randomOffset = (Math.random() - 0.5) * 8; // Increased random jitter
+          const bottomPosition = sin1 + sin2 + randomOffset + 20; // Increased base offset
+
+          return (
+            <Animated.View
+              key={index}
+              style={[
+                styles.dot,
+                {
+                  opacity,
+                  transform: [{ scale }],
+                  bottom: bottomPosition,
+                },
+              ]}
+            />
+          );
+        })}
+      </View>
+    </View>
+  );
+};
+
 export default function RecordScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [mode, setMode] = useState<"idle" | "recording" | "preview" | "error">(
+  const [mode, setMode] = useState<"idle" | "recording" | "stopped" | "error">(
     "idle"
   );
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [recordingUri, setRecordingUri] = useState<string | null>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
-  const [playbackStatus, setPlaybackStatus] = useState<any>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  const pulseAnimation = useRef(new Animated.Value(1)).current;
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Create note mutation
   const createNoteMutation = useMutation<
     CreateNoteResponse,
     Error,
@@ -89,15 +164,11 @@ export default function RecordScreen() {
   useEffect(() => {
     checkPermissions();
     return () => {
-      // Cleanup
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
       }
       if (recording) {
         recording.stopAndUnloadAsync();
-      }
-      if (sound) {
-        sound.unloadAsync();
       }
     };
   }, []);
@@ -167,10 +238,11 @@ export default function RecordScreen() {
     try {
       if (recording) {
         await recording.stopAndUnloadAsync();
+        setRecording(null);
       }
-      if (sound) {
-        await sound.unloadAsync();
-      }
+      setRecordingUri(null);
+
+      await setupAudioMode();
 
       const { recording: newRecording } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY
@@ -179,7 +251,6 @@ export default function RecordScreen() {
       setRecording(newRecording);
       setMode("recording");
       setRecordingDuration(0);
-      startRecordingAnimation();
 
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
@@ -198,24 +269,18 @@ export default function RecordScreen() {
     try {
       if (!recording) return;
 
-      stopRecordingAnimation();
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
       }
 
       await recording.stopAndUnloadAsync();
       const uri = recording.getURI();
       console.log("Recording stopped and stored at", uri);
 
-      const { sound: newSound } = await recording.createNewLoadedSoundAsync(
-        { isLooping: false },
-        onPlaybackStatusUpdate
-      );
-
-      setSound(newSound);
       setRecordingUri(uri);
       setRecording(null);
-      setMode("preview");
+      setMode("stopped");
     } catch (err) {
       console.error("Failed to stop recording", err);
       setErrorMessage("Could not stop recording. Please try again.");
@@ -223,68 +288,17 @@ export default function RecordScreen() {
     }
   };
 
-  const startRecordingAnimation = () => {
-    pulseAnimation.setValue(1);
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnimation, {
-          toValue: 1.2,
-          duration: 500,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnimation, {
-          toValue: 1,
-          duration: 500,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ])
-    ).start();
-  };
-
-  const stopRecordingAnimation = () => {
-    pulseAnimation.stopAnimation();
-    pulseAnimation.setValue(1);
-  };
-
-  const playPreview = async () => {
-    if (!sound) return;
-    try {
-      await sound.playAsync();
-    } catch (err) {
-      console.error("Failed to play recording", err);
-      setErrorMessage("Could not play the recording.");
-      setMode("error");
+  const handleGenerateNotes = async () => {
+    if (!recordingUri) {
+      Alert.alert("Error", "No recording available to generate notes from.");
+      return;
     }
-  };
-
-  const pausePreview = async () => {
-    if (!sound) return;
-    try {
-      await sound.pauseAsync();
-    } catch (err) {
-      console.error("Failed to pause playback", err);
-    }
-  };
-
-  const onPlaybackStatusUpdate = (status: any) => {
-    setPlaybackStatus(status);
-    if (status.didJustFinish) {
-      sound?.unloadAsync();
-    }
-  };
-
-  const handleSave = async () => {
-    if (!recordingUri) return;
 
     try {
       setIsProcessing(true);
 
-      // Get the filename from the URI
       const fileName = recordingUri.split("/").pop() || "recording.m4a";
 
-      // Create the note DTO
       const noteDto: CreateNoteDto = {
         noteType: NoteType.AUDIO,
         file: {
@@ -295,12 +309,11 @@ export default function RecordScreen() {
         },
       };
 
-      // Submit the mutation
       createNoteMutation.mutate(noteDto);
     } catch (err) {
-      console.error("Failed to save recording:", err);
+      console.error("Failed to generate notes:", err);
       setIsProcessing(false);
-      Alert.alert("Error", "Failed to save recording. Please try again.");
+      Alert.alert("Error", "Failed to generate notes. Please try again.");
     }
   };
 
@@ -318,109 +331,64 @@ export default function RecordScreen() {
       <Text style={styles.errorTitle}>Error</Text>
       <Text style={styles.errorText}>{errorMessage}</Text>
       <TouchableOpacity style={styles.retryButton} onPress={checkPermissions}>
-        <Text style={styles.buttonText}>Try Again</Text>
+        <Text style={styles.buttonTextWhite}>Try Again</Text>
       </TouchableOpacity>
     </View>
   );
 
-  const renderRecording = () => (
-    <View style={styles.centerContainer}>
-      <Animated.View
-        style={[
-          styles.recordingIndicator,
-          { transform: [{ scale: pulseAnimation }] },
-        ]}
-      >
-        <MaterialCommunityIcons name="microphone" size={64} color="#2c3e50" />
-      </Animated.View>
-      <Text style={styles.timerText}>{formatTime(recordingDuration)}</Text>
-      <TouchableOpacity
-        style={styles.stopButton}
-        onPress={stopRecording}
-        activeOpacity={0.8}
-      >
-        <MaterialCommunityIcons name="stop-circle" size={32} color="#FFF" />
-        <Text style={styles.buttonText}>Stop Recording</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderPreview = () => {
-    const isPlaying = playbackStatus?.isPlaying;
-    return (
-      <View style={styles.centerContainer}>
-        <View style={styles.previewHeader}>
-          <MaterialCommunityIcons name="waveform" size={24} color="#2c3e50" />
-          <Text style={styles.previewTitle}>Preview Recording</Text>
-        </View>
-        <View style={styles.previewCard}>
-          <TouchableOpacity
-            style={styles.playButton}
-            onPress={isPlaying ? pausePreview : playPreview}
-            activeOpacity={0.8}
-          >
-            <MaterialCommunityIcons
-              name={isPlaying ? "pause" : "play"}
-              size={48}
-              color="#2c3e50"
-            />
-          </TouchableOpacity>
-          <Text style={styles.durationText}>
-            {formatTime(recordingDuration)}
-          </Text>
-        </View>
-        <View style={styles.previewActions}>
-          <TouchableOpacity
-            style={styles.discardButton}
-            onPress={() => setMode("idle")}
-            disabled={isProcessing}
-            activeOpacity={0.8}
-          >
-            <MaterialCommunityIcons
-              name="delete-outline"
-              size={24}
-              color="#666"
-            />
-            <Text style={styles.discardButtonText}>Discard</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.createNoteButton,
-              isProcessing && styles.disabledButton,
-            ]}
-            onPress={handleSave}
-            disabled={isProcessing}
-            activeOpacity={0.8}
-          >
-            {isProcessing ? (
-              <ActivityIndicator
-                color="#FFF"
-                size="small"
-                style={{ marginRight: 8 }}
-              />
-            ) : (
-              <MaterialCommunityIcons name="note-plus" size={24} color="#FFF" />
-            )}
-            <Text style={styles.buttonText}>
-              {isProcessing ? "Creating..." : "Create Note"}
-            </Text>
-          </TouchableOpacity>
-        </View>
+  const renderRecordingUI = () => (
+    <View style={styles.recordingContainer}>
+      <WaveformAnimation />
+      <View style={styles.controlsContainer}>
+        <Text style={styles.timerText}>{formatTime(recordingDuration)}</Text>
+        <TouchableOpacity
+          style={styles.stopButtonOuter}
+          onPress={mode === "recording" ? stopRecording : undefined}
+          disabled={mode !== "recording"}
+          activeOpacity={0.8}
+        >
+          <View style={styles.stopButtonInner} />
+        </TouchableOpacity>
       </View>
-    );
-  };
+      {mode === "stopped" && (
+        <TouchableOpacity
+          style={[
+            styles.generateButton,
+            (isProcessing || createNoteMutation.isPending) &&
+              styles.disabledButton,
+          ]}
+          onPress={handleGenerateNotes}
+          disabled={isProcessing || createNoteMutation.isPending}
+          activeOpacity={0.8}
+        >
+          {isProcessing || createNoteMutation.isPending ? (
+            <ActivityIndicator
+              color="#FFF"
+              size="small"
+              style={{ marginRight: 8 }}
+            />
+          ) : null}
+          <Text style={styles.buttonTextWhite}>
+            {isProcessing || createNoteMutation.isPending
+              ? "Generating..."
+              : "Generate Notes"}
+          </Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
 
   const renderIdle = () => (
     <View style={styles.centerContainer}>
       <View style={styles.recordingHint}>
         <MaterialCommunityIcons
           name="microphone"
-          size={32}
-          color="#2c3e50"
+          size={48}
+          color="#FFF"
           style={styles.hintIcon}
         />
         <Text style={styles.hintText}>
-          Tap the button below to start recording your note
+          Tap the button below to start recording
         </Text>
       </View>
       <TouchableOpacity
@@ -428,30 +396,28 @@ export default function RecordScreen() {
         onPress={startRecording}
         activeOpacity={0.8}
       >
-        <MaterialCommunityIcons name="microphone-plus" size={32} color="#FFF" />
-        <Text style={styles.buttonText}>Start Recording</Text>
+        <MaterialCommunityIcons name="microphone" size={32} color="#FFF" />
       </TouchableOpacity>
     </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f0f7ff" />
+      <StatusBar barStyle="light-content" backgroundColor="#121212" />
       <View style={styles.header}>
         <TouchableOpacity
-          style={styles.closeButton}
+          style={styles.backButton}
           onPress={() => router.back()}
-          disabled={isProcessing}
+          disabled={isProcessing || mode === "recording"}
         >
-          <MaterialCommunityIcons name="close" size={24} color="#2c3e50" />
+          <MaterialCommunityIcons name="chevron-left" size={30} color="#FFF" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Voice Recording</Text>
+        <Text style={styles.headerTitle}>Live Recording</Text>
         <View style={styles.headerRight} />
       </View>
 
       {mode === "error" && renderError()}
-      {mode === "recording" && renderRecording()}
-      {mode === "preview" && renderPreview()}
+      {(mode === "recording" || mode === "stopped") && renderRecordingUI()}
       {mode === "idle" && renderIdle()}
 
       <ProcessingModal
@@ -466,24 +432,22 @@ export default function RecordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#121212",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E5EA",
-    backgroundColor: "#f0f7ff",
+    paddingVertical: 12,
+    backgroundColor: "#121212",
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "600",
-    color: "#2c3e50",
+    color: "#FFF",
   },
-  closeButton: {
+  backButton: {
     padding: 8,
   },
   headerRight: {
@@ -494,167 +458,127 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 24,
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#121212",
+  },
+  recordingContainer: {
+    flex: 1,
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingTop: 40,
+    paddingBottom: 40,
+    backgroundColor: "#121212",
+  },
+  waveformContainer: {
+    height: 150,
+    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 40,
+    overflow: "hidden", // Hide parts of dots that go too high/low if needed
+  },
+  dotsContainer: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    height: 100, // Increased height significantly to accommodate larger amplitude
+    width: "95%",
+    justifyContent: "space-around",
+  },
+  dot: {
+    width: 8, // Increased dot size back to 8
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#4A90E2",
+  },
+  controlsContainer: {
+    alignItems: "center",
+    width: "100%",
   },
   recordingHint: {
     alignItems: "center",
-    marginBottom: 40,
+    marginBottom: 60,
     padding: 20,
-    backgroundColor: "rgba(44, 62, 80, 0.05)",
-    borderRadius: 16,
   },
   hintIcon: {
-    marginBottom: 12,
+    marginBottom: 16,
   },
   hintText: {
     fontSize: 16,
-    color: "#2c3e50",
+    color: "#AAA",
     textAlign: "center",
     lineHeight: 22,
-  },
-  recordingIndicator: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "rgba(44, 62, 80, 0.1)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 24,
   },
   timerText: {
     fontSize: 48,
     fontWeight: "300",
-    color: "#2c3e50",
-    marginBottom: 32,
+    color: "#FFF",
+    marginBottom: 40,
     fontVariant: ["tabular-nums"],
   },
   startButton: {
-    flexDirection: "row",
-    alignItems: "center",
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#4A90E2",
     justifyContent: "center",
-    backgroundColor: "#2c3e50",
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 30,
-    elevation: 2,
+    alignItems: "center",
+    elevation: 5,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    minWidth: 200,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
-  stopButton: {
-    flexDirection: "row",
-    alignItems: "center",
+  stopButtonOuter: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 3,
+    borderColor: "#FFF",
     justifyContent: "center",
-    backgroundColor: "#2c3e50",
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 30,
-    minWidth: 200,
+    alignItems: "center",
   },
-  buttonText: {
+  stopButtonInner: {
+    width: 35,
+    height: 35,
+    backgroundColor: "#4A90E2",
+    borderRadius: 4,
+  },
+  buttonTextWhite: {
     color: "#FFF",
     fontSize: 18,
     fontWeight: "600",
     marginLeft: 8,
   },
-  previewHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  previewTitle: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: "#2c3e50",
-    marginLeft: 12,
-  },
-  previewCard: {
-    backgroundColor: "white",
-    padding: 24,
-    borderRadius: 16,
-    alignItems: "center",
-    width: "100%",
-    marginBottom: 32,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  playButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "rgba(44, 62, 80, 0.1)",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  durationText: {
-    fontSize: 18,
-    color: "#2c3e50",
-    fontWeight: "500",
-  },
-  previewActions: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
-    paddingHorizontal: 16,
-  },
-  createNoteButton: {
+  generateButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#2c3e50",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 25,
-    minWidth: 160,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },
-  discardButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FFFFFF",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 25,
-    minWidth: 140,
-    borderWidth: 1,
-    borderColor: "#E5E5EA",
-  },
-  discardButtonText: {
-    color: "#666",
-    fontSize: 18,
-    fontWeight: "600",
-    marginLeft: 8,
+    backgroundColor: "#4A90E2",
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 30,
+    minWidth: "80%",
+    marginTop: "auto",
   },
   disabledButton: {
-    opacity: 0.7,
+    opacity: 0.5,
   },
   errorTitle: {
     fontSize: 24,
     fontWeight: "600",
-    color: "#2c3e50",
+    color: "#FFF",
     marginTop: 16,
     marginBottom: 8,
   },
   errorText: {
     fontSize: 16,
-    color: "#666",
+    color: "#AAA",
     textAlign: "center",
     marginBottom: 24,
     paddingHorizontal: 32,
   },
   retryButton: {
-    backgroundColor: "#2c3e50",
+    backgroundColor: "#4A90E2",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 25,
