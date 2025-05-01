@@ -163,15 +163,15 @@ const NoteCard: React.FC<NoteCardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 16,
+    marginHorizontal: 20,
     marginVertical: 4,
   },
   noteCard: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    backgroundColor: "rgba(252, 253, 255, 0.3)",
+    paddingVertical: 7,
+    paddingHorizontal: 7,
+    backgroundColor: "rgb(255, 255, 255)",
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#E5E5EA",
