@@ -29,31 +29,36 @@ interface CreateNoteResponse {
 
 // Enhanced Waveform Animation Component
 const WaveformAnimation = () => {
-  const numDots = 70; // Keep number of dots
-  const baseDuration = 800;
+  const numBars = 50; // Number of vertical bars
+  const baseDuration = 600; // Base animation cycle duration
+  const maxHeight = 80; // Maximum height of a bar
+  const minHeight = 5; // Minimum height of a bar
+
   const animatedValues = useRef(
-    [...Array(numDots)].map(() => new Animated.Value(0))
+    [...Array(numBars)].map(() => new Animated.Value(minHeight)) // Initialize height
   ).current;
 
   useEffect(() => {
-    const animations = animatedValues.map((val, index) => {
-      const randomDuration = baseDuration + Math.random() * 400 - 200; // Randomize duration +/- 200ms
-      const randomDelay = Math.random() * (baseDuration / 2); // Randomize start delay
+    const animations = animatedValues.map((val) => {
+      const randomDuration = baseDuration + Math.random() * 400 - 200;
+      const randomTargetHeight =
+        minHeight + Math.random() * (maxHeight - minHeight);
+      const randomDelay = Math.random() * (baseDuration / 3);
 
       return Animated.loop(
         Animated.sequence([
           Animated.timing(val, {
-            toValue: 1,
+            toValue: randomTargetHeight, // Animate to random height
             duration: randomDuration / 2,
-            easing: Easing.bezier(0.42, 0, 0.58, 1), // Smoother easing
+            easing: Easing.inOut(Easing.ease), // Smooth easing
             delay: randomDelay,
-            useNativeDriver: true,
+            useNativeDriver: false, // height animation not supported by native driver
           }),
           Animated.timing(val, {
-            toValue: 0,
+            toValue: minHeight, // Animate back to minimum height
             duration: randomDuration / 2,
-            easing: Easing.bezier(0.42, 0, 0.58, 1),
-            useNativeDriver: true,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: false,
           }),
         ])
       );
@@ -64,40 +69,18 @@ const WaveformAnimation = () => {
     return () => {
       animations.forEach((anim) => anim.stop());
     };
-  }, [animatedValues]); // Dependency array remains the same
+  }, [animatedValues, minHeight, maxHeight]);
 
   return (
     <View style={styles.waveformContainer}>
       <View style={styles.dotsContainer}>
-        {animatedValues.map((val, index) => {
-          // Interpolate scale with more variation and intensity
-          const scale = val.interpolate({
-            inputRange: [0, 0.5, 1],
-            outputRange: [0.5, 1 + Math.random() * 1.0, 0.5], // Random peak scale up to 2.0x (increased intensity)
-          });
-          // Interpolate opacity for smoother fade
-          const opacity = val.interpolate({
-            inputRange: [0, 0.1, 0.9, 1],
-            outputRange: [0.3, 1, 1, 0.3], // Fade in/out more gently
-          });
-
-          // More complex positioning with increased amplitude
-          const sin1 = Math.sin((index / numDots) * Math.PI * 2) * 25; // Increased amplitude for base wave
-          const sin2 =
-            Math.sin((index / numDots) * Math.PI * 4 + Math.PI / 2) * 12; // Increased amplitude for second wave
-          const randomOffset = (Math.random() - 0.5) * 8; // Increased random jitter
-          const bottomPosition = sin1 + sin2 + randomOffset + 20; // Increased base offset
-
+        {animatedValues.map((animatedHeight, index) => {
           return (
             <Animated.View
               key={index}
               style={[
-                styles.dot,
-                {
-                  opacity,
-                  transform: [{ scale }],
-                  bottom: bottomPosition,
-                },
+                styles.bar, // Use new bar style
+                { height: animatedHeight }, // Apply animated height
               ]}
             />
           );
@@ -403,14 +386,18 @@ export default function RecordScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#121212" />
+      <StatusBar barStyle="dark-content" backgroundColor="#f0f7ff" />
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
           disabled={isProcessing || mode === "recording"}
         >
-          <MaterialCommunityIcons name="chevron-left" size={30} color="#FFF" />
+          <MaterialCommunityIcons
+            name="chevron-left"
+            size={30}
+            color="#2c3e50"
+          />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Live Recording</Text>
         <View style={styles.headerRight} />
@@ -432,7 +419,7 @@ export default function RecordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#121212",
+    backgroundColor: "#f0f7ff",
   },
   header: {
     flexDirection: "row",
@@ -440,12 +427,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#121212",
+    backgroundColor: "#f0f7ff",
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: "600",
-    color: "#FFF",
+    color: "#111",
   },
   backButton: {
     padding: 8,
@@ -458,7 +445,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 24,
-    backgroundColor: "#121212",
+    backgroundColor: "#f0f7ff",
   },
   recordingContainer: {
     flex: 1,
@@ -467,7 +454,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 40,
     paddingBottom: 40,
-    backgroundColor: "#121212",
+    backgroundColor: "#f0f7ff",
   },
   waveformContainer: {
     height: 150,
@@ -479,16 +466,16 @@ const styles = StyleSheet.create({
   },
   dotsContainer: {
     flexDirection: "row",
-    alignItems: "flex-end",
-    height: 100, // Increased height significantly to accommodate larger amplitude
+    alignItems: "center", // Align bars to the center vertically
+    height: 100,
     width: "95%",
     justifyContent: "space-around",
   },
-  dot: {
-    width: 8, // Increased dot size back to 8
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#4A90E2",
+  bar: {
+    // New style for bars
+    width: 4, // Width of each bar
+    borderRadius: 2,
+    backgroundColor: "#4A90E2", // Keep the blue color
   },
   controlsContainer: {
     alignItems: "center",
@@ -501,17 +488,18 @@ const styles = StyleSheet.create({
   },
   hintIcon: {
     marginBottom: 16,
+    color: "#2c3e50",
   },
   hintText: {
     fontSize: 16,
-    color: "#AAA",
+    color: "#555",
     textAlign: "center",
     lineHeight: 22,
   },
   timerText: {
     fontSize: 48,
     fontWeight: "300",
-    color: "#FFF",
+    color: "#111",
     marginBottom: 40,
     fontVariant: ["tabular-nums"],
   },
@@ -519,13 +507,13 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#4A90E2",
+    backgroundColor: "#2c3e50",
     justifyContent: "center",
     alignItems: "center",
     elevation: 5,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
     shadowRadius: 4,
   },
   stopButtonOuter: {
@@ -533,14 +521,14 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 3,
-    borderColor: "#FFF",
+    borderColor: "#2c3e50",
     justifyContent: "center",
     alignItems: "center",
   },
   stopButtonInner: {
     width: 35,
     height: 35,
-    backgroundColor: "#4A90E2",
+    backgroundColor: "#FF6B6B",
     borderRadius: 4,
   },
   buttonTextWhite: {
@@ -553,7 +541,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#4A90E2",
+    backgroundColor: "#2c3e50",
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 30,
@@ -566,19 +554,19 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 24,
     fontWeight: "600",
-    color: "#FFF",
+    color: "#111",
     marginTop: 16,
     marginBottom: 8,
   },
   errorText: {
     fontSize: 16,
-    color: "#AAA",
+    color: "#555",
     textAlign: "center",
     marginBottom: 24,
     paddingHorizontal: 32,
   },
   retryButton: {
-    backgroundColor: "#4A90E2",
+    backgroundColor: "#2c3e50",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 25,
