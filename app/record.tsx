@@ -166,20 +166,21 @@ export default function RecordScreen() {
   const checkPermissions = async () => {
     try {
       if (Platform.OS === "android") {
-        const grants = await PermissionsAndroid.requestMultiple([
+        // Request only RECORD_AUDIO permission for Android
+        const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-        ]);
-
-        const allGranted = Object.values(grants).every(
-          (permission) => permission === PermissionsAndroid.RESULTS.GRANTED
+          {
+            title: "Microphone Permission",
+            message:
+              "This app needs access to your microphone to record audio.",
+            buttonNeutral: "Ask Me Later",
+            buttonNegative: "Cancel",
+            buttonPositive: "OK",
+          }
         );
 
-        if (!allGranted) {
-          setErrorMessage(
-            "Please grant all required permissions to record audio."
-          );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          setErrorMessage("Microphone permission is required to record audio.");
           setMode("error");
           return;
         }
@@ -193,17 +194,14 @@ export default function RecordScreen() {
         }
       }
 
-      const permission = await Audio.requestPermissionsAsync();
-      if (!permission.granted) {
-        setErrorMessage("Microphone permission is required to record audio.");
-        setMode("error");
-        return;
-      }
-
       await setupAudioMode();
-    } catch (err) {
+    } catch (err: any) {
+      // Add ': any' to allow accessing err.message
       console.error("Error checking permissions:", err);
-      setErrorMessage("Failed to check microphone permissions.");
+      // Use err.message or fallback
+      setErrorMessage(
+        `Failed to check permissions: ${err?.message || "Unknown error"}`
+      );
       setMode("error");
     }
   };
@@ -217,9 +215,12 @@ export default function RecordScreen() {
         shouldDuckAndroid: true,
         playThroughEarpieceAndroid: false,
       });
-    } catch (err) {
+    } catch (err: any) {
+      // Add ': any'
       console.error("Error setting up audio mode:", err);
-      setErrorMessage("Failed to initialize audio system.");
+      setErrorMessage(
+        `Failed to initialize audio system: ${err?.message || "Unknown error"}`
+      );
       setMode("error");
     }
   };
@@ -231,8 +232,6 @@ export default function RecordScreen() {
         setRecording(null);
       }
       setRecordingUri(null);
-
-      await setupAudioMode();
 
       const { recording: newRecording } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY
@@ -248,9 +247,14 @@ export default function RecordScreen() {
       timerIntervalRef.current = setInterval(() => {
         setRecordingDuration((prev) => prev + 1);
       }, 1000);
-    } catch (err) {
+    } catch (err: any) {
+      // Add ': any'
       console.error("Failed to start recording", err);
-      setErrorMessage("Could not start recording. Please try again.");
+      setErrorMessage(
+        `Could not start recording: ${
+          err?.message || "Unknown error"
+        }. Please try again.`
+      );
       setMode("error");
     }
   };
@@ -271,9 +275,14 @@ export default function RecordScreen() {
       setRecordingUri(uri);
       setRecording(null);
       setMode("stopped");
-    } catch (err) {
+    } catch (err: any) {
+      // Add ': any'
       console.error("Failed to stop recording", err);
-      setErrorMessage("Could not stop recording. Please try again.");
+      setErrorMessage(
+        `Could not stop recording: ${
+          err?.message || "Unknown error"
+        }. Please try again.`
+      );
       setMode("error");
     }
   };
@@ -300,10 +309,16 @@ export default function RecordScreen() {
       };
 
       createNoteMutation.mutate(noteDto);
-    } catch (err) {
+    } catch (err: any) {
+      // Add ': any'
       console.error("Failed to generate notes:", err);
       setIsProcessing(false);
-      Alert.alert("Error", "Failed to generate notes. Please try again.");
+      Alert.alert(
+        "Error",
+        `Failed to generate notes: ${
+          err?.message || "Unknown error"
+        }. Please try again.`
+      );
     }
   };
 
