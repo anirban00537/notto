@@ -207,7 +207,7 @@ export default function Note() {
         ) : (
           <FlatList
             data={notes}
-            keyExtractor={(item) => item.id.toString()}
+            keyExtractor={(item, index) => `${item.id}-${index}`}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
             renderItem={renderAnimatedItem}

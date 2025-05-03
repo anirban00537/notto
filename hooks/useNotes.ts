@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   useInfiniteQuery,
   useQueryClient,
@@ -31,6 +31,14 @@ export function useNotes(userId: string | undefined, folderId: string) {
   const queryClient = useQueryClient();
   const router = useRouter();
 
+  // Effect to handle folder changes
+  useEffect(() => {
+    // Reset infinite query data when folder changes
+    queryClient.resetQueries({
+      queryKey: ["notes", { userId, folderId }],
+    });
+  }, [folderId, userId]);
+
   // Fetching Notes Query using useInfiniteQuery
   const {
     data,
@@ -44,7 +52,7 @@ export function useNotes(userId: string | undefined, folderId: string) {
     queryKey: ["notes", { userId, folderId }],
     queryFn: async (context) => {
       const pageParam = context.pageParam as number;
-      const limit = 6;
+      const limit = 10;
       console.log(
         `Fetching notes page: ${pageParam}, limit: ${limit} for userId: ${userId}, folderId: ${folderId}`
       );
@@ -75,6 +83,11 @@ export function useNotes(userId: string | undefined, folderId: string) {
       page.success && page.data ? page.data.notes : []
     ) ?? [];
 
+  // Remove any duplicate notes based on ID
+  const uniqueNotes = notes.filter(
+    (note, index, self) => index === self.findIndex((n) => n.id === note.id)
+  );
+
   // Create Note Mutation
   const createNoteMutation = useMutation<
     ApiResponse<Note>,
@@ -88,9 +101,12 @@ export function useNotes(userId: string | undefined, folderId: string) {
       }
 
       console.log("Note creation successful:", response);
-      queryClient.invalidateQueries({
+
+      // Reset and refetch notes when a new note is created
+      queryClient.resetQueries({
         queryKey: ["notes", { userId, folderId }],
       });
+      refetch();
 
       const noteData = response.data;
       if (!noteData) {
@@ -166,9 +182,9 @@ export function useNotes(userId: string | undefined, folderId: string) {
   };
 
   return {
-    notes,
+    notes: uniqueNotes,
     isNotesLoading,
-    isNotesError,
+    isError: isNotesError,
     youtubeModalVisible,
     youtubeUrl,
     youtubeLoading,
