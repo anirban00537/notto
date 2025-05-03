@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Animated,
+  Dimensions,
 } from "react-native";
 import auth from "@react-native-firebase/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
@@ -19,22 +21,35 @@ GoogleSignin.configure({
 const AuthComponent = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fadeAnim = new Animated.Value(0);
+  const slideAnim = new Animated.Value(50);
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   async function onGoogleButtonPress() {
     try {
       setLoading(true);
       setError(null);
 
-      // Sign out from previous sessions
       await GoogleSignin.signOut();
       await GoogleSignin.hasPlayServices({
         showPlayServicesUpdateDialog: true,
       });
 
-      // Sign in with Google
       const googleSignInResult = await GoogleSignin.signIn();
-
-      // Sign in to Firebase
       const googleCredential = auth.GoogleAuthProvider.credential(
         googleSignInResult.data?.idToken ?? null
       );
@@ -55,14 +70,27 @@ const AuthComponent = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
+      <Animated.View
+        style={[
+          styles.content,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          },
+        ]}
+      >
+        <View style={styles.logoContainer}>
+          <MaterialCommunityIcons name="notebook" size={64} color="#4285F4" />
+        </View>
+
         <Text style={styles.title}>Welcome to Notto</Text>
-        <Text style={styles.subtitle}>Your personal note-taking app</Text>
+        <Text style={styles.subtitle}>Capture your thoughts, seamlessly</Text>
 
         <TouchableOpacity
           style={styles.googleButton}
           onPress={onGoogleButtonPress}
           disabled={loading}
+          activeOpacity={0.8}
         >
           {loading ? (
             <ActivityIndicator color="#fff" />
@@ -74,64 +102,109 @@ const AuthComponent = () => {
                 color="#fff"
                 style={styles.googleIcon}
               />
-              <Text style={styles.googleButtonText}>Sign in with Google</Text>
+              <Text style={styles.googleButtonText}>Continue with Google</Text>
             </>
           )}
         </TouchableOpacity>
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
-      </View>
+        {error && (
+          <Animated.Text style={[styles.errorText, { opacity: fadeAnim }]}>
+            {error}
+          </Animated.Text>
+        )}
+
+        <Text style={styles.termsText}>
+          By continuing, you agree to our Terms of Service and Privacy Policy
+        </Text>
+      </Animated.View>
     </View>
   );
 };
 
+const { width } = Dimensions.get("window");
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffff",
   },
   content: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: 24,
+  },
+  logoContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 30,
+    backgroundColor: "#f0f6ff",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 32,
+    shadowColor: "#4285F4",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
   title: {
     fontSize: 32,
-    fontWeight: "bold",
+    fontWeight: "700",
     color: "#1a1a1a",
-    marginBottom: 10,
+    marginBottom: 12,
+    textAlign: "center",
+    letterSpacing: 0.5,
   },
   subtitle: {
     fontSize: 18,
-    color: "#666",
-    marginBottom: 40,
+    color: "#666666",
+    marginBottom: 48,
+    textAlign: "center",
+    letterSpacing: 0.3,
   },
   googleButton: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#4285F4",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: 12,
+    width: Math.min(width - 48, 400),
+    justifyContent: "center",
+    shadowColor: "#4285F4",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 5,
   },
   googleIcon: {
     marginRight: 12,
   },
   googleButtonText: {
-    color: "#fff",
-    fontSize: 16,
+    color: "#ffffff",
+    fontSize: 18,
     fontWeight: "600",
+    letterSpacing: 0.3,
   },
   errorText: {
     color: "#f44336",
-    marginTop: 20,
+    marginTop: 24,
     textAlign: "center",
+    fontSize: 16,
+    backgroundColor: "#ffebee",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+  termsText: {
+    position: "absolute",
+    bottom: 32,
+    color: "#666666",
+    fontSize: 14,
+    textAlign: "center",
+    paddingHorizontal: 24,
   },
 });
 

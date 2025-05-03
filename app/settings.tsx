@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   Image,
   ScrollView,
+  StatusBar,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useUser } from "./context/UserContext";
@@ -30,14 +31,12 @@ const PremiumButton = () => {
   const shimmer = useSharedValue(0);
 
   useEffect(() => {
-    // Rotation animation
     rotation.value = withRepeat(
       withTiming(360, { duration: 2000, easing: Easing.linear }),
       -1,
       false
     );
 
-    // Scale pulse animation
     scale.value = withRepeat(
       withSequence(
         withTiming(1.1, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
@@ -47,7 +46,6 @@ const PremiumButton = () => {
       true
     );
 
-    // Shimmer effect
     shimmer.value = withRepeat(
       withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
       -1,
@@ -55,20 +53,16 @@ const PremiumButton = () => {
     );
   }, []);
 
-  const crownStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ rotate: `${rotation.value}deg` }, { scale: scale.value }],
-    };
-  });
+  const crownStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${rotation.value}deg` }, { scale: scale.value }],
+  }));
 
-  const shimmerStyle = useAnimatedStyle(() => {
-    return {
-      opacity: interpolate(shimmer.value, [0, 0.5, 1], [0.3, 1, 0.3]),
-    };
-  });
+  const shimmerStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(shimmer.value, [0, 0.5, 1], [0.3, 1, 0.3]),
+  }));
 
   return (
-    <TouchableOpacity style={styles.premiumButton}>
+    <TouchableOpacity style={styles.premiumButton} activeOpacity={0.8}>
       <View style={styles.premiumContent}>
         <Animated.View style={[styles.crownContainer, crownStyle]}>
           <AnimatedIcon
@@ -83,7 +77,7 @@ const PremiumButton = () => {
           <Text style={styles.premiumSubtitle}>Unlock all features</Text>
         </View>
       </View>
-      <MaterialCommunityIcons name="chevron-right" size={24} color="#2c3e50" />
+      <MaterialCommunityIcons name="chevron-right" size={20} color="#2c3e50" />
     </TouchableOpacity>
   );
 };
@@ -102,19 +96,25 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#f0f7ff" />
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
+          activeOpacity={0.7}
         >
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#111" />
+          <MaterialCommunityIcons name="arrow-left" size={24} color="#2c3e50" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Settings</Text>
-        <View style={styles.headerRight} />
+        <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView style={styles.content}>
-        <View style={styles.card}>
+      <ScrollView
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <View style={styles.profileCard}>
           <View style={styles.userInfo}>
             <View style={styles.avatarContainer}>
               {user?.photoURL ? (
@@ -123,7 +123,7 @@ export default function SettingsScreen() {
                 <View style={styles.avatarPlaceholder}>
                   <MaterialCommunityIcons
                     name="account"
-                    size={40}
+                    size={32}
                     color="#fff"
                   />
                 </View>
@@ -136,106 +136,17 @@ export default function SettingsScreen() {
                 Joined {user?.metadata.creationTime?.split("T")[0]}
               </Text>
             </View>
-            <TouchableOpacity style={styles.editButton}>
-              <MaterialCommunityIcons name="pencil" size={20} color="#2c3e50" />
-            </TouchableOpacity>
           </View>
         </View>
 
         <PremiumButton />
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
-          <View style={styles.card}>
-            <TouchableOpacity style={styles.menuItem}>
-              <MaterialCommunityIcons
-                name="account-cog"
-                size={24}
-                color="#2c3e50"
-              />
-              <Text style={styles.menuText}>Account Settings</Text>
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={24}
-                color="#ccc"
-              />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
-              <MaterialCommunityIcons
-                name="bell-outline"
-                size={24}
-                color="#2c3e50"
-              />
-              <Text style={styles.menuText}>Notifications</Text>
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={24}
-                color="#ccc"
-              />
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.menuItem, styles.menuItemLast]}>
-              <MaterialCommunityIcons
-                name="shield-account"
-                size={24}
-                color="#2c3e50"
-              />
-              <Text style={styles.menuText}>Privacy & Security</Text>
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={24}
-                color="#ccc"
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>App</Text>
-          <View style={styles.card}>
-            <TouchableOpacity style={styles.menuItem}>
-              <MaterialCommunityIcons
-                name="theme-light-dark"
-                size={24}
-                color="#2c3e50"
-              />
-              <Text style={styles.menuText}>Appearance</Text>
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={24}
-                color="#ccc"
-              />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
-              <MaterialCommunityIcons
-                name="cloud-sync"
-                size={24}
-                color="#2c3e50"
-              />
-              <Text style={styles.menuText}>Backup & Sync</Text>
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={24}
-                color="#ccc"
-              />
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.menuItem, styles.menuItemLast]}>
-              <MaterialCommunityIcons
-                name="help-circle-outline"
-                size={24}
-                color="#2c3e50"
-              />
-              <Text style={styles.menuText}>Help & Support</Text>
-              <MaterialCommunityIcons
-                name="chevron-right"
-                size={24}
-                color="#ccc"
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
-          <MaterialCommunityIcons name="logout" size={24} color="#e74c3c" />
+        <TouchableOpacity
+          style={styles.signOutButton}
+          onPress={handleSignOut}
+          activeOpacity={0.8}
+        >
+          <MaterialCommunityIcons name="logout" size={20} color="#e74c3c" />
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -253,59 +164,54 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 12,
+    backgroundColor: "#f0f7ff",
     borderBottomWidth: 1,
     borderBottomColor: "#e6f0ff",
   },
   backButton: {
     padding: 8,
+    borderRadius: 8,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "600",
-    color: "#111",
-  },
-  headerRight: {
-    width: 40,
+    color: "#2c3e50",
   },
   content: {
     flex: 1,
+  },
+  scrollContent: {
     paddingHorizontal: 16,
+    paddingBottom: 32,
   },
-  section: {
-    paddingVertical: 12,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#666",
-    marginBottom: 8,
-    marginLeft: 16,
-  },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e6f0ff",
-    overflow: "hidden",
-  },
-  userInfo: {
+  profileCard: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 12,
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#e6f0ff",
+    padding: 16,
+    marginTop: 16,
+  },
+  userInfo: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
   },
   avatarContainer: {
-    marginRight: 12,
+    marginRight: 16,
   },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
   },
   avatarPlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: "#2c3e50",
     justifyContent: "center",
     alignItems: "center",
@@ -314,57 +220,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   name: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "600",
-    color: "#111",
-    marginBottom: 2,
+    color: "#2c3e50",
+    marginBottom: 4,
   },
   email: {
     fontSize: 14,
     color: "#666",
-    marginBottom: 2,
+    marginBottom: 4,
   },
   joinedDate: {
     fontSize: 12,
     color: "#999",
-  },
-  editButton: {
-    padding: 6,
-    borderRadius: 16,
-    backgroundColor: "#f0f7ff",
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e6f0ff",
-  },
-  menuItemLast: {
-    borderBottomWidth: 0,
-  },
-  menuText: {
-    flex: 1,
-    fontSize: 14,
-    color: "#333",
-    marginLeft: 12,
-  },
-  signOutButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#fff",
-    padding: 12,
-    margin: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e6f0ff",
-  },
-  signOutText: {
-    fontSize: 14,
-    color: "#e74c3c",
-    marginLeft: 8,
-    fontWeight: "500",
   },
   premiumButton: {
     flexDirection: "row",
@@ -372,16 +240,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     backgroundColor: "#fff",
     padding: 16,
-    marginTop: 12,
-    borderRadius: 12,
+    marginTop: 16,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: "#e6f0ff",
+    borderColor: "#FFD700",
     shadowColor: "#FFD700",
     shadowOffset: {
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.15,
     shadowRadius: 3.84,
     elevation: 5,
   },
@@ -394,6 +262,8 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#FFF8E7",
+    borderRadius: 20,
   },
   premiumTextContainer: {
     marginLeft: 12,
@@ -404,8 +274,25 @@ const styles = StyleSheet.create({
     color: "#2c3e50",
   },
   premiumSubtitle: {
-    fontSize: 12,
+    fontSize: 13,
     color: "#666",
     marginTop: 2,
+  },
+  signOutButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+    padding: 16,
+    marginTop: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#ffebeb",
+  },
+  signOutText: {
+    fontSize: 16,
+    color: "#e74c3c",
+    marginLeft: 8,
+    fontWeight: "500",
   },
 });
