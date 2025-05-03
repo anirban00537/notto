@@ -108,10 +108,12 @@ export default function Note() {
     }
   };
 
-  if (loading) {
+  // Return loading screen if loading
+  if (loading || isNotesLoading) {
     return <LoadingScreen />;
   }
 
+  // Return auth component if no user
   if (!user) {
     return <AuthComponent />;
   }
@@ -200,11 +202,7 @@ export default function Note() {
           onFolderPress={openFolderDrawer}
         />
 
-        {isNotesLoading && !refreshing ? (
-          <View style={styles.emptyStateContainer}>
-            <LoadingScreen />
-          </View>
-        ) : !notes.length ? (
+        {!notes.length ? (
           <EmptyNotesState onCreateNote={onOpenNoteOptions} />
         ) : (
           <FlatList

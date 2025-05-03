@@ -11,6 +11,7 @@ import {
   SafeAreaView,
   StatusBar,
   Alert,
+  Vibration,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
@@ -28,38 +29,36 @@ interface CreateNoteResponse {
 }
 
 // Enhanced Waveform Animation Component
-const WaveformAnimation = () => {
-  const numBars = 50; // Number of vertical bars
-  const baseDuration = 1200; // Increased duration for slower animation
-  const maxHeight = 80; // Maximum height of a bar
-  const minHeight = 5; // Minimum height of a bar
-  const scrollDelayFactor = 25; // Increased delay for slower scroll
+const WaveformAnimation = ({ isRecording }: { isRecording: boolean }) => {
+  const numBars = 50;
+  const baseDuration = isRecording ? 800 : 1200;
+  const maxHeight = 80;
+  const minHeight = 5;
+  const scrollDelayFactor = isRecording ? 15 : 25;
 
   const animatedValues = useRef(
-    [...Array(numBars)].map(() => new Animated.Value(minHeight / maxHeight)) // Initialize scaleY
+    [...Array(numBars)].map(() => new Animated.Value(minHeight / maxHeight))
   ).current;
 
   useEffect(() => {
     const animations = animatedValues.map((val, index) => {
-      // Reduced randomness range for duration
       const randomDuration = baseDuration + Math.random() * 200 - 100;
-      // Calculate target scale based on min/max height
-      const randomTargetScale =
-        minHeight / maxHeight + Math.random() * (1.0 - minHeight / maxHeight);
-      // Introduce a delay based on index for scrolling effect
+      const randomTargetScale = isRecording
+        ? minHeight / maxHeight + Math.random() * (1.2 - minHeight / maxHeight)
+        : minHeight / maxHeight + Math.random() * (0.8 - minHeight / maxHeight);
       const scrollDelay = index * scrollDelayFactor;
 
       return Animated.loop(
         Animated.sequence([
           Animated.timing(val, {
-            toValue: randomTargetScale, // Animate to random scale
+            toValue: randomTargetScale,
             duration: randomDuration / 2,
-            easing: Easing.bezier(0.42, 0, 0.58, 1), // Smoother bezier easing
-            delay: scrollDelay, // Apply scroll delay only on the first part
-            useNativeDriver: true, // Use native driver for scaleY
+            easing: Easing.bezier(0.42, 0, 0.58, 1),
+            delay: scrollDelay,
+            useNativeDriver: true,
           }),
           Animated.timing(val, {
-            toValue: minHeight / maxHeight, // Animate back to minimum scale
+            toValue: minHeight / maxHeight,
             duration: randomDuration / 2,
             easing: Easing.bezier(0.42, 0, 0.58, 1),
             useNativeDriver: true,
@@ -73,21 +72,19 @@ const WaveformAnimation = () => {
     return () => {
       animations.forEach((anim) => anim.stop());
     };
-    // Added maxHeight, minHeight, scrollDelayFactor to dependencies
-  }, [animatedValues, minHeight, maxHeight, scrollDelayFactor]);
+  }, [isRecording, animatedValues, minHeight, maxHeight, scrollDelayFactor]);
 
   return (
     <View style={styles.waveformContainer}>
       <View style={styles.dotsContainer}>
-        {" "}
-        // Keep container name for simplicity
         {animatedValues.map((animatedScaleY, index) => {
           return (
             <Animated.View
               key={index}
               style={[
-                styles.bar, // Use bar style
-                { transform: [{ scaleY: animatedScaleY }] }, // Apply animated scaleY
+                styles.bar,
+                { transform: [{ scaleY: animatedScaleY }] },
+                isRecording && styles.activeBar,
               ]}
             />
           );
@@ -100,17 +97,21 @@ const WaveformAnimation = () => {
 export default function RecordScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [mode, setMode] = useState<"idle" | "recording" | "stopped" | "error">(
-    "idle"
-  );
+  const [mode, setMode] = useState<
+    "idle" | "recording" | "stopped" | "error" | "playing"
+  >("idle");
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [recordingUri, setRecordingUri] = useState<string | null>(null);
   const [recordingDuration, setRecordingDuration] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackPosition, setPlaybackPosition] = useState(0);
 
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const playbackTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const createNoteMutation = useMutation<
     CreateNoteResponse,
@@ -154,14 +155,38 @@ export default function RecordScreen() {
   useEffect(() => {
     checkPermissions();
     return () => {
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-      }
-      if (recording) {
-        recording.stopAndUnloadAsync();
-      }
+      cleanupTimers();
+      cleanupRecording();
+      cleanupSound();
     };
   }, []);
+
+  const cleanupTimers = () => {
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+    }
+    if (playbackTimerRef.current) {
+      clearInterval(playbackTimerRef.current);
+    }
+  };
+
+  const cleanupRecording = async () => {
+    if (recording) {
+      await recording.stopAndUnloadAsync();
+    }
+  };
+
+  const cleanupSound = async () => {
+    if (sound) {
+      await sound.unloadAsync();
+    }
+  };
+
+  const vibrate = () => {
+    if (Platform.OS !== "web") {
+      Vibration.vibrate(50);
+    }
+  };
 
   const checkPermissions = async () => {
     try {
@@ -227,11 +252,11 @@ export default function RecordScreen() {
 
   const startRecording = async () => {
     try {
-      if (recording) {
-        await recording.stopAndUnloadAsync();
-        setRecording(null);
-      }
+      vibrate();
+      await cleanupRecording();
+      await cleanupSound();
       setRecordingUri(null);
+      setPlaybackPosition(0);
 
       const { recording: newRecording } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY
@@ -248,7 +273,6 @@ export default function RecordScreen() {
         setRecordingDuration((prev) => prev + 1);
       }, 1000);
     } catch (err: any) {
-      // Add ': any'
       console.error("Failed to start recording", err);
       setErrorMessage(
         `Could not start recording: ${
@@ -262,12 +286,9 @@ export default function RecordScreen() {
   const stopRecording = async () => {
     try {
       if (!recording) return;
+      vibrate();
 
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-        timerIntervalRef.current = null;
-      }
-
+      cleanupTimers();
       await recording.stopAndUnloadAsync();
       const uri = recording.getURI();
       console.log("Recording stopped and stored at", uri);
@@ -275,8 +296,13 @@ export default function RecordScreen() {
       setRecordingUri(uri);
       setRecording(null);
       setMode("stopped");
+
+      // Load the sound for playback
+      if (uri) {
+        const { sound: newSound } = await Audio.Sound.createAsync({ uri });
+        setSound(newSound);
+      }
     } catch (err: any) {
-      // Add ': any'
       console.error("Failed to stop recording", err);
       setErrorMessage(
         `Could not stop recording: ${
@@ -285,6 +311,51 @@ export default function RecordScreen() {
       );
       setMode("error");
     }
+  };
+
+  const handlePlayPause = async () => {
+    if (!sound) return;
+
+    try {
+      if (isPlaying) {
+        vibrate();
+        await sound.pauseAsync();
+        setIsPlaying(false);
+        if (playbackTimerRef.current) {
+          clearInterval(playbackTimerRef.current);
+        }
+      } else {
+        vibrate();
+        await sound.playAsync();
+        setIsPlaying(true);
+        setMode("playing");
+
+        playbackTimerRef.current = setInterval(async () => {
+          const status = await sound.getStatusAsync();
+          if (status.isLoaded) {
+            setPlaybackPosition(status.positionMillis / 1000);
+            if (status.didJustFinish) {
+              setIsPlaying(false);
+              setPlaybackPosition(0);
+              setMode("stopped");
+              clearInterval(playbackTimerRef.current!);
+            }
+          }
+        }, 100);
+      }
+    } catch (error) {
+      console.error("Playback error:", error);
+      Alert.alert("Error", "Failed to play recording");
+    }
+  };
+
+  const handleDiscard = async () => {
+    vibrate();
+    await cleanupSound();
+    setRecordingUri(null);
+    setRecordingDuration(0);
+    setPlaybackPosition(0);
+    setMode("idle");
   };
 
   const handleGenerateNotes = async () => {
@@ -324,7 +395,7 @@ export default function RecordScreen() {
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const secs = Math.floor(seconds % 60);
     return `${mins.toString().padStart(2, "0")}:${secs
       .toString()
       .padStart(2, "0")}`;
@@ -343,19 +414,60 @@ export default function RecordScreen() {
 
   const renderRecordingUI = () => (
     <View style={styles.recordingContainer}>
-      <WaveformAnimation />
+      <WaveformAnimation isRecording={mode === "recording"} />
       <View style={styles.controlsContainer}>
-        <Text style={styles.timerText}>{formatTime(recordingDuration)}</Text>
-        <TouchableOpacity
-          style={styles.stopButtonOuter}
-          onPress={mode === "recording" ? stopRecording : undefined}
-          disabled={mode !== "recording"}
-          activeOpacity={0.8}
-        >
-          <View style={styles.stopButtonInner} />
-        </TouchableOpacity>
+        <Text style={styles.timerText}>
+          {mode === "playing"
+            ? formatTime(playbackPosition)
+            : formatTime(recordingDuration)}
+        </Text>
+
+        {mode === "recording" ? (
+          <TouchableOpacity
+            style={styles.stopButtonOuter}
+            onPress={stopRecording}
+            activeOpacity={0.8}
+          >
+            <View style={styles.stopButtonInner} />
+          </TouchableOpacity>
+        ) : mode === "stopped" || mode === "playing" ? (
+          <View style={styles.playbackControls}>
+            <TouchableOpacity
+              style={styles.discardButton}
+              onPress={handleDiscard}
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons
+                name="delete-outline"
+                size={24}
+                color="#FF6B6B"
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.playButton}
+              onPress={handlePlayPause}
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons
+                name={isPlaying ? "pause" : "play"}
+                size={32}
+                color="#2c3e50"
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.reRecordButton}
+              onPress={startRecording}
+              activeOpacity={0.8}
+            >
+              <MaterialCommunityIcons name="record" size={24} color="#2c3e50" />
+            </TouchableOpacity>
+          </View>
+        ) : null}
       </View>
-      {mode === "stopped" && (
+
+      {(mode === "stopped" || mode === "playing") && (
         <TouchableOpacity
           style={[
             styles.generateButton,
@@ -421,12 +533,15 @@ export default function RecordScreen() {
             color="#2c3e50"
           />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Live Recording</Text>
+        <Text style={styles.headerTitle}>
+          {mode === "recording" ? "Recording..." : "Live Recording"}
+        </Text>
         <View style={styles.headerRight} />
       </View>
 
       {mode === "error" && renderError()}
-      {(mode === "recording" || mode === "stopped") && renderRecordingUI()}
+      {(mode === "recording" || mode === "stopped" || mode === "playing") &&
+        renderRecordingUI()}
       {mode === "idle" && renderIdle()}
 
       <ProcessingModal
@@ -500,6 +615,9 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: "#4A90E2", // Keep the blue color
     // Removed height animation, using scaleY now
+  },
+  activeBar: {
+    backgroundColor: "#FF6B6B",
   },
   controlsContainer: {
     alignItems: "center",
@@ -594,5 +712,45 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 25,
+  },
+  playbackControls: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    gap: 32,
+  },
+  playButton: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+  discardButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#FF6B6B",
+  },
+  reRecordButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#2c3e50",
   },
 });

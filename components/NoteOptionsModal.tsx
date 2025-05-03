@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,8 @@ import {
   ActivityIndicator,
   Pressable,
   Animated,
+  Easing,
+  TouchableOpacity,
 } from "react-native";
 import { pick, types as docTypes } from "@react-native-documents/picker";
 import * as ImagePicker from "expo-image-picker";
@@ -21,6 +23,8 @@ import { createNote } from "../lib/services";
 import { CreateNoteDto, NoteType, NoteStatus, Note } from "../lib/types/note";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import ProcessingModal from "./ProcessingModal";
+import * as ExpoAV from "expo-av";
+const { Audio } = ExpoAV;
 
 interface NoteOptionsModalProps {
   bottomSheetRef: React.RefObject<any>;
@@ -93,6 +97,106 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
     "pdf" | "audio" | "youtube" | "image" | null
   >(null);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+
+  // Animated values for equalizer
+  const barCount = 5;
+  const barAnimations = useRef(
+    Array(barCount)
+      .fill(0)
+      .map(() => new Animated.Value(0))
+  ).current;
+
+  useEffect(() => {
+    if (isRecording) {
+      // Start equalizer animation
+      const animations = barAnimations.map((anim) =>
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(anim, {
+              toValue: 1,
+              duration: 500 + Math.random() * 500, // Random duration for each bar
+              easing: Easing.linear,
+              useNativeDriver: true,
+            }),
+            Animated.timing(anim, {
+              toValue: 0,
+              duration: 500 + Math.random() * 500,
+              easing: Easing.linear,
+              useNativeDriver: true,
+            }),
+          ])
+        )
+      );
+      Animated.stagger(100, animations).start();
+    } else {
+      // Stop animations
+      barAnimations.forEach((anim) => anim.stopAnimation());
+    }
+  }, [isRecording]);
+
+  const startRecording = async () => {
+    try {
+      await Audio.requestPermissionsAsync();
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording: newRecording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+      setRecording(newRecording);
+      setIsRecording(true);
+
+      // Start duration counter
+      const interval = setInterval(() => {
+        setRecordingDuration((prev) => prev + 1);
+      }, 1000);
+
+      return () => clearInterval(interval);
+    } catch (err) {
+      console.error("Failed to start recording", err);
+      Alert.alert("Error", "Failed to start recording");
+    }
+  };
+
+  const stopRecording = async () => {
+    try {
+      if (!recording) return;
+
+      setIsRecording(false);
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      setRecording(null);
+      setRecordingDuration(0);
+
+      if (uri) {
+        const noteDto: CreateNoteDto = {
+          noteType: NoteType.AUDIO,
+          file: {
+            uri,
+            name: `recording-${Date.now()}.m4a`,
+            mimeType: "audio/m4a",
+            type: "audio/m4a",
+          },
+        };
+        bottomSheetRef.current?.close();
+        createNoteMutation.mutate(noteDto);
+      }
+    } catch (err) {
+      console.error("Failed to stop recording", err);
+      Alert.alert("Error", "Failed to stop recording");
+    }
+  };
+
+  const formatDuration = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
 
   // Animated values for scaling
   const scalePDF = useRef(new Animated.Value(1)).current;
@@ -267,61 +371,114 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
           <Text style={styles.modalHeaderText}>Create New Note</Text>
         </View>
         <View style={styles.modalContent}>
-          <ModalOptionButton
-            onPress={() => handlePickFile(NoteType.PDF)}
-            disabled={isPicking || createNoteMutation.isPending}
-            icon={
-              <MaterialCommunityIcons
-                name="file-pdf-box"
-                size={24}
-                color="#d32f2f"
-                style={styles.modalOptionIcon}
+          {isRecording ? (
+            <View style={styles.recordingContainer}>
+              <Text style={styles.recordingTimer}>
+                {formatDuration(recordingDuration)}
+              </Text>
+              <View style={styles.equalizerContainer}>
+                {barAnimations.map((anim, index) => (
+                  <Animated.View
+                    key={index}
+                    style={[
+                      styles.equalizerBar,
+                      {
+                        transform: [
+                          {
+                            scaleY: anim.interpolate({
+                              inputRange: [0, 1],
+                              outputRange: [0.3, 1],
+                            }),
+                          },
+                        ],
+                      },
+                    ]}
+                  />
+                ))}
+              </View>
+              <TouchableOpacity
+                style={styles.stopButton}
+                onPress={stopRecording}
+              >
+                <MaterialCommunityIcons
+                  name="stop-circle"
+                  size={64}
+                  color="#d32f2f"
+                />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <>
+              <ModalOptionButton
+                onPress={() => handlePickFile(NoteType.PDF)}
+                disabled={isPicking || createNoteMutation.isPending}
+                icon={
+                  <MaterialCommunityIcons
+                    name="file-pdf-box"
+                    size={24}
+                    color="#d32f2f"
+                    style={styles.modalOptionIcon}
+                  />
+                }
+                label="Import PDF"
               />
-            }
-            label="Import PDF"
-          />
-          <ModalOptionButton
-            onPress={() => handlePickFile(NoteType.AUDIO)}
-            disabled={isPicking || createNoteMutation.isPending}
-            icon={
-              <MaterialCommunityIcons
-                name="file-music-outline"
-                size={24}
-                color="#1976d2"
-                style={styles.modalOptionIcon}
+              <ModalOptionButton
+                onPress={() => handlePickFile(NoteType.AUDIO)}
+                disabled={isPicking || createNoteMutation.isPending}
+                icon={
+                  <MaterialCommunityIcons
+                    name="file-music-outline"
+                    size={24}
+                    color="#1976d2"
+                    style={styles.modalOptionIcon}
+                  />
+                }
+                label="Import Audio"
               />
-            }
-            label="Import Audio"
-          />
-          <ModalOptionButton
-            onPress={() => {
-              bottomSheetRef.current?.close();
-              onAddYouTube();
-            }}
-            disabled={isPicking || createNoteMutation.isPending}
-            icon={
-              <MaterialCommunityIcons
-                name="youtube"
-                size={24}
-                color="#ff0000"
-                style={styles.modalOptionIcon}
+              <ModalOptionButton
+                onPress={startRecording}
+                disabled={isPicking || createNoteMutation.isPending}
+                icon={
+                  <MaterialCommunityIcons
+                    name="microphone"
+                    size={24}
+                    color="#2c3e50"
+                    style={styles.modalOptionIcon}
+                  />
+                }
+                label="Record Audio"
               />
-            }
-            label="Add YouTube Video"
-          />
-          <ModalOptionButton
-            onPress={handleTakePhoto}
-            disabled={isPicking || createNoteMutation.isPending}
-            icon={
-              <MaterialCommunityIcons
-                name="camera-outline"
-                size={24}
-                color="#9C27B0" // Purple color
-                style={styles.modalOptionIcon}
+              <ModalOptionButton
+                onPress={() => {
+                  bottomSheetRef.current?.close();
+                  onAddYouTube();
+                }}
+                disabled={isPicking || createNoteMutation.isPending}
+                icon={
+                  <MaterialCommunityIcons
+                    name="youtube"
+                    size={24}
+                    color="#ff0000"
+                    style={styles.modalOptionIcon}
+                  />
+                }
+                label="Add YouTube Video"
               />
-            }
-            label="Take Photo"
-          />
+              <ModalOptionButton
+                onPress={handleTakePhoto}
+                disabled={isPicking || createNoteMutation.isPending}
+                icon={
+                  <MaterialCommunityIcons
+                    name="camera-outline"
+                    size={24}
+                    color="#9C27B0"
+                    style={styles.modalOptionIcon}
+                  />
+                }
+                label="Take Photo"
+              />
+            </>
+          )}
         </View>
       </CommonBottomSheet>
 
@@ -368,6 +525,39 @@ const styles = StyleSheet.create({
   modalOptionText: {
     fontSize: 16,
     color: "#333",
+  },
+  recordingContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 20,
+  },
+  recordingTimer: {
+    fontSize: 48,
+    fontWeight: "600",
+    color: "#2c3e50",
+    marginBottom: 20,
+  },
+  equalizerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    height: 100,
+    gap: 4,
+    marginBottom: 20,
+  },
+  equalizerBar: {
+    width: 4,
+    height: 60,
+    backgroundColor: "#2c3e50",
+    borderRadius: 2,
+  },
+  stopButton: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "rgba(211, 47, 47, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   youtubeModalOverlay: {
     flex: 1,
