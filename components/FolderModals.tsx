@@ -96,8 +96,8 @@ const FolderOptionsModal: React.FC<{
       ref={bottomSheetRef}
       visible={!!folder}
       snapPoints={[1, 260]}
-      backgroundStyle={{ backgroundColor: "rgba(240, 247, 255, 0.95)" }}
-      handleIndicatorStyle={{ backgroundColor: "#ccc" }}
+      backgroundStyle={styles.bottomSheetBackground}
+      handleIndicatorStyle={styles.handleIndicator}
       onClose={() => {
         setIsRenaming(false);
         onClose();
@@ -265,8 +265,8 @@ const FolderModals: React.FC<FolderModalsProps> = ({
         ref={bottomSheetRef}
         visible={isFolderSheetOpen}
         snapPoints={[1, 320]}
-        backgroundStyle={{ backgroundColor: "rgba(240, 247, 255, 0.95)" }}
-        handleIndicatorStyle={{ backgroundColor: "#ccc" }}
+        backgroundStyle={styles.bottomSheetBackground}
+        handleIndicatorStyle={styles.handleIndicator}
         onClose={() => setIsFolderSheetOpen(false)}
       >
         <View style={styles.drawerHeader}>
@@ -297,8 +297,8 @@ const FolderModals: React.FC<FolderModalsProps> = ({
         ref={bottomSheetCreateRef}
         visible={isCreateSheetOpen}
         snapPoints={[1, 320]}
-        backgroundStyle={{ backgroundColor: "rgba(240, 247, 255, 0.95)" }}
-        handleIndicatorStyle={{ backgroundColor: "#ccc" }}
+        backgroundStyle={styles.bottomSheetBackground}
+        handleIndicatorStyle={styles.handleIndicator}
         onClose={() => setIsCreateSheetOpen(false)}
       >
         <View style={styles.drawerHeader}>
@@ -353,103 +353,129 @@ const FolderModals: React.FC<FolderModalsProps> = ({
 };
 
 const styles = StyleSheet.create({
+  bottomSheetBackground: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  handleIndicator: {
+    backgroundColor: "#E0E0E0",
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    marginTop: 10,
+  },
   drawerHeader: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-    backgroundColor: "rgba(240, 247, 255, 0.95)",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderBottomColor: "#F0F0F0",
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
   },
   drawerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "600",
-    color: "#1a1a1a",
+    color: "#1A1A1A",
     textAlign: "center",
-    letterSpacing: 0.5,
+    letterSpacing: 0.15,
   },
   listDrawerContent: {
     paddingVertical: 8,
-    backgroundColor: "rgba(240, 247, 255, 0.95)",
+    backgroundColor: "#FFFFFF",
   },
   createFolderButton: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 14,
     paddingHorizontal: 20,
-    borderWidth: 1,
-    borderColor: "#2c3e50",
-    backgroundColor: "#2c3e50",
+    backgroundColor: "#2C3E50",
     borderRadius: 12,
     marginHorizontal: 16,
     marginTop: 10,
-    marginBottom: 10,
-    transitionProperty: "transform",
-    transitionDuration: "150ms",
+    marginBottom: 16,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   createFolderButtonText: {
     fontSize: 16,
-    color: "#fff",
+    color: "#FFFFFF",
     marginLeft: 16,
     fontWeight: "600",
-    letterSpacing: 0.3,
+    letterSpacing: 0.1,
   },
-  // ModalOptionButton styles
   pressed: {
     opacity: 0.7,
   },
   modalHeader: {
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: "#F0F0F0",
     alignItems: "center",
-    backgroundColor: "rgba(240, 247, 255, 0.95)",
+    backgroundColor: "#FFFFFF",
   },
   modalHeaderText: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "600",
-    color: "#333",
+    color: "#1A1A1A",
+    letterSpacing: 0.15,
   },
   modalContent: {
     paddingHorizontal: 24,
     paddingVertical: 20,
+    backgroundColor: "#FFFFFF",
   },
   modalOption: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 15,
+    paddingVertical: 16,
+    marginVertical: 4,
+    backgroundColor: "#F8F9FA",
+    borderRadius: 12,
+    paddingHorizontal: 16,
   },
   modalOptionIcon: {
     marginRight: 16,
+    width: 28,
+    height: 28,
+    textAlign: "center",
+    lineHeight: 28,
   },
   modalOptionText: {
     fontSize: 16,
-    color: "#333",
+    color: "#2C3E50",
+    fontWeight: "500",
+    letterSpacing: 0.1,
   },
   renameInput: {
     fontSize: 16,
-    padding: 12,
-    borderColor: "#ddd",
+    padding: 16,
+    backgroundColor: "#F8F9FA",
+    borderColor: "#E0E0E0",
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 12,
     marginBottom: 16,
+    color: "#1A1A1A",
   },
   saveFolderButton: {
-    backgroundColor: "#111",
-    paddingVertical: 14,
-    borderRadius: 28,
+    backgroundColor: "#2C3E50",
+    paddingVertical: 16,
+    borderRadius: 12,
     alignItems: "center",
     marginBottom: 10,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   saveFolderButtonText: {
-    color: "#fff",
+    color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "600",
+    letterSpacing: 0.1,
   },
 });
 

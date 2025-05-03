@@ -2,12 +2,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAllFolders, createFolder } from "../lib/services/folderService";
 import { useState } from "react";
 import { Keyboard } from "react-native";
+import { ApiResponse } from "../lib/types/response";
+import { Folder } from "../lib/types/folder";
 
 export const useFolders = () => {
   const [newFolderName, setNewFolderName] = useState<string>("");
   const queryClient = useQueryClient();
 
-  const { data: foldersResponse, refetch: refetchFolders } = useQuery({
+  const { data: foldersResponse, refetch: refetchFolders } = useQuery<
+    ApiResponse<Folder[]>
+  >({
     queryKey: ["folders"],
     queryFn: getAllFolders,
   });
@@ -16,7 +20,10 @@ export const useFolders = () => {
 
   const createFolderMutation = useMutation({
     mutationFn: createFolder,
-    onSuccess: () => {
+    onSuccess: (response: ApiResponse<Folder>) => {
+      if (!response.success) {
+        throw new Error(response.message);
+      }
       queryClient.invalidateQueries({ queryKey: ["folders"] });
       refetchFolders();
     },
@@ -26,13 +33,17 @@ export const useFolders = () => {
     if (!userId || newFolderName.trim() === "") return;
 
     try {
-      await createFolderMutation.mutateAsync({
+      const response = await createFolderMutation.mutateAsync({
         name: newFolderName.trim(),
         userId,
       });
-      setNewFolderName("");
-      Keyboard.dismiss();
-      return true;
+
+      if (response.success) {
+        setNewFolderName("");
+        Keyboard.dismiss();
+        return true;
+      }
+      return false;
     } catch (error) {
       console.error("Error creating folder:", error);
       return false;

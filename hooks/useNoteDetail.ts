@@ -5,13 +5,10 @@ import {
   getNoteById,
   generateLearningMaterials,
 } from "../lib/services/noteService";
+import { Note } from "../lib/types/note";
+import { ApiResponse } from "../lib/types/response";
 
-type ContentTab =
-  | "note"
-  | "transcript"
-  | "summary"
-  | "quiz"
-  | "flashcards";
+type ContentTab = "note" | "transcript" | "summary" | "quiz" | "flashcards";
 
 interface IconProps {
   name: string;
@@ -20,7 +17,7 @@ interface IconProps {
 }
 
 export interface NoteDetailHook {
-  note: any;
+  note: Note | null;
   loading: boolean;
   activeContentTab: ContentTab;
   scrollViewRef: React.RefObject<ScrollView>;
@@ -38,7 +35,7 @@ export interface NoteDetailHook {
 export function useNoteDetail(noteId: string): NoteDetailHook {
   const router = useRouter();
   const scrollViewRef = useRef<ScrollView>(null);
-  const [note, setNote] = useState<any>(null);
+  const [note, setNote] = useState<Note | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeContentTab, setActiveContentTab] = useState<ContentTab>("note");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -48,9 +45,12 @@ export function useNoteDetail(noteId: string): NoteDetailHook {
     if (!noteId) return;
     setLoading(true);
     try {
-      const data = await getNoteById(noteId);
-      setNote(data?.data);
-    } catch (e) {
+      const response = await getNoteById(noteId);
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      setNote(response.data);
+    } catch (e: any) {
       console.error("Error fetching note:", e);
       setNote(null);
     } finally {
@@ -96,14 +96,16 @@ export function useNoteDetail(noteId: string): NoteDetailHook {
     setIsGenerating(true);
     setGenerationError(null);
     try {
-      const updatedNoteData = await generateLearningMaterials(noteId);
-      // Update note state directly with the response data
-      if (updatedNoteData && updatedNoteData.data) {
-        setNote(updatedNoteData.data);
+      const response = await generateLearningMaterials(noteId);
+      if (!response.success) {
+        throw new Error(response.message);
       }
-    } catch (error) {
+      setNote(response.data);
+    } catch (error: any) {
       console.error("Error generating learning materials:", error);
-      setGenerationError("Failed to generate materials. Please try again.");
+      setGenerationError(
+        error.message || "Failed to generate materials. Please try again."
+      );
     } finally {
       setIsGenerating(false);
     }

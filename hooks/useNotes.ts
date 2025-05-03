@@ -3,29 +3,23 @@ import {
   useInfiniteQuery,
   useQueryClient,
   useMutation,
-  InfiniteData
+  InfiniteData,
 } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { getAllNotes, createNote } from "../lib/services/noteService";
 import { CreateNoteDto, Note, NoteType } from "../lib/types/note";
+import { ApiResponse } from "../lib/types/response";
 import { Alert } from "react-native";
 
 // Define the API response structure
 interface NotesApiResponse {
-  message: string;
-  data: Note[];
+  notes: Note[];
   pagination: {
     currentPage: number;
     totalPages: number;
     totalNotes: number;
     limit: number;
   };
-}
-
-interface CreateNoteResponse {
-  data?: Note;
-  id?: string;
-  noteType?: NoteType;
 }
 
 export function useNotes(userId: string | undefined, folderId: string) {
@@ -46,30 +40,35 @@ export function useNotes(userId: string | undefined, folderId: string) {
     hasNextPage,
     isFetchingNextPage,
     refetch,
-  } = useInfiniteQuery<NotesApiResponse, Error, InfiniteData<NotesApiResponse, unknown>, readonly [string, { userId: string | undefined; folderId: string; }], number>({
+  } = useInfiniteQuery<ApiResponse<NotesApiResponse>, Error>({
     queryKey: ["notes", { userId, folderId }],
     queryFn: async (context) => {
       const pageParam = context.pageParam as number;
-      const limit = 6; // Set the desired limit for notes per page
+      const limit = 6;
       console.log(
         `Fetching notes page: ${pageParam}, limit: ${limit} for userId: ${userId}, folderId: ${folderId}`
       );
       const response = await getAllNotes({ page: pageParam, folderId, limit });
+      if (!response.success) {
+        throw new Error(response.message);
+      }
       console.log(
         `Data received for page ${pageParam}:`,
         JSON.stringify(
-          response.data.map((note: Note) => note.id),
+          response.data.notes.map((note: Note) => note.id),
           null,
           2
         )
       );
-      return response; // Expecting the response structure: { data: Note[], pagination: {...} }
+      return response;
     },
     getNextPageParam: (lastPage) => {
-      if (lastPage.pagination.currentPage < lastPage.pagination.totalPages) {
-        return lastPage.pagination.currentPage + 1;
+      if (!lastPage.success) return undefined;
+      const pagination = lastPage.data.pagination;
+      if (pagination.currentPage < pagination.totalPages) {
+        return pagination.currentPage + 1;
       }
-      return undefined; // No more pages
+      return undefined;
     },
     initialPageParam: 1,
     enabled: !!userId,
@@ -78,62 +77,58 @@ export function useNotes(userId: string | undefined, folderId: string) {
   });
 
   // Flatten the pages data into a single array of notes
-  const notes = data?.pages.flatMap((page: NotesApiResponse) => page.data) ?? [];
+  const notes = data?.pages.flatMap((page) => page.data.notes) ?? [];
 
   // Create Note Mutation
   const createNoteMutation = useMutation<
-    CreateNoteResponse,
+    ApiResponse<Note>,
     Error,
     CreateNoteDto
   >({
-    mutationFn: (newNoteData: CreateNoteDto): Promise<CreateNoteResponse> => createNote(newNoteData),
-    onSuccess: (newNoteResponse: CreateNoteResponse) => {
-      console.log("Note creation successful:", newNoteResponse);
-      // Invalidate the infinite notes query to refetch from page 1
+    mutationFn: createNote,
+    onSuccess: (response) => {
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+
+      console.log("Note creation successful:", response);
       queryClient.invalidateQueries({
         queryKey: ["notes", { userId, folderId }],
       });
 
-      const noteData = newNoteResponse?.data;
-      const noteId = noteData?.id ?? newNoteResponse?.id;
+      const noteData = response.data;
+      if (!noteData) {
+        throw new Error("No note data in response");
+      }
 
-      const noteType = noteData?.noteType || newNoteResponse?.noteType;
-      if (noteType === NoteType.YOUTUBE) {
-        // Reset state and maybe show success briefly before closing modal
+      if (noteData.noteType === NoteType.YOUTUBE) {
         setYoutubeSuccess(true);
         setTimeout(() => {
           setYoutubeSuccess(false);
           setYoutubeLoading(false);
           setYoutubeModalVisible(false);
           setYoutubeUrl("");
-          if (noteId) {
-            router.push(`/note/${noteId}`);
-          }
+          router.push(`/note/${noteData.id}`);
         }, 1500);
-      } else if (noteId) {
-        // For PDF/Audio, navigate immediately after success is shown in NoteOptionsModal
-        // The processing modal in NoteOptionsModal handles the success display
-        // Navigation is triggered from there after a delay
+      } else if (noteData.id) {
+        // For PDF/Audio, navigate after success is shown
       } else {
         console.error(
           "Failed to get new note ID for navigation from response:",
-          newNoteResponse
+          response
         );
       }
     },
     onError: (error: any) => {
       console.error("Error creating note:", error);
       Alert.alert("Error", error.message || "Failed to create note");
-      // Ensure loading state is reset even on error
-      const variables = (createNoteMutation.error?.cause as any)?.variables as
+      const variables = (error?.cause as any)?.variables as
         | CreateNoteDto
         | undefined;
       if (variables?.noteType === NoteType.YOUTUBE) {
         setYoutubeLoading(false);
-        setYoutubeSuccess(false); // Ensure success state is reset on error
-        // Decide if you want to keep modal open or close on error
+        setYoutubeSuccess(false);
       }
-      // PDF/Audio errors are handled in NoteOptionsModal
     },
   });
 
@@ -151,26 +146,23 @@ export function useNotes(userId: string | undefined, folderId: string) {
   const handleSubmitYouTube = async () => {
     if (!youtubeUrl) return;
     setYoutubeLoading(true);
-    setYoutubeSuccess(false); // Reset success state on new submission
+    setYoutubeSuccess(false);
     try {
       const noteDto: CreateNoteDto = {
         noteType: NoteType.YOUTUBE,
         youtubeUrl: youtubeUrl,
       };
-      // Use the mutation to create the note
       createNoteMutation.mutate(noteDto);
     } catch (error: any) {
-      // This catch might not be necessary if mutation handles errors
       Alert.alert("Error", error.message || "Failed to submit YouTube note");
       setYoutubeLoading(false);
     }
   };
 
   return {
-    notes, // Use the flattened notes array
+    notes,
     isNotesLoading,
     isNotesError,
-    // YouTube Modal State & Handlers
     youtubeModalVisible,
     youtubeUrl,
     youtubeLoading,
@@ -179,26 +171,9 @@ export function useNotes(userId: string | undefined, folderId: string) {
     handleAddYouTube,
     handleCloseYouTubeModal,
     handleSubmitYouTube,
-    // Pagination handlers
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    refetchNotes: refetch, // Use refetch from useInfiniteQuery
-  } satisfies {
-    notes: Note[];
-    isNotesLoading: boolean;
-    isNotesError: boolean;
-    youtubeModalVisible: boolean;
-    youtubeUrl: string;
-    youtubeLoading: boolean;
-    youtubeSuccess: boolean;
-    setYoutubeUrl: (url: string) => void;
-    handleAddYouTube: () => void;
-    handleCloseYouTubeModal: () => void;
-    handleSubmitYouTube: () => void;
-    fetchNextPage: () => void;
-    hasNextPage: boolean | undefined;
-    isFetchingNextPage: boolean;
-    refetchNotes: () => void;
+    refetchNotes: refetch,
   };
 }

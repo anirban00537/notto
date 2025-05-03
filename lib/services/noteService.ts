@@ -1,12 +1,23 @@
 import request from "./request";
-import { Note, NoteType, NoteStatus, CreateNoteDto } from "../types/note";
+import { Note, NoteType, NoteStatus, CreateNoteDto } from "@/lib/types/note";
+import { ApiResponse } from "@/lib/types/response";
 
 // API Services
 export const getAllNotes = async (params?: {
   page?: number;
   folderId?: string;
   limit?: number; // Optional limit, defaults on backend
-}) => {
+}): Promise<
+  ApiResponse<{
+    notes: Note[];
+    pagination: {
+      currentPage: number;
+      totalPages: number;
+      totalNotes: number;
+      limit: number;
+    };
+  }>
+> => {
   const queryParams = new URLSearchParams();
   if (params?.page) {
     queryParams.append("page", params.page.toString());
@@ -29,12 +40,14 @@ export const getAllNotes = async (params?: {
   return response.data; // Assuming response.data matches NotesApiResponse structure
 };
 
-export const getNoteById = async (id: string) => {
+export const getNoteById = async (id: string): Promise<ApiResponse<Note>> => {
   const response = await request.get(`/notes/${id}`);
   return response.data;
 };
 
-export const createNote = async (newNote: CreateNoteDto) => {
+export const createNote = async (
+  newNote: CreateNoteDto
+): Promise<ApiResponse<Note>> => {
   // If file is present, use FormData for multipart upload
   if (newNote.file) {
     const formData = new FormData();
@@ -69,16 +82,19 @@ export const createNote = async (newNote: CreateNoteDto) => {
 export const updateNote = async (
   id: string,
   updateData: Partial<CreateNoteDto>
-) => {
+): Promise<ApiResponse<Note>> => {
   const response = await request.put(`/notes/${id}`, updateData);
   return response.data;
 };
 
-export const deleteNote = async (id: string) => {
-  await request.delete(`/notes/${id}`);
+export const deleteNote = async (id: string): Promise<ApiResponse<void>> => {
+  const response = await request.delete(`/notes/${id}`);
+  return response.data;
 };
 
-export const generateLearningMaterials = async (id: string) => {
+export const generateLearningMaterials = async (
+  id: string
+): Promise<ApiResponse<Note>> => {
   const response = await request.post(`/notes/generate-materials/${id}`);
   console.log("Generated materials response:", response.data); // Log the response as requested
   return response.data;

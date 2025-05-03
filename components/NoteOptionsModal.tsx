@@ -98,7 +98,9 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
   >(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [recording, setRecording] = useState<ExpoAV.Audio.Recording | null>(
+    null
+  );
   const [recordingDuration, setRecordingDuration] = useState(0);
 
   // Animated values for equalizer
@@ -355,7 +357,7 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
   };
 
   // Define snap points for the bottom sheet
-  const snapPoints = [1, 380]; // Increased size for the new option
+  const snapPoints = [1, 450]; // Increased size for the new option
 
   return (
     <>
@@ -364,8 +366,8 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
         ref={bottomSheetRef}
         visible={false}
         snapPoints={snapPoints}
-        backgroundStyle={{ backgroundColor: "rgba(240, 247, 255, 0.95)" }}
-        handleIndicatorStyle={{ backgroundColor: "#ccc" }}
+        backgroundStyle={styles.bottomSheetBackground}
+        handleIndicatorStyle={styles.handleIndicator}
       >
         <View style={styles.modalHeader}>
           <Text style={styles.modalHeaderText}>Create New Note</Text>
@@ -495,105 +497,145 @@ const styles = StyleSheet.create({
   bottomSheetContainer: {
     zIndex: 100,
   },
+  bottomSheetBackground: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+  },
+  handleIndicator: {
+    backgroundColor: "#E0E0E0",
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    marginTop: 10,
+  },
   pressed: {
     opacity: 0.7,
   },
   modalHeader: {
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: "#F0F0F0",
     alignItems: "center",
-    backgroundColor: "rgba(240, 247, 255, 0.95)",
+    backgroundColor: "#FFFFFF",
   },
   modalHeaderText: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "600",
-    color: "#333",
+    color: "#1A1A1A",
+    letterSpacing: 0.15,
   },
   modalContent: {
     paddingHorizontal: 24,
     paddingVertical: 20,
+    backgroundColor: "#FFFFFF",
   },
   modalOption: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 15,
+    paddingVertical: 16,
+    marginVertical: 4,
+    backgroundColor: "#F8F9FA",
+    borderRadius: 12,
+    paddingHorizontal: 16,
   },
   modalOptionIcon: {
     marginRight: 16,
+    width: 28,
+    height: 28,
+    textAlign: "center",
+    lineHeight: 28,
   },
   modalOptionText: {
     fontSize: 16,
-    color: "#333",
+    color: "#2C3E50",
+    fontWeight: "500",
+    letterSpacing: 0.1,
   },
   recordingContainer: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 20,
+    paddingVertical: 32,
+    backgroundColor: "#FFFFFF",
   },
   recordingTimer: {
     fontSize: 48,
     fontWeight: "600",
-    color: "#2c3e50",
-    marginBottom: 20,
+    color: "#1A1A1A",
+    marginBottom: 24,
+    fontVariant: ["tabular-nums"],
+    letterSpacing: 1,
   },
   equalizerContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     height: 100,
-    gap: 4,
-    marginBottom: 20,
+    gap: 6,
+    marginBottom: 32,
   },
   equalizerBar: {
     width: 4,
     height: 60,
-    backgroundColor: "#2c3e50",
-    borderRadius: 2,
+    backgroundColor: "#2C3E50",
+    borderRadius: 4,
   },
   stopButton: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "rgba(211, 47, 47, 0.1)",
+    backgroundColor: "rgba(211, 47, 47, 0.08)",
     alignItems: "center",
     justifyContent: "center",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   youtubeModalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
   },
   youtubeModalContent: {
     width: "85%",
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 20,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 24,
     elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
   },
   youtubeModalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "600",
-    marginBottom: 12,
-    color: "#333",
+    marginBottom: 16,
+    color: "#1A1A1A",
+    letterSpacing: 0.15,
   },
   youtubeInput: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 6,
-    padding: 10,
-    marginBottom: 16,
+    borderColor: "#E0E0E0",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 20,
     fontSize: 16,
+    backgroundColor: "#F8F9FA",
   },
   youtubeButton: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 12,
+    borderRadius: 8,
   },
   youtubeButtonText: {
     fontSize: 16,
-    color: "#1976d2",
+    color: "#1976D2",
     fontWeight: "600",
+    letterSpacing: 0.1,
   },
 });
 
