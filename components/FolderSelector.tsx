@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Folder } from "../lib/types/folder";
 
 interface FolderSelectorProps {
-  selectedFolder: Folder;
+  selectedFolder: Folder | { id: string; name: string };
   onFolderPress: () => void;
 }
 

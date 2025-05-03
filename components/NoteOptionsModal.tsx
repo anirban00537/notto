@@ -29,6 +29,7 @@ const { Audio } = ExpoAV;
 interface NoteOptionsModalProps {
   bottomSheetRef: React.RefObject<any>;
   onAddYouTube: () => void;
+  selectedFolderId?: string;
 }
 
 // Define a potential API response structure (matching useNotes)
@@ -89,6 +90,7 @@ const ModalOptionButton: React.FC<ModalOptionButtonProps> = ({
 const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
   bottomSheetRef,
   onAddYouTube,
+  selectedFolderId,
 }) => {
   const { user } = useUser();
   const queryClient = useQueryClient();
@@ -184,6 +186,8 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
             mimeType: "audio/m4a",
             type: "audio/m4a",
           },
+          ...(selectedFolderId &&
+            selectedFolderId !== "all" && { folderId: selectedFolderId }),
         };
         bottomSheetRef.current?.close();
         createNoteMutation.mutate(noteDto);
@@ -231,6 +235,11 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
     onSuccess: (newNote: CreateNoteResponse) => {
       console.log("Note created:", newNote);
       queryClient.invalidateQueries({ queryKey: ["notes"] });
+      if (selectedFolderId && selectedFolderId !== "all") {
+        queryClient.invalidateQueries({
+          queryKey: ["notes", { folderId: selectedFolderId }],
+        });
+      }
 
       const noteData = newNote?.data;
       const noteId = noteData?.id || newNote?.id;
@@ -287,6 +296,8 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
             mimeType: result.type || "application/octet-stream",
             type: result.type || "application/octet-stream",
           },
+          ...(selectedFolderId &&
+            selectedFolderId !== "all" && { folderId: selectedFolderId }),
         };
         bottomSheetRef.current?.close();
         createNoteMutation.mutate(noteDto);
@@ -320,14 +331,13 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
-        quality: 0.5, // Reduce quality to save space/upload time
+        quality: 0.5,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const imageAsset = result.assets[0];
         setProcessingType("image");
 
-        // Determine filename and type
         const uriParts = imageAsset.uri.split(".");
         const fileType = uriParts[uriParts.length - 1];
         const mimeType = `image/${fileType}`;
@@ -341,6 +351,8 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
             mimeType: mimeType,
             type: mimeType,
           },
+          ...(selectedFolderId &&
+            selectedFolderId !== "all" && { folderId: selectedFolderId }),
         };
         bottomSheetRef.current?.close();
         createNoteMutation.mutate(noteDto);

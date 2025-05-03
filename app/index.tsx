@@ -264,6 +264,9 @@ export default function Note() {
       <NoteOptionsModal
         bottomSheetRef={noteOptionsBottomSheetRef}
         onAddYouTube={handleAddYouTube}
+        selectedFolderId={
+          selectedFolderId === "all" ? undefined : selectedFolderId
+        }
       />
 
       <YouTubeModal

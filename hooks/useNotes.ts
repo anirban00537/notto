@@ -52,18 +52,11 @@ export function useNotes(userId: string | undefined, folderId: string) {
       if (!response.success) {
         throw new Error(response.message);
       }
-      console.log(
-        `Data received for page ${pageParam}:`,
-        JSON.stringify(
-          response.data.notes.map((note: Note) => note.id),
-          null,
-          2
-        )
-      );
+
       return response;
     },
     getNextPageParam: (lastPage) => {
-      if (!lastPage.success) return undefined;
+      if (!lastPage.success || !lastPage.data) return undefined;
       const pagination = lastPage.data.pagination;
       if (pagination.currentPage < pagination.totalPages) {
         return pagination.currentPage + 1;
@@ -77,7 +70,10 @@ export function useNotes(userId: string | undefined, folderId: string) {
   });
 
   // Flatten the pages data into a single array of notes
-  const notes = data?.pages.flatMap((page) => page.data.notes) ?? [];
+  const notes =
+    data?.pages.flatMap((page) =>
+      page.success && page.data ? page.data.notes : []
+    ) ?? [];
 
   // Create Note Mutation
   const createNoteMutation = useMutation<
@@ -151,6 +147,7 @@ export function useNotes(userId: string | undefined, folderId: string) {
       const noteDto: CreateNoteDto = {
         noteType: NoteType.YOUTUBE,
         youtubeUrl: youtubeUrl,
+        ...(folderId && folderId !== "all" && { folderId }),
       };
       createNoteMutation.mutate(noteDto);
     } catch (error: any) {

@@ -96,10 +96,11 @@ export interface Note {
 export interface CreateNoteDto {
   noteType: NoteType;
   youtubeUrl?: string;
+  folderId?: string;
   file?: {
     uri: string;
     name: string;
-    mimeType: string;
-    type: string;
+    type?: string;
+    mimeType?: string;
   };
 }

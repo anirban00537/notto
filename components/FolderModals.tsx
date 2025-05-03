@@ -15,8 +15,9 @@ import CommonBottomSheet from "./CommonBottomSheet";
 import { Folder } from "../lib/types/folder";
 import FolderListItem, { FolderItem } from "./FolderListItem";
 import CreateFolderForm from "./CreateFolderForm";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { updateFolder, deleteFolder } from "../lib/services/folderService";
+import { getAllNotes } from "../lib/services/noteService";
 
 interface FolderModalsProps {
   bottomSheetRef: RefObject<any>;
@@ -244,6 +245,17 @@ const FolderModals: React.FC<FolderModalsProps> = ({
   );
 
   const handleFolderSelect = (id: string) => {
+    // Invalidate and refetch notes with new folderId
+    queryClient.invalidateQueries({
+      queryKey: ["notes"],
+      refetchType: "all",
+    });
+    queryClient.invalidateQueries({
+      queryKey: ["notes", { folderId: id === "all" ? undefined : id }],
+      refetchType: "all",
+    });
+
+    // Call the original onFolderSelect
     onFolderSelect(id);
     bottomSheetRef.current?.close();
   };
