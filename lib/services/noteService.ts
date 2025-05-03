@@ -53,6 +53,7 @@ export const createNote = async (
     const formData = new FormData();
     formData.append("noteType", newNote.noteType);
     if (newNote.youtubeUrl) formData.append("youtubeUrl", newNote.youtubeUrl);
+    if (newNote.folderId) formData.append("folderId", newNote.folderId);
     formData.append("file", {
       uri: newNote.file.uri,
       name: newNote.file.name || "upload",
@@ -71,6 +72,7 @@ export const createNote = async (
     const response = await request.post("/notes", {
       noteType: newNote.noteType,
       youtubeUrl: newNote.youtubeUrl,
+      folderId: newNote.folderId,
     });
     return response.data;
   }

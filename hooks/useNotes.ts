@@ -147,13 +147,22 @@ export function useNotes(userId: string | undefined, folderId: string) {
       const noteDto: CreateNoteDto = {
         noteType: NoteType.YOUTUBE,
         youtubeUrl: youtubeUrl,
-        ...(folderId && folderId !== "all" && { folderId }),
+        folderId: folderId !== "all" ? folderId : undefined,
       };
       createNoteMutation.mutate(noteDto);
     } catch (error: any) {
       Alert.alert("Error", error.message || "Failed to submit YouTube note");
       setYoutubeLoading(false);
     }
+  };
+
+  // Helper function to create note with folder ID
+  const createNoteWithFolder = (noteDto: Partial<CreateNoteDto>) => {
+    const completeNoteDto: CreateNoteDto = {
+      ...noteDto,
+      folderId: folderId !== "all" ? folderId : undefined,
+    } as CreateNoteDto;
+    createNoteMutation.mutate(completeNoteDto);
   };
 
   return {
@@ -172,5 +181,6 @@ export function useNotes(userId: string | undefined, folderId: string) {
     hasNextPage,
     isFetchingNextPage,
     refetchNotes: refetch,
+    createNoteWithFolder,
   };
 }
