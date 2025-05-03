@@ -2,7 +2,7 @@ import axios, { AxiosError } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // API Base URL
-const BASE_URL = "https://api.boostfury.com"; // Update this with your NestJS server URL
+const BASE_URL = "http://q4skck4o8okwsg4og4ooc0c4.88.222.213.3.sslip.io"; // Update this with your NestJS server URL
 const TOKEN_KEY = "@auth_token";
 
 // Create axios instance
@@ -19,8 +19,15 @@ request.interceptors.request.use(
     const fullUrl = config.baseURL
       ? config.baseURL.replace(/\/$/, "") + (config.url || "")
       : config.url;
-    const token = config.headers?.Authorization || request.defaults.headers.common["Authorization"];
-    console.log("[API REQUEST]", config.method?.toUpperCase(), fullUrl, token ? `Bearer: ${token}` : "No Bearer Token");
+    const token =
+      config.headers?.Authorization ||
+      request.defaults.headers.common["Authorization"];
+    console.log(
+      "[API REQUEST]",
+      config.method?.toUpperCase(),
+      fullUrl,
+      token ? `Bearer: ${token}` : "No Bearer Token"
+    );
     return config;
   },
   (error) => {
