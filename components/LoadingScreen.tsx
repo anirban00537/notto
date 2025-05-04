@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(240, 247, 255, 0.95)",
+    backgroundColor: "#ffffff",
   },
   waveContainer: {
     alignItems: "center",
@@ -72,10 +72,11 @@ const styles = StyleSheet.create({
   },
   wave: {
     position: "absolute",
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: "#2c3e50",
+    opacity: 0.7,
   },
 });
 
