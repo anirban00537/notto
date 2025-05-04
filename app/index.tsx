@@ -60,7 +60,6 @@ export default function Note() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    handleDeleteNote,
   } = useNotes(user?.uid, selectedFolderId);
 
   useEffect(() => {

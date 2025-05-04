@@ -1,13 +1,6 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Alert,
-  Dimensions,
-} from "react-native";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import React from "react";
+import { View, Text, StyleSheet, ScrollView, Dimensions } from "react-native";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNoteDetail } from "../../hooks/useNoteDetail";
 import { format } from "date-fns";
@@ -26,48 +19,27 @@ import FlashcardComponent from "@/components/FlashcardComponent";
 import EmptyState from "../../components/EmptyState";
 import NoteContent from "../../components/NoteContent";
 import SummaryContent from "../../components/SummaryContent";
-import ContentTabs, { TabName, TABS } from "../../components/ContentTabs";
+import ContentTabs from "../../components/ContentTabs";
 import { mapNoteFlashcardsToUIFlashcards } from "../../lib/utils/flashcardMapper";
 
 export default function NoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const router = useRouter();
   const {
     note,
     loading,
+    activeTab,
+    handleTabPress,
+    handleSwipeChange,
     handleOptionsPress,
-    handleDeleteNote,
     handleBackPress,
     isGenerating,
-    generationError,
     handleGenerateMaterials,
+    onDelete,
+    iconProps,
   } = useNoteDetail(id);
-
-  const [activeTab, setActiveTab] = useState<TabName>("note");
-
-  // Note icon properties
-  const iconProps = {
-    name: "note-text-outline" as const,
-    color: "#2c3e50",
-    bgColor: "#f5f7fa",
-  };
 
   if (loading) return <LoadingScreen />;
   if (!note) return <Text>Note not found</Text>;
-
-  if (generationError) {
-    Alert.alert("Generation Error", generationError);
-  }
-
-  const onDelete = async () => {
-    try {
-      await handleDeleteNote();
-      router.back();
-    } catch (error) {
-      console.error("Error deleting note:", error);
-      Alert.alert("Error", "Failed to delete note. Please try again.");
-    }
-  };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom", "left", "right"]}>
@@ -81,8 +53,8 @@ export default function NoteDetailScreen() {
 
       <ContentTabs
         activeTab={activeTab}
-        onTabPress={setActiveTab}
-        onSwipeChange={setActiveTab}
+        onTabPress={handleTabPress}
+        onSwipeChange={handleSwipeChange}
       >
         {/* Note Tab */}
         <ScrollView style={styles.scene}>
@@ -93,7 +65,7 @@ export default function NoteDetailScreen() {
                 ? format(note.updatedAt, "MMM d, yyyy")
                 : format(new Date(note?.updatedAt || Date.now()), "MMM d, yyyy")
             }
-            iconName={iconProps.name}
+            iconName={iconProps.name as any}
             iconColor={iconProps.color}
             iconBackgroundColor={iconProps.bgColor}
           />

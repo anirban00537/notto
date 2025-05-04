@@ -55,38 +55,37 @@ export function useNotes(userId: string | undefined, folderId: string) {
     hasNextPage,
     isFetchingNextPage,
     refetch,
-  } = useInfiniteQuery<ApiResponse<NotesApiResponse>, Error>({
+  } = useInfiniteQuery<
+    ApiResponse<NotesApiResponse>,
+    Error,
+    InfiniteData<ApiResponse<NotesApiResponse>>,
+    [string, { userId: string | undefined; folderId: string }],
+    FirebaseFirestoreTypes.QueryDocumentSnapshot | null
+  >({
     queryKey: ["notes", { userId, folderId }],
-    queryFn: async (context) => {
+    queryFn: async ({ pageParam }) => {
       if (!userId) throw new Error("User ID is required");
-      const pageParam = context.pageParam as number;
       const limit = 10;
 
-      // Get the last document from the previous page
-      const lastPage = context.pageParam
-        ? (context.queryKey[1] as any).lastVisible
-        : undefined;
-
       return getAllNotes({
-        page: pageParam,
+        page: 1, // Not used with cursor-based pagination
         folderId,
         limit,
         userId,
-        lastVisible: lastPage,
+        lastVisible: pageParam || undefined,
       });
     },
     getNextPageParam: (lastPage) => {
-      if (!lastPage.success || !lastPage.data) return undefined;
+      if (!lastPage.success || !lastPage.data) return null;
       const pagination = lastPage.data.pagination;
-      if (pagination.currentPage < pagination.totalPages) {
-        return {
-          page: pagination.currentPage + 1,
-          lastVisible: pagination.lastVisible,
-        };
-      }
-      return undefined;
+
+      // Return the lastVisible cursor if there are more pages
+      return pagination.lastVisible &&
+        pagination.currentPage < pagination.totalPages
+        ? pagination.lastVisible
+        : null;
     },
-    initialPageParam: 1,
+    initialPageParam: null,
     enabled: !!userId,
     refetchOnWindowFocus: false,
     structuralSharing: false,

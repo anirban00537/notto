@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from "react";
-import { ScrollView } from "react-native";
+import { ScrollView, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import {
   getNoteById,
@@ -9,6 +9,7 @@ import {
 import { Note } from "../lib/types/note";
 import { ApiResponse } from "../lib/types/response";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { TabName } from "../components/ContentTabs";
 
 export type ContentTab =
   | "note"
@@ -26,10 +27,11 @@ interface IconProps {
 export interface NoteDetailHook {
   note: Note | null;
   loading: boolean;
-  activeContentTab: ContentTab;
+  activeTab: TabName;
   scrollViewRef: React.RefObject<ScrollView>;
   iconProps: IconProps;
-  handleTabPress: (tab: ContentTab) => void;
+  handleTabPress: (tab: TabName) => void;
+  handleSwipeChange: (tab: TabName) => void;
   handleOptionsPress: () => void;
   handleNoteToolsPress: () => void;
   handleEditNotePress: () => void;
@@ -38,6 +40,7 @@ export interface NoteDetailHook {
   generationError: string | null;
   handleGenerateMaterials: () => Promise<void>;
   handleDeleteNote: () => Promise<void>;
+  onDelete: () => Promise<void>;
 }
 
 export function useNoteDetail(noteId: string): NoteDetailHook {
@@ -53,12 +56,12 @@ export function useNoteDetail(noteId: string): NoteDetailHook {
     data: note,
     isLoading: loading,
     refetch,
-  } = useQuery({
+  } = useQuery<Note, Error>({
     queryKey: ["note", noteId],
-    queryFn: async () => {
+    queryFn: async (): Promise<Note> => {
       const response = await getNoteById(noteId);
-      if (!response.success) {
-        throw new Error(response.message);
+      if (!response.success || !response.data) {
+        throw new Error(response.message || "Failed to fetch note");
       }
       return response.data;
     },
@@ -79,6 +82,16 @@ export function useNoteDetail(noteId: string): NoteDetailHook {
     await deleteMutation.mutateAsync(noteId);
   };
 
+  const onDelete = async () => {
+    try {
+      await handleDeleteNote();
+      router.back();
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      Alert.alert("Error", "Failed to delete note. Please try again.");
+    }
+  };
+
   const handleBackPress = () => {
     router.back();
   };
@@ -87,9 +100,13 @@ export function useNoteDetail(noteId: string): NoteDetailHook {
     // Implement options menu functionality
   };
 
-  const handleTabPress = (tab: ContentTab) => {
-    setActiveContentTab(tab);
+  const handleTabPress = (tab: TabName) => {
+    setActiveContentTab(tab as ContentTab);
     scrollViewRef.current?.scrollTo({ y: 0, animated: true });
+  };
+
+  const handleSwipeChange = (tab: TabName) => {
+    handleTabPress(tab);
   };
 
   const handleNoteToolsPress = () => {
@@ -124,19 +141,27 @@ export function useNoteDetail(noteId: string): NoteDetailHook {
   };
 
   // Get icon properties based on note type
-  const iconProps = {
-    name: note?.noteType || "note-text",
-    color: "#4285F4",
-    bgColor: "#E8F0FE",
+  const iconProps: IconProps = {
+    name: "note-text-outline" as any,
+    color: "#2c3e50",
+    bgColor: "#f5f7fa",
   };
+
+  // Show error alert if generation fails
+  useEffect(() => {
+    if (generationError) {
+      Alert.alert("Generation Error", generationError);
+    }
+  }, [generationError]);
 
   return {
     note: note || null,
     loading,
-    activeContentTab,
+    activeTab: activeContentTab as TabName,
     scrollViewRef,
     iconProps,
     handleTabPress,
+    handleSwipeChange,
     handleOptionsPress,
     handleNoteToolsPress,
     handleEditNotePress,
@@ -145,5 +170,6 @@ export function useNoteDetail(noteId: string): NoteDetailHook {
     generationError,
     handleGenerateMaterials,
     handleDeleteNote,
+    onDelete,
   };
 }
