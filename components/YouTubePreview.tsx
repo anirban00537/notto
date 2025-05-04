@@ -62,18 +62,24 @@ export default function YouTubePreview({
 
 const styles = StyleSheet.create({
   youtubePreviewContainer: {
-    margin: 16,
-    borderRadius: 16,
+    margin: 0,
+    marginHorizontal: 16,
+    padding: 0,
+    borderRadius: 0,
     overflow: "hidden",
     backgroundColor: "#000",
+    width: "auto",
   },
   errorContainer: {
-    margin: 16,
-    borderRadius: 16,
+    margin: 0,
+    marginHorizontal: 16,
+    padding: 0,
+    borderRadius: 0,
     backgroundColor: "#f0f0f0",
     aspectRatio: 16 / 9,
     justifyContent: "center",
     alignItems: "center",
+    width: "auto",
   },
   errorText: {
     color: "#555",

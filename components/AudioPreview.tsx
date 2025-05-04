@@ -3,11 +3,8 @@ import {
   View,
   Text,
   StyleSheet,
-  Dimensions,
-  Platform,
   TouchableOpacity,
-  Modal,
-  Pressable,
+  ActivityIndicator,
 } from "react-native";
 import { Audio } from "expo-av";
 import Slider from "@react-native-community/slider";
@@ -22,13 +19,13 @@ const AudioPreview: React.FC<AudioPreviewProps> = ({
   directPlayableUrl,
   fileName = "Audio Recording",
 }) => {
-  const [modalVisible, setModalVisible] = useState(false);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [position, setPosition] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Format time from milliseconds to MM:SS
   const formatTime = (milliseconds: number) => {
     const totalSeconds = Math.floor(milliseconds / 1000);
     const minutes = Math.floor(totalSeconds / 60);
@@ -100,40 +97,86 @@ const AudioPreview: React.FC<AudioPreviewProps> = ({
   }, [directPlayableUrl]);
 
   return (
-    <View style={styles.card}>
-      <View style={styles.header}>
-        <Text style={styles.audioIndicator}>AUDIO</Text>
-        <Text style={styles.fileName} numberOfLines={1} ellipsizeMode="middle">
-          {fileName}
-        </Text>
+    <View style={styles.container}>
+      <View style={styles.progressBar}>
+        <View
+          style={[
+            styles.progressIndicator,
+            { width: duration > 0 ? `${(position / duration) * 100}%` : "0%" },
+          ]}
+        />
       </View>
 
-      <View style={styles.playerContainer}>
+      <View style={styles.content}>
         <TouchableOpacity
-          style={styles.playButton}
+          style={styles.playButtonContainer}
           onPress={handlePlayPause}
           disabled={isLoading}
         >
-          <MaterialCommunityIcons
-            name={isLoading ? "loading" : isPlaying ? "pause" : "play"}
-            size={24}
-            color="#fff"
-          />
+          {isLoading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <View style={styles.playButton}>
+              <MaterialCommunityIcons
+                name={isPlaying ? "pause" : "play"}
+                size={20}
+                color="#fff"
+              />
+            </View>
+          )}
         </TouchableOpacity>
 
-        <View style={styles.sliderContainer}>
-          <Slider
-            style={styles.slider}
-            minimumValue={0}
-            maximumValue={duration}
-            value={position}
-            onSlidingComplete={handleSliderChange}
-            minimumTrackTintColor="#2c3e50"
-            maximumTrackTintColor="#d0d0d0"
-            thumbTintColor="#2c3e50"
-          />
+        <View style={styles.infoContainer}>
+          <Text
+            style={styles.fileName}
+            numberOfLines={1}
+            ellipsizeMode="middle"
+          >
+            {fileName}
+          </Text>
+
+          <View style={styles.sliderRow}>
+            <Slider
+              style={styles.slider}
+              minimumValue={0}
+              maximumValue={duration}
+              value={position}
+              onSlidingComplete={handleSliderChange}
+              minimumTrackTintColor="#2c3e50"
+              maximumTrackTintColor="rgba(0,0,0,0.1)"
+              thumbTintColor="#2c3e50"
+            />
+          </View>
+
           <View style={styles.timeContainer}>
             <Text style={styles.timeText}>{formatTime(position)}</Text>
+            <View style={styles.controlsContainer}>
+              <TouchableOpacity
+                style={styles.controlButton}
+                onPress={() =>
+                  sound?.setPositionAsync(Math.max(0, position - 10000))
+                }
+              >
+                <MaterialCommunityIcons
+                  name="rewind-10"
+                  size={16}
+                  color="#2c3e50"
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.controlButton}
+                onPress={() =>
+                  sound?.setPositionAsync(Math.min(duration, position + 30000))
+                }
+              >
+                <MaterialCommunityIcons
+                  name="fast-forward-30"
+                  size={16}
+                  color="#2c3e50"
+                />
+              </TouchableOpacity>
+            </View>
             <Text style={styles.timeText}>{formatTime(duration)}</Text>
           </View>
         </View>
@@ -142,41 +185,42 @@ const AudioPreview: React.FC<AudioPreviewProps> = ({
   );
 };
 
-const windowWidth = Dimensions.get("window").width;
-const windowHeight = Dimensions.get("window").height;
-
 const styles = StyleSheet.create({
-  card: {
+  container: {
     backgroundColor: "#ffffff",
-    padding: 12,
-    marginVertical: 4,
+    borderRadius: 0,
+    overflow: "hidden",
+    position: "relative",
+    shadowColor: "transparent",
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+    width: "auto",
     marginHorizontal: 16,
-    borderRadius: 8,
   },
-  header: {
+  progressBar: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: "rgba(0,0,0,0.05)",
+    zIndex: 10,
+  },
+  progressIndicator: {
+    height: "100%",
+    backgroundColor: "#2c3e50",
+  },
+  content: {
     flexDirection: "row",
+    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     alignItems: "center",
-    gap: 8,
-    marginBottom: 12,
   },
-  audioIndicator: {
-    backgroundColor: "#f0f7ff",
-    color: "#2c3e50",
-    fontSize: 12,
-    fontWeight: "600",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  fileName: {
-    flex: 1,
-    fontSize: 14,
-    color: "#333",
-  },
-  playerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
+  playButtonContainer: {
+    marginRight: 12,
   },
   playButton: {
     backgroundColor: "#2c3e50",
@@ -186,57 +230,42 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  sliderContainer: {
+  infoContainer: {
     flex: 1,
   },
+  fileName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#2c3e50",
+    marginBottom: 4,
+  },
+  sliderRow: {
+    paddingRight: 8,
+  },
   slider: {
-    height: 40,
+    height: 30,
+    marginHorizontal: -6,
   },
   timeContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
     marginTop: -8,
   },
   timeText: {
-    fontSize: 12,
+    fontSize: 11,
     color: "#666",
   },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    width: windowWidth * 0.9,
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  modalHeader: {
+  controlsContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    gap: 8,
   },
-  modalTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: "600",
-    marginRight: 16,
-  },
-  closeButton: {
-    padding: 8,
-  },
-  closeButtonText: {
-    fontSize: 20,
-    color: "#666",
-    fontWeight: "600",
-  },
-  audioPlayerContainer: {
-    padding: 20,
+  controlButton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "rgba(0,0,0,0.05)",
+    justifyContent: "center",
     alignItems: "center",
   },
 });

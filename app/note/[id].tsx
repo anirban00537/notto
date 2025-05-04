@@ -35,17 +35,25 @@ export default function NoteDetailScreen() {
     isGenerating,
     handleGenerateMaterials,
     onDelete,
-    iconProps,
   } = useNoteDetail(id);
 
   if (loading) return <LoadingScreen />;
   if (!note) return <Text>Note not found</Text>;
 
+  const getFormattedTitle = () => {
+    return note?.title?.trim() || "Untitled Note";
+  };
+
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom", "left", "right"]}>
-      <Stack.Screen options={{ headerShown: false }} />
+      <Stack.Screen
+        options={{
+          headerShown: false,
+          animation: "slide_from_right",
+        }}
+      />
       <NoteDetailHeader
-        title={note.title}
+        title={getFormattedTitle()}
         onBackPress={handleBackPress}
         onOptionsPress={handleOptionsPress}
         onDelete={onDelete}
@@ -57,58 +65,92 @@ export default function NoteDetailScreen() {
         onSwipeChange={handleSwipeChange}
       >
         {/* Note Tab */}
-        <ScrollView style={styles.scene}>
-          <NoteTitleSection
-            title={note?.title || ""}
-            lastModified={
-              note?.updatedAt instanceof Date
-                ? format(note.updatedAt, "MMM d, yyyy")
-                : format(new Date(note?.updatedAt || Date.now()), "MMM d, yyyy")
-            }
-            iconName={iconProps.name as any}
-            iconColor={iconProps.color}
-            iconBackgroundColor={iconProps.bgColor}
-          />
-          {note?.sourceUrl && note?.noteType === "youtube" && (
-            <YouTubePreview directPlayableUrl={note.sourceUrl} />
-          )}
-          {note?.sourceUrl && note?.noteType === "audio" && (
-            <AudioPreview directPlayableUrl={note.sourceUrl} />
-          )}
-          {note?.sourceUrl && note?.noteType === "pdf" && (
-            <PDFPreview directPlayableUrl={note.sourceUrl} />
-          )}
-          <View style={styles.textContentPadding}>
-            {note?.note && <NoteContent content={note.note} />}
+        <ScrollView style={styles.scene} showsVerticalScrollIndicator={false}>
+          <View style={styles.noteContainer}>
+            {note?.sourceUrl && (
+              <View style={styles.mediaContainer}>
+                {note.noteType === "youtube" && (
+                  <YouTubePreview directPlayableUrl={note.sourceUrl} />
+                )}
+                {note.noteType === "audio" && (
+                  <AudioPreview directPlayableUrl={note.sourceUrl} />
+                )}
+                {note.noteType === "pdf" && (
+                  <PDFPreview directPlayableUrl={note.sourceUrl} />
+                )}
+              </View>
+            )}
+
+            <View style={styles.contentCard}>
+              <NoteTitleSection
+                title={getFormattedTitle()}
+                lastModified={
+                  note?.updatedAt instanceof Date
+                    ? format(note.updatedAt, "MMM d, yyyy")
+                    : format(
+                        new Date(note?.updatedAt || Date.now()),
+                        "MMM d, yyyy"
+                      )
+                }
+                showFullTitle={true}
+                insideCard={true}
+              />
+
+              {note?.note && (
+                <View style={styles.noteTextContainer}>
+                  <NoteContent content={note.note} />
+                </View>
+              )}
+            </View>
           </View>
         </ScrollView>
 
         {/* Transcript Tab */}
-        <ScrollView style={styles.scene}>
-          {note?.fullText && <TranscriptContent transcript={note.fullText} />}
+        <ScrollView style={styles.scene} showsVerticalScrollIndicator={false}>
+          <View style={styles.noteContainer}>
+            {note?.fullText ? (
+              <View style={styles.contentCard}>
+                <TranscriptContent transcript={note.fullText} />
+              </View>
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No transcript available</Text>
+              </View>
+            )}
+          </View>
         </ScrollView>
 
         {/* Summary Tab */}
-        <ScrollView style={styles.scene}>
-          <View style={styles.textContentPadding}>
-            {note?.summary && <SummaryContent content={note.summary} />}
+        <ScrollView style={styles.scene} showsVerticalScrollIndicator={false}>
+          <View style={styles.noteContainer}>
+            {note?.summary ? (
+              <View style={styles.contentCard}>
+                <SummaryContent content={note.summary} />
+              </View>
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No summary available</Text>
+              </View>
+            )}
           </View>
         </ScrollView>
 
         {/* Quiz Tab */}
-        <ScrollView style={styles.scene}>
-          <View style={styles.textContentPadding}>
+        <ScrollView style={styles.scene} showsVerticalScrollIndicator={false}>
+          <View style={styles.noteContainer}>
             {isGenerating ? (
               <View style={styles.loadingContainer}>
                 <LoadingScreen />
               </View>
             ) : note?.quizzes && note.quizzes.length > 0 ? (
-              <QuizComponent
-                quiz={{
-                  ...note.quizzes[0],
-                  title: note.title || "Quiz",
-                }}
-              />
+              <View style={styles.quizContainer}>
+                <QuizComponent
+                  quiz={{
+                    ...note.quizzes[0],
+                    title: note.title || "Quiz",
+                  }}
+                />
+              </View>
             ) : (
               <Animated.View
                 style={styles.emptyStateContainer}
@@ -134,16 +176,18 @@ export default function NoteDetailScreen() {
         </ScrollView>
 
         {/* Flashcards Tab */}
-        <ScrollView style={styles.scene}>
-          <View style={styles.textContentPadding}>
+        <ScrollView style={styles.scene} showsVerticalScrollIndicator={false}>
+          <View style={styles.noteContainer}>
             {isGenerating ? (
               <View style={styles.loadingContainer}>
                 <LoadingScreen />
               </View>
             ) : note?.flashcards && note.flashcards.length > 0 ? (
-              <FlashcardComponent
-                flashcards={mapNoteFlashcardsToUIFlashcards(note.flashcards)}
-              />
+              <View style={styles.flashcardsContainer}>
+                <FlashcardComponent
+                  flashcards={mapNoteFlashcardsToUIFlashcards(note.flashcards)}
+                />
+              </View>
             ) : (
               <Animated.View
                 style={styles.emptyStateContainer}
@@ -192,19 +236,65 @@ const styles = StyleSheet.create({
     alignItems: "center",
     minHeight: 300,
   },
+  noteContainer: {
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    width: "100%",
+  },
+  mediaContainer: {
+    marginBottom: 16,
+    marginHorizontal: 0,
+    borderRadius: 0,
+    overflow: "hidden",
+    width: "100%",
+  },
+  contentCard: {
+    backgroundColor: "transparent",
+    padding: 0,
+    marginHorizontal: 16,
+    marginBottom: 0,
+    marginTop: 0,
+    width: "auto",
+  },
+  noteTextContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    marginTop: 0,
+    width: "100%",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+    backgroundColor: "transparent",
+    minHeight: 150,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "#888",
+    textAlign: "center",
+  },
+  quizContainer: {
+    backgroundColor: "transparent",
+    padding: 0,
+  },
+  flashcardsContainer: {
+    backgroundColor: "transparent",
+    padding: 0,
+  },
   emptyStateContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     minHeight: Dimensions.get("window").height - 250,
     paddingVertical: 40,
-    paddingHorizontal: 16,
+    paddingHorizontal: 0,
   },
   emptyStateCard: {
     width: "100%",
     backgroundColor: "transparent",
-    borderRadius: 20,
-    padding: 24,
+    padding: 0,
     minHeight: 450,
     justifyContent: "center",
   },

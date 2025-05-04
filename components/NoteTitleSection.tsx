@@ -1,43 +1,37 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 interface NoteTitleSectionProps {
   title: string;
   lastModified: string;
-  iconName: keyof typeof MaterialCommunityIcons.glyphMap; // Pass icon name
-  iconColor: string;
-  iconBackgroundColor: string;
+  showFullTitle?: boolean;
+  insideCard?: boolean;
 }
 
 export default function NoteTitleSection({
   title,
   lastModified,
-  iconName,
-  iconColor,
-  iconBackgroundColor,
+  showFullTitle = true,
+  insideCard = false,
 }: NoteTitleSectionProps) {
+  const formattedTitle = title.trim() || "Untitled Note";
+
   return (
-    <View style={styles.titleContainer}>
+    <View
+      style={[
+        styles.titleContainer,
+        insideCard && styles.titleContainerInsideCard,
+      ]}
+    >
       <View style={styles.titleTextContainer}>
-        <Text style={styles.noteTitle} numberOfLines={1} ellipsizeMode="tail">
-          {title}
+        <Text
+          style={styles.noteTitle}
+          numberOfLines={showFullTitle ? undefined : 1}
+          ellipsizeMode={showFullTitle ? undefined : "tail"}
+        >
+          {formattedTitle}
         </Text>
-        <View style={styles.iconContainer}>
-          <Text style={styles.lastModified}>Last Modified: {lastModified}</Text>
-          <View
-            style={[
-              styles.noteIconContainer,
-              { backgroundColor: iconBackgroundColor },
-            ]}
-          >
-            <MaterialCommunityIcons
-              name={iconName}
-              size={24}
-              color={iconColor}
-            />
-          </View>
-        </View>
+        <Text style={styles.lastModified}>Last modified: {lastModified}</Text>
       </View>
     </View>
   );
@@ -46,34 +40,32 @@ export default function NoteTitleSection({
 const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    marginBottom: 10,
+    alignItems: "flex-start",
+    paddingHorizontal: 0,
+    paddingVertical: 16,
+    marginBottom: 0,
+    width: "100%",
   },
-  noteIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-    marginLeft: 12,
+  titleContainerInsideCard: {
+    paddingTop: 16,
+    paddingBottom: 8,
+    backgroundColor: "transparent",
   },
   titleTextContainer: {
     flex: 1,
+    justifyContent: "center",
+    paddingRight: 0,
   },
   noteTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#111",
-    marginBottom: 4,
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#2c3e50",
+    marginBottom: 8,
+    flexWrap: "wrap",
+    paddingRight: 0,
   },
   lastModified: {
-    fontSize: 13,
+    fontSize: 14,
     color: "#888",
-  },
-  iconContainer: {
-    flexDirection: "row",
-    alignItems: "center",
   },
 });
