@@ -168,13 +168,7 @@ export default function NoteDetailScreen() {
                 <LoadingScreen />
               </View>
             ) : note?.flashcards && note.flashcards.length > 0 ? (
-              <FlashcardComponent
-                flashcards={note.flashcards.map((card) => ({
-                  question: card.front,
-                  answer: card.back,
-                  hints: [],
-                }))}
-              />
+              <FlashcardComponent flashcards={note.flashcards} />
             ) : (
               <Animated.View
                 style={styles.emptyStateContainer}
