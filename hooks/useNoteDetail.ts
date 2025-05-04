@@ -49,7 +49,11 @@ export function useNoteDetail(noteId: string): NoteDetailHook {
   const [generationError, setGenerationError] = useState<string | null>(null);
 
   // Query for fetching note details
-  const { data: note, isLoading: loading } = useQuery({
+  const {
+    data: note,
+    isLoading: loading,
+    refetch,
+  } = useQuery({
     queryKey: ["note", noteId],
     queryFn: async () => {
       const response = await getNoteById(noteId);
@@ -59,6 +63,7 @@ export function useNoteDetail(noteId: string): NoteDetailHook {
       return response.data;
     },
   });
+  console.log("note", note);
 
   // Delete note mutation
   const deleteMutation = useMutation({
@@ -104,7 +109,10 @@ export function useNoteDetail(noteId: string): NoteDetailHook {
       if (!response.success) {
         throw new Error(response.message);
       }
-      // Implement materials generation
+      // Refetch note details after successful generation
+      queryClient.invalidateQueries({ queryKey: ["note", noteId] });
+      await refetch();
+      console.log("Materials generated and note refetched");
     } catch (error: any) {
       console.error("Error generating learning materials:", error);
       setGenerationError(
@@ -123,7 +131,7 @@ export function useNoteDetail(noteId: string): NoteDetailHook {
   };
 
   return {
-    note,
+    note: note || null,
     loading,
     activeContentTab,
     scrollViewRef,

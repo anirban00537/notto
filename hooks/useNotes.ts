@@ -10,10 +10,12 @@ import {
   getAllNotes,
   createNote,
   deleteNote,
+  generateLearningMaterials,
 } from "../lib/services/noteService";
 import { CreateNoteDto, Note, NoteType } from "../lib/types/note";
 import { ApiResponse } from "../lib/types/response";
 import { Alert } from "react-native";
+import { FirebaseFirestoreTypes } from "@react-native-firebase/firestore";
 
 // Define the API response structure
 interface NotesApiResponse {
@@ -23,6 +25,7 @@ interface NotesApiResponse {
     totalPages: number;
     totalNotes: number;
     limit: number;
+    lastVisible?: FirebaseFirestoreTypes.QueryDocumentSnapshot;
   };
 }
 
@@ -55,23 +58,31 @@ export function useNotes(userId: string | undefined, folderId: string) {
   } = useInfiniteQuery<ApiResponse<NotesApiResponse>, Error>({
     queryKey: ["notes", { userId, folderId }],
     queryFn: async (context) => {
+      if (!userId) throw new Error("User ID is required");
       const pageParam = context.pageParam as number;
       const limit = 10;
-      console.log(
-        `Fetching notes page: ${pageParam}, limit: ${limit} for userId: ${userId}, folderId: ${folderId}`
-      );
-      const response = await getAllNotes({ page: pageParam, folderId, limit });
-      if (!response.success) {
-        throw new Error(response.message);
-      }
 
-      return response;
+      // Get the last document from the previous page
+      const lastPage = context.pageParam
+        ? (context.queryKey[1] as any).lastVisible
+        : undefined;
+
+      return getAllNotes({
+        page: pageParam,
+        folderId,
+        limit,
+        userId,
+        lastVisible: lastPage,
+      });
     },
     getNextPageParam: (lastPage) => {
       if (!lastPage.success || !lastPage.data) return undefined;
       const pagination = lastPage.data.pagination;
       if (pagination.currentPage < pagination.totalPages) {
-        return pagination.currentPage + 1;
+        return {
+          page: pagination.currentPage + 1,
+          lastVisible: pagination.lastVisible,
+        };
       }
       return undefined;
     },
@@ -170,6 +181,36 @@ export function useNotes(userId: string | undefined, folderId: string) {
     },
   });
 
+  // Generate Materials Mutation
+  const generateMaterialsMutation = useMutation({
+    mutationFn: generateLearningMaterials,
+    onSuccess: async (response, noteId) => {
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+      // Invalidate and refetch the specific note query
+      await queryClient.invalidateQueries({ queryKey: ["note", noteId] });
+      // Also invalidate the notes list to update any cached data
+      await queryClient.invalidateQueries({
+        queryKey: ["notes", { userId, folderId }],
+      });
+      console.log("Materials generated and note refetched");
+    },
+    onError: (error: any) => {
+      console.error("Error generating materials:", error);
+      Alert.alert("Error", error.message || "Failed to generate materials");
+    },
+  });
+
+  const handleGenerateMaterials = async (noteId: string) => {
+    try {
+      await generateMaterialsMutation.mutateAsync(noteId);
+    } catch (error) {
+      // Error is handled in onError callback
+      console.error("Failed to generate materials:", error);
+    }
+  };
+
   // Handlers for YouTube Modal
   const handleAddYouTube = () => {
     setYoutubeUrl("");
@@ -236,5 +277,7 @@ export function useNotes(userId: string | undefined, folderId: string) {
     createNoteWithFolder,
     handleDeleteNote,
     isDeletingNote: deleteNoteMutation.isPending,
+    handleGenerateMaterials,
+    isGeneratingMaterials: generateMaterialsMutation.isPending,
   };
 }
