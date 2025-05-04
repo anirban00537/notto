@@ -520,7 +520,7 @@ export default function RecordScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f0f7ff" />
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -556,7 +556,7 @@ export default function RecordScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#ffffff",
   },
   header: {
     flexDirection: "row",
@@ -564,7 +564,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
   headerTitle: {
     fontSize: 20,
@@ -582,7 +584,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 24,
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#ffffff",
   },
   recordingContainer: {
     flex: 1,
@@ -591,7 +593,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 40,
     paddingBottom: 40,
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#ffffff",
   },
   waveformContainer: {
     height: 150,
@@ -599,22 +601,21 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 40,
-    overflow: "hidden", // Hide parts of dots that go too high/low if needed
+    overflow: "hidden",
   },
   dotsContainer: {
     flexDirection: "row",
-    alignItems: "flex-end", // Align bars to the bottom
-    height: 80, // Set container height to max bar height
+    alignItems: "flex-end",
+    height: 80,
     width: "95%",
     justifyContent: "space-around",
-    overflow: "hidden", // Prevent bars from exceeding container during animation peaks
+    overflow: "hidden",
   },
   bar: {
-    width: 4, // Width of each bar
-    height: 80, // Set fixed height to maxHeight
+    width: 4,
+    height: 80,
     borderRadius: 2,
-    backgroundColor: "#4A90E2", // Keep the blue color
-    // Removed height animation, using scaleY now
+    backgroundColor: "#4A90E2",
   },
   activeBar: {
     backgroundColor: "#FF6B6B",
@@ -652,11 +653,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#2c3e50",
     justifyContent: "center",
     alignItems: "center",
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    borderWidth: 0,
   },
   stopButtonOuter: {
     width: 80,
@@ -727,11 +724,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: "#e5e5ea",
   },
   discardButton: {
     width: 48,

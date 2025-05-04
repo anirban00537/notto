@@ -96,7 +96,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f0f7ff" />
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -157,7 +157,7 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#ffffff",
   },
   header: {
     flexDirection: "row",
@@ -165,9 +165,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#ffffff",
     borderBottomWidth: 1,
-    borderBottomColor: "#e6f0ff",
+    borderBottomColor: "#f0f0f0",
   },
   backButton: {
     padding: 8,
@@ -189,9 +189,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#fff",
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e6f0ff",
+    borderColor: "#f0f0f0",
     padding: 16,
     marginTop: 16,
   },
@@ -241,17 +241,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 16,
     marginTop: 16,
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: "#FFD700",
-    shadowColor: "#FFD700",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.15,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
   premiumContent: {
     flexDirection: "row",
@@ -285,7 +277,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     padding: 16,
     marginTop: 32,
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: "#ffebeb",
   },
