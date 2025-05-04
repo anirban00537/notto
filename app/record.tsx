@@ -12,6 +12,8 @@ import {
   StatusBar,
   Alert,
   Vibration,
+  Dimensions,
+  Image,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
@@ -21,6 +23,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createNote } from "../lib/services";
 import { CreateNoteDto, NoteType, Note } from "../lib/types/note";
 import ProcessingModal from "../components/ProcessingModal";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface CreateNoteResponse {
   data?: Note;
@@ -30,9 +33,9 @@ interface CreateNoteResponse {
 
 // Enhanced Waveform Animation Component
 const WaveformAnimation = ({ isRecording }: { isRecording: boolean }) => {
-  const numBars = 50;
+  const numBars = 60;
   const baseDuration = isRecording ? 800 : 1200;
-  const maxHeight = 80;
+  const maxHeight = 100;
   const minHeight = 5;
   const scrollDelayFactor = isRecording ? 15 : 25;
 
@@ -44,8 +47,8 @@ const WaveformAnimation = ({ isRecording }: { isRecording: boolean }) => {
     const animations = animatedValues.map((val, index) => {
       const randomDuration = baseDuration + Math.random() * 200 - 100;
       const randomTargetScale = isRecording
-        ? minHeight / maxHeight + Math.random() * (1.2 - minHeight / maxHeight)
-        : minHeight / maxHeight + Math.random() * (0.8 - minHeight / maxHeight);
+        ? minHeight / maxHeight + Math.random() * (1.5 - minHeight / maxHeight)
+        : minHeight / maxHeight + Math.random() * (0.9 - minHeight / maxHeight);
       const scrollDelay = index * scrollDelayFactor;
 
       return Animated.loop(
@@ -76,20 +79,75 @@ const WaveformAnimation = ({ isRecording }: { isRecording: boolean }) => {
 
   return (
     <View style={styles.waveformContainer}>
+      <LinearGradient
+        colors={["rgba(44, 62, 80, 0.03)", "rgba(44, 62, 80, 0.07)"]}
+        style={styles.waveformBackground}
+      />
       <View style={styles.dotsContainer}>
         {animatedValues.map((animatedScaleY, index) => {
+          const isMiddle = index > numBars * 0.3 && index < numBars * 0.7;
           return (
             <Animated.View
               key={index}
               style={[
                 styles.bar,
+                isMiddle && styles.barMiddle,
                 { transform: [{ scaleY: animatedScaleY }] },
-                isRecording && styles.activeBar,
+                isRecording &&
+                  (isMiddle ? styles.activeBarMiddle : styles.activeBar),
               ]}
             />
           );
         })}
       </View>
+    </View>
+  );
+};
+
+// Pulsating Record Button Component
+const PulsatingRecordButton = ({ onPress }: { onPress: () => void }) => {
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.2,
+          duration: 1000,
+          easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  return (
+    <View style={styles.pulsingButtonContainer}>
+      <Animated.View
+        style={[
+          styles.pulseEffect,
+          {
+            transform: [{ scale: pulseAnim }],
+            opacity: pulseAnim.interpolate({
+              inputRange: [1, 1.2],
+              outputRange: [0.5, 0],
+            }),
+          },
+        ]}
+      />
+      <TouchableOpacity
+        style={styles.startButton}
+        onPress={onPress}
+        activeOpacity={0.8}
+      >
+        <MaterialCommunityIcons name="microphone" size={32} color="#FFF" />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -414,14 +472,28 @@ export default function RecordScreen() {
 
   const renderRecordingUI = () => (
     <View style={styles.recordingContainer}>
-      <WaveformAnimation isRecording={mode === "recording"} />
-      <View style={styles.controlsContainer}>
+      {/* Decorative circles */}
+      <View style={[styles.decorCircle, styles.decorCircle1]} />
+      <View style={[styles.decorCircle, styles.decorCircle2]} />
+
+      {/* Timer display with animated background */}
+      <View style={styles.timerContainer}>
         <Text style={styles.timerText}>
           {mode === "playing"
             ? formatTime(playbackPosition)
             : formatTime(recordingDuration)}
         </Text>
+        {mode === "recording" && (
+          <View style={styles.recordingIndicator}>
+            <View style={styles.recordingDot} />
+            <Text style={styles.recordingIndicatorText}>Recording</Text>
+          </View>
+        )}
+      </View>
 
+      <WaveformAnimation isRecording={mode === "recording"} />
+
+      <View style={styles.controlsContainer}>
         {mode === "recording" ? (
           <TouchableOpacity
             style={styles.stopButtonOuter}
@@ -497,24 +569,27 @@ export default function RecordScreen() {
 
   const renderIdle = () => (
     <View style={styles.centerContainer}>
+      {/* Decorative elements */}
+      <View style={[styles.decorCircle, styles.decorCircle1]} />
+      <View style={[styles.decorCircle, styles.decorCircle2]} />
+
       <View style={styles.recordingHint}>
+        <LinearGradient
+          colors={["rgba(44, 62, 80, 0.05)", "rgba(44, 62, 80, 0.1)"]}
+          style={[styles.hintBackground, { borderRadius: 15 }]}
+        />
         <MaterialCommunityIcons
           name="microphone"
           size={48}
-          color="#FFF"
+          color="#2c3e50"
           style={styles.hintIcon}
         />
         <Text style={styles.hintText}>
           Tap the button below to start recording
         </Text>
       </View>
-      <TouchableOpacity
-        style={styles.startButton}
-        onPress={startRecording}
-        activeOpacity={0.8}
-      >
-        <MaterialCommunityIcons name="microphone" size={32} color="#FFF" />
-      </TouchableOpacity>
+
+      <PulsatingRecordButton onPress={startRecording} />
     </View>
   );
 
@@ -534,7 +609,7 @@ export default function RecordScreen() {
           />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
-          {mode === "recording" ? "Recording..." : "Live Recording"}
+          {mode === "recording" ? "Recording..." : "Voice Notes"}
         </Text>
         <View style={styles.headerRight} />
       </View>
@@ -552,6 +627,8 @@ export default function RecordScreen() {
     </SafeAreaView>
   );
 }
+
+const { width, height } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   container: {
@@ -571,7 +648,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: "600",
-    color: "#111",
+    color: "#2c3e50",
   },
   backButton: {
     padding: 8,
@@ -585,40 +662,79 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 24,
     backgroundColor: "#ffffff",
+    position: "relative",
+    overflow: "hidden",
   },
   recordingContainer: {
     flex: 1,
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 24,
-    paddingTop: 40,
+    paddingTop: 20,
     paddingBottom: 40,
     backgroundColor: "#ffffff",
+    position: "relative",
+    overflow: "hidden",
+  },
+  decorCircle: {
+    position: "absolute",
+    borderRadius: 1000,
+    backgroundColor: "rgba(44, 62, 80, 0.03)",
+  },
+  decorCircle1: {
+    width: width * 0.8,
+    height: width * 0.8,
+    top: -width * 0.4,
+    left: -width * 0.2,
+  },
+  decorCircle2: {
+    width: width * 0.7,
+    height: width * 0.7,
+    bottom: -width * 0.2,
+    right: -width * 0.2,
+    backgroundColor: "rgba(255, 107, 107, 0.03)",
   },
   waveformContainer: {
-    height: 150,
+    height: 170,
     width: "100%",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 40,
     overflow: "hidden",
+    position: "relative",
+  },
+  waveformBackground: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    borderRadius: 16,
   },
   dotsContainer: {
     flexDirection: "row",
     alignItems: "flex-end",
-    height: 80,
+    height: 100,
     width: "95%",
     justifyContent: "space-around",
     overflow: "hidden",
   },
   bar: {
-    width: 4,
-    height: 80,
-    borderRadius: 2,
+    width: 3,
+    height: 100,
+    borderRadius: 4,
     backgroundColor: "#4A90E2",
+    opacity: 0.7,
+  },
+  barMiddle: {
+    width: 5,
+    backgroundColor: "#4A90E2",
+    opacity: 0.9,
   },
   activeBar: {
     backgroundColor: "#FF6B6B",
+  },
+  activeBarMiddle: {
+    backgroundColor: "#FF4A4A",
+    width: 5,
   },
   controlsContainer: {
     alignItems: "center",
@@ -627,24 +743,75 @@ const styles = StyleSheet.create({
   recordingHint: {
     alignItems: "center",
     marginBottom: 60,
-    padding: 20,
+    padding: 30,
+    position: "relative",
+    borderRadius: 15,
+    width: "90%",
+  },
+  hintBackground: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   hintIcon: {
     marginBottom: 16,
     color: "#2c3e50",
   },
   hintText: {
-    fontSize: 16,
-    color: "#555",
+    fontSize: 18,
+    color: "#2c3e50",
     textAlign: "center",
-    lineHeight: 22,
+    lineHeight: 24,
+    fontWeight: "500",
+  },
+  timerContainer: {
+    alignItems: "center",
+    marginBottom: 20,
+    width: "100%",
+    paddingVertical: 16,
+    backgroundColor: "rgba(44, 62, 80, 0.03)",
+    borderRadius: 16,
   },
   timerText: {
-    fontSize: 48,
+    fontSize: 60,
     fontWeight: "300",
-    color: "#111",
-    marginBottom: 40,
+    color: "#2c3e50",
     fontVariant: ["tabular-nums"],
+    letterSpacing: 2,
+  },
+  recordingIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+  },
+  recordingDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "#FF4A4A",
+    marginRight: 8,
+    opacity: 0.8,
+  },
+  recordingIndicatorText: {
+    fontSize: 14,
+    color: "#FF4A4A",
+    fontWeight: "500",
+  },
+  pulsingButtonContainer: {
+    position: "relative",
+    width: 100,
+    height: 100,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  pulseEffect: {
+    position: "absolute",
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#2c3e50",
   },
   startButton: {
     width: 80,
@@ -663,6 +830,8 @@ const styles = StyleSheet.create({
     borderColor: "#2c3e50",
     justifyContent: "center",
     alignItems: "center",
+    marginBottom: 16,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
   },
   stopButtonInner: {
     width: 35,
@@ -685,7 +854,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     borderRadius: 30,
     minWidth: "80%",
-    marginTop: "auto",
+    marginTop: 40,
   },
   disabledButton: {
     opacity: 0.5,
