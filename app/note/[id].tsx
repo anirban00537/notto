@@ -1,5 +1,9 @@
 import React from "react";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+import {
+  GestureHandlerRootView,
+  Gesture,
+  GestureDetector,
+} from "react-native-gesture-handler";
 import AudioPreview from "../../components/AudioPreview";
 import PDFPreview from "../../components/PDFPreview";
 import {
@@ -10,12 +14,18 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  Button,
+  Dimensions,
 } from "react-native";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNoteDetail } from "../../hooks/useNoteDetail";
+import { useNoteDetail, ContentTab } from "../../hooks/useNoteDetail";
 import { format } from "date-fns";
+import Animated, {
+  useAnimatedStyle,
+  withSpring,
+  useSharedValue,
+  runOnJS,
+} from "react-native-reanimated";
 
 // Import the new components
 import NoteDetailHeader from "../../components/NoteDetailHeader";
@@ -51,6 +61,48 @@ export default function NoteDetailScreen() {
     handleDeleteNote,
   } = useNoteDetail(id);
 
+  const { width } = Dimensions.get("window");
+  const translateX = useSharedValue(0);
+
+  const tabs: ContentTab[] = [
+    "note",
+    "transcript",
+    "summary",
+    "quiz",
+    "flashcards",
+  ];
+  const currentTabIndex = tabs.indexOf(activeContentTab);
+
+  const gesture = Gesture.Pan()
+    .onBegin(() => {
+      translateX.value = 0;
+    })
+    .onUpdate((event) => {
+      translateX.value = event.translationX;
+    })
+    .onEnd((event) => {
+      const swipeThreshold = width * 0.2;
+      if (Math.abs(event.translationX) > swipeThreshold) {
+        if (event.translationX > 0 && currentTabIndex > 0) {
+          // Swipe right
+          runOnJS(handleTabPress)(tabs[currentTabIndex - 1] as ContentTab);
+        } else if (
+          event.translationX < 0 &&
+          currentTabIndex < tabs.length - 1
+        ) {
+          // Swipe left
+          runOnJS(handleTabPress)(tabs[currentTabIndex + 1] as ContentTab);
+        }
+      }
+      translateX.value = withSpring(0);
+    });
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: translateX.value }],
+    };
+  });
+
   if (loading) return <LoadingScreen />;
   if (!note) return <Text>Note not found</Text>;
 
@@ -70,6 +122,109 @@ export default function NoteDetailScreen() {
     }
   };
 
+  const renderContent = () => {
+    switch (activeContentTab) {
+      case "note":
+        return (
+          <>
+            <NoteTitleSection
+              title={note.title}
+              lastModified={
+                note.updatedAt instanceof Date
+                  ? format(note.updatedAt, "MMM d, yyyy")
+                  : format(
+                      new Date(note.updatedAt || Date.now()),
+                      "MMM d, yyyy"
+                    )
+              }
+              iconName={iconProps.name as any}
+              iconColor={iconProps.color}
+              iconBackgroundColor={iconProps.bgColor}
+            />
+            {note.sourceUrl && note.noteType === "youtube" && (
+              <YouTubePreview directPlayableUrl={note.sourceUrl} />
+            )}
+            {note.sourceUrl && note.noteType === "audio" && (
+              <AudioPreview directPlayableUrl={note.sourceUrl} />
+            )}
+            {note.sourceUrl && note.noteType === "pdf" && (
+              <PDFPreview directPlayableUrl={note.sourceUrl} />
+            )}
+            <View style={styles.textContentPadding}>
+              {note.note && <NoteContent content={note.note} />}
+            </View>
+          </>
+        );
+      case "transcript":
+        return (
+          note.fullText && <TranscriptContent transcript={note.fullText} />
+        );
+      case "summary":
+        return (
+          note.summary && (
+            <View style={styles.textContentPadding}>
+              <SummaryContent content={note.summary} />
+            </View>
+          )
+        );
+      case "quiz":
+        return (
+          <View style={styles.textContentPadding}>
+            {isGenerating ? (
+              <View style={styles.loadingContainer}>
+                <LoadingScreen />
+              </View>
+            ) : note.quizzes && note.quizzes.length > 0 ? (
+              <QuizComponent
+                quiz={{
+                  ...note.quizzes[0],
+                  title: note.title || "Quiz",
+                }}
+              />
+            ) : (
+              <EmptyState
+                iconName="clipboard-edit-outline"
+                message="No quiz available yet."
+                buttonText="Generate Quiz & Flashcards"
+                onPress={handleGenerateMaterials}
+                loading={isGenerating}
+                disabled={isGenerating}
+              />
+            )}
+          </View>
+        );
+      case "flashcards":
+        return (
+          <View style={styles.textContentPadding}>
+            {isGenerating ? (
+              <View style={styles.loadingContainer}>
+                <LoadingScreen />
+              </View>
+            ) : note.flashcards && note.flashcards.length > 0 ? (
+              <FlashcardComponent
+                flashcards={note.flashcards.map((card) => ({
+                  question: card.front,
+                  answer: card.back,
+                  hints: [],
+                }))}
+              />
+            ) : (
+              <EmptyState
+                iconName="cards-outline"
+                message="No flashcards available yet."
+                buttonText="Generate Quiz & Flashcards"
+                onPress={handleGenerateMaterials}
+                loading={isGenerating}
+                disabled={isGenerating}
+              />
+            )}
+          </View>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.safeArea} edges={["bottom", "left", "right"]}>
@@ -80,107 +235,19 @@ export default function NoteDetailScreen() {
           onOptionsPress={handleOptionsPress}
           onDelete={onDelete}
         />
-        <ScrollView
-          ref={scrollViewRef}
-          style={styles.scrollView}
-          contentContainerStyle={styles.scrollContentContainer}
-          showsVerticalScrollIndicator={false}
-        >
-          <ContentTabs
-            activeTab={activeContentTab}
-            onTabPress={handleTabPress}
-          />
-          {activeContentTab === "note" && (
-            <>
-              <NoteTitleSection
-                title={note.title}
-                lastModified={
-                  note.updatedAt instanceof Date
-                    ? format(note.updatedAt, "MMM d, yyyy")
-                    : format(
-                        new Date(note.updatedAt || Date.now()),
-                        "MMM d, yyyy"
-                      )
-                }
-                iconName={iconProps.name as any}
-                iconColor={iconProps.color}
-                iconBackgroundColor={iconProps.bgColor}
-              />
-              {note.sourceUrl && note.noteType === "youtube" && (
-                <YouTubePreview directPlayableUrl={note.sourceUrl} />
-              )}
-              {note.sourceUrl && note.noteType === "audio" && (
-                <AudioPreview directPlayableUrl={note.sourceUrl} />
-              )}
-              {note.sourceUrl && note.noteType === "pdf" && (
-                <PDFPreview directPlayableUrl={note.sourceUrl} />
-              )}
-
-              <View style={styles.textContentPadding}>
-                {note.note && <NoteContent content={note.note} />}
-              </View>
-            </>
-          )}
-          {activeContentTab === "transcript" && note.fullText && (
-            <TranscriptContent transcript={note.fullText} />
-          )}
-          {activeContentTab === "summary" && note.summary && (
-            <View style={styles.textContentPadding}>
-              <SummaryContent content={note.summary} />
-            </View>
-          )}
-          {activeContentTab === "quiz" && (
-            <View style={styles.textContentPadding}>
-              {isGenerating ? (
-                <View style={styles.loadingContainer}>
-                  <LoadingScreen />
-                </View>
-              ) : note.quizzes && note.quizzes.length > 0 ? (
-                <QuizComponent
-                  quiz={{
-                    ...note.quizzes[0],
-                    title: note.title || "Quiz",
-                  }}
-                />
-              ) : (
-                <EmptyState
-                  iconName="clipboard-edit-outline"
-                  message="No quiz available yet."
-                  buttonText="Generate Quiz & Flashcards"
-                  onPress={handleGenerateMaterials}
-                  loading={isGenerating}
-                  disabled={isGenerating}
-                />
-              )}
-            </View>
-          )}
-          {activeContentTab === "flashcards" && (
-            <View style={styles.textContentPadding}>
-              {isGenerating ? (
-                <View style={styles.loadingContainer}>
-                  <LoadingScreen />
-                </View>
-              ) : note.flashcards && note.flashcards.length > 0 ? (
-                <FlashcardComponent
-                  flashcards={note.flashcards.map((card) => ({
-                    question: card.front,
-                    answer: card.back,
-                    hints: [],
-                  }))}
-                />
-              ) : (
-                <EmptyState
-                  iconName="cards-outline"
-                  message="No flashcards available yet."
-                  buttonText="Generate Quiz & Flashcards"
-                  onPress={handleGenerateMaterials}
-                  loading={isGenerating}
-                  disabled={isGenerating}
-                />
-              )}
-            </View>
-          )}
-        </ScrollView>
+        <ContentTabs activeTab={activeContentTab} onTabPress={handleTabPress} />
+        <GestureDetector gesture={gesture}>
+          <Animated.View style={[{ flex: 1 }, animatedStyle]}>
+            <ScrollView
+              ref={scrollViewRef}
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollContentContainer}
+              showsVerticalScrollIndicator={false}
+            >
+              {renderContent()}
+            </ScrollView>
+          </Animated.View>
+        </GestureDetector>
       </SafeAreaView>
     </GestureHandlerRootView>
   );

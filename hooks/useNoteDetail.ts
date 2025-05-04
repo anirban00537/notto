@@ -10,7 +10,12 @@ import { Note } from "../lib/types/note";
 import { ApiResponse } from "../lib/types/response";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-type ContentTab = "note" | "transcript" | "summary" | "quiz" | "flashcards";
+export type ContentTab =
+  | "note"
+  | "transcript"
+  | "summary"
+  | "quiz"
+  | "flashcards";
 
 interface IconProps {
   name: string;
