@@ -257,7 +257,6 @@ const styles = StyleSheet.create({
     width: "auto",
   },
   noteTextContainer: {
-    paddingHorizontal: 16,
     paddingVertical: 16,
     marginTop: 0,
     width: "100%",
