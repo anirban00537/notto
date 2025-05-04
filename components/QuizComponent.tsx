@@ -1,27 +1,5 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Dimensions,
-  ScrollView,
-} from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSequence,
-  withDelay,
-  Easing,
-  FadeIn,
-  FadeOut,
-  SlideInRight,
-  ZoomIn,
-} from "react-native-reanimated";
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
 type Question = {
   question: string;
@@ -39,79 +17,21 @@ interface QuizComponentProps {
   quiz: Quiz;
 }
 
-const AnimatedTouchableOpacity =
-  Animated.createAnimatedComponent(TouchableOpacity);
-
 export default function QuizComponent({ quiz }: QuizComponentProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
   const [score, setScore] = useState(0);
-  const progressValue = useSharedValue(0);
-  const shake = useSharedValue(0);
-  const bounce = useSharedValue(0);
 
-  const hasQuestions = quiz.questions && quiz.questions.length > 0;
-  const currentQuestion = hasQuestions
-    ? quiz.questions[currentQuestionIndex]
-    : null;
-  const isLastQuestion = hasQuestions
-    ? currentQuestionIndex === quiz.questions.length - 1
-    : false;
-  const progress = hasQuestions
-    ? ((currentQuestionIndex + 1) / quiz.questions.length) * 100
-    : 0;
-
-  useEffect(() => {
-    // Animate progress bar when current question changes
-    progressValue.value = withTiming(progress / 100, {
-      duration: 800,
-      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-    });
-  }, [currentQuestionIndex, quiz.questions]);
-
-  const progressAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      width: `${progressValue.value * 100}%`,
-    };
-  });
-
-  const shakeAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateX: shake.value }],
-    };
-  });
-
-  const bounceAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: bounce.value }],
-    };
-  });
+  const currentQuestion = quiz.questions[currentQuestionIndex];
+  const isLastQuestion = currentQuestionIndex === quiz.questions.length - 1;
 
   const handleAnswerSelect = (answer: string) => {
     setSelectedAnswer(answer);
-
-    // Animate based on correct/incorrect answer
-    if (answer === currentQuestion?.correctAnswer) {
-      bounce.value = withSequence(
-        withTiming(1.1, { duration: 200 }),
-        withTiming(1, { duration: 200 })
-      );
+    setShowExplanation(true);
+    if (answer === currentQuestion.correctAnswer) {
       setScore(score + 1);
-    } else {
-      shake.value = withSequence(
-        withTiming(-10, { duration: 50 }),
-        withTiming(10, { duration: 50 }),
-        withTiming(-7, { duration: 50 }),
-        withTiming(7, { duration: 50 }),
-        withTiming(0, { duration: 50 })
-      );
     }
-
-    // Show explanation with slight delay
-    setTimeout(() => {
-      setShowExplanation(true);
-    }, 500);
   };
 
   const handleNextQuestion = () => {
@@ -127,429 +47,150 @@ export default function QuizComponent({ quiz }: QuizComponentProps) {
     setScore(0);
   };
 
-  if (!hasQuestions) {
-    return (
-      <Animated.View
-        style={styles.emptyContainer}
-        entering={FadeIn.duration(400)}
-      >
-        <Animated.View
-          style={styles.emptyCard}
-          entering={ZoomIn.delay(300).duration(600)}
-        >
-          <MaterialCommunityIcons
-            name="clipboard-text-outline"
-            size={60}
-            color="#b5c7d3"
-          />
-          <Text style={styles.emptyTitle}>No Quiz Available</Text>
-          <Text style={styles.emptyText}>
-            There are no quiz questions available for this note yet.
-          </Text>
-        </Animated.View>
-      </Animated.View>
-    );
-  }
-
   return (
-    <ScrollView
-      style={styles.scrollContainer}
-      contentContainerStyle={styles.scrollContent}
-    >
-      <Animated.View style={styles.container} entering={FadeIn.duration(300)}>
-        <View style={styles.header}>
-          <Text style={styles.quizTitle}>{quiz.title}</Text>
-          <View style={styles.progressBarContainer}>
-            <Animated.View
-              style={[styles.progressBarFill, progressAnimatedStyle]}
-            />
-          </View>
-          <Text style={styles.progressText}>
-            Question {currentQuestionIndex + 1} of {quiz.questions.length}
-          </Text>
-        </View>
+    <View style={styles.container}>
+      <Text style={styles.quizTitle}>{quiz.title}</Text>
 
-        <Animated.View
-          style={[styles.questionCard, shakeAnimatedStyle]}
-          entering={SlideInRight.duration(300)}
-        >
-          <MaterialCommunityIcons
-            name="help-circle-outline"
-            size={24}
-            color="#2c3e50"
-            style={styles.questionIcon}
-          />
-          <Text style={styles.questionText}>{currentQuestion?.question}</Text>
+      <View style={styles.questionContainer}>
+        <Text style={styles.questionText}>
+          {currentQuestionIndex + 1}. {currentQuestion.question}
+        </Text>
 
-          <View style={styles.optionsContainer}>
-            {currentQuestion?.options.map((option, index) => (
-              <AnimatedTouchableOpacity
-                key={index}
-                style={[
-                  styles.optionButton,
-                  selectedAnswer === option && styles.selectedOption,
-                  showExplanation &&
-                    option === currentQuestion.correctAnswer &&
-                    styles.correctOption,
-                  showExplanation &&
-                    selectedAnswer === option &&
-                    option !== currentQuestion.correctAnswer &&
-                    styles.incorrectOption,
-                ]}
-                onPress={() => !showExplanation && handleAnswerSelect(option)}
-                disabled={showExplanation}
-                entering={FadeIn.delay(200 + index * 100).duration(300)}
+        {currentQuestion.options.map((option, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.optionButton,
+              selectedAnswer === option && styles.selectedOption,
+              showExplanation &&
+                option === currentQuestion.correctAnswer &&
+                styles.correctOption,
+              showExplanation &&
+                selectedAnswer === option &&
+                option !== currentQuestion.correctAnswer &&
+                styles.incorrectOption,
+            ]}
+            onPress={() => !showExplanation && handleAnswerSelect(option)}
+            disabled={showExplanation}
+          >
+            <Text style={styles.optionText}>{option}</Text>
+          </TouchableOpacity>
+        ))}
+
+        {showExplanation && (
+          <View style={styles.explanationContainer}>
+            <Text style={styles.explanationText}>
+              {currentQuestion.explanation}
+            </Text>
+
+            {!isLastQuestion ? (
+              <TouchableOpacity
+                style={styles.nextButton}
+                onPress={handleNextQuestion}
               >
-                <Text
-                  style={[
-                    styles.optionText,
-                    showExplanation &&
-                      option === currentQuestion.correctAnswer &&
-                      styles.correctOptionText,
-                    showExplanation &&
-                      selectedAnswer === option &&
-                      option !== currentQuestion.correctAnswer &&
-                      styles.incorrectOptionText,
-                  ]}
-                >
-                  {option}
+                <Text style={styles.nextButtonText}>Next Question</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.resultContainer}>
+                <Text style={styles.resultText}>
+                  You scored {score} out of {quiz.questions.length}
                 </Text>
-                {showExplanation &&
-                  option === currentQuestion.correctAnswer && (
-                    <MaterialCommunityIcons
-                      name="check-circle"
-                      size={20}
-                      color="#4caf50"
-                    />
-                  )}
-                {showExplanation &&
-                  selectedAnswer === option &&
-                  option !== currentQuestion.correctAnswer && (
-                    <MaterialCommunityIcons
-                      name="close-circle"
-                      size={20}
-                      color="#f44336"
-                    />
-                  )}
-              </AnimatedTouchableOpacity>
-            ))}
-          </View>
-
-          {showExplanation && (
-            <Animated.View
-              style={styles.explanationContainer}
-              entering={FadeIn.duration(400)}
-            >
-              <MaterialCommunityIcons
-                name="lightbulb-outline"
-                size={22}
-                color="#f39c12"
-                style={styles.explanationIcon}
-              />
-              <Text style={styles.explanationText}>
-                {currentQuestion?.explanation}
-              </Text>
-
-              {!isLastQuestion ? (
-                <Animated.View style={bounceAnimatedStyle}>
-                  <TouchableOpacity
-                    style={styles.nextButton}
-                    onPress={handleNextQuestion}
-                  >
-                    <Text style={styles.nextButtonText}>Next Question</Text>
-                    <MaterialCommunityIcons
-                      name="arrow-right"
-                      size={20}
-                      color="white"
-                    />
-                  </TouchableOpacity>
-                </Animated.View>
-              ) : (
-                <Animated.View
-                  style={styles.resultContainer}
-                  entering={FadeIn.delay(300).duration(400)}
+                <TouchableOpacity
+                  style={styles.restartButton}
+                  onPress={handleRestartQuiz}
                 >
-                  <View style={styles.scoreContainer}>
-                    <Text style={styles.scoreTitle}>Your Score</Text>
-                    <Text style={styles.scoreValue}>
-                      {score} / {quiz.questions.length}
-                    </Text>
-                    <View style={styles.scoreBar}>
-                      <View
-                        style={[
-                          styles.scoreBarFill,
-                          {
-                            width: `${(score / quiz.questions.length) * 100}%`,
-                          },
-                        ]}
-                      />
-                    </View>
-                    <Text style={styles.scorePercentage}>
-                      {Math.round((score / quiz.questions.length) * 100)}%
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.restartButton}
-                    onPress={handleRestartQuiz}
-                  >
-                    <MaterialCommunityIcons
-                      name="refresh"
-                      size={20}
-                      color="white"
-                    />
-                    <Text style={styles.restartButtonText}>Restart Quiz</Text>
-                  </TouchableOpacity>
-                </Animated.View>
-              )}
-            </Animated.View>
-          )}
-        </Animated.View>
-      </Animated.View>
-    </ScrollView>
+                  <Text style={styles.restartButtonText}>Restart Quiz</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        )}
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flex: 1,
-    backgroundColor: "#f0f7ff",
-  },
-  scrollContent: {
-    minHeight: SCREEN_HEIGHT - 240,
-    paddingBottom: 30,
-  },
   container: {
-    flex: 1,
     padding: 16,
-  },
-  header: {
-    marginBottom: 20,
   },
   quizTitle: {
-    fontSize: 22,
-    fontWeight: "700",
+    fontSize: 18,
+    fontWeight: "bold",
     marginBottom: 16,
-    color: "#1e293b",
-    textAlign: "center",
+    color: "#2c3e50",
   },
-  progressBarContainer: {
-    height: 6,
-    backgroundColor: "#e6f0ff",
-    borderRadius: 3,
-    overflow: "hidden",
-    marginBottom: 8,
-  },
-  progressBarFill: {
-    height: "100%",
-    backgroundColor: "#3498db",
-    borderRadius: 3,
-  },
-  progressText: {
-    fontSize: 14,
-    color: "#64748b",
-    textAlign: "center",
-    marginBottom: 10,
-  },
-  questionCard: {
-    backgroundColor: "white",
-    borderRadius: 16,
-    padding: 24,
+  questionContainer: {
     marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-  },
-  questionIcon: {
-    marginBottom: 16,
-    alignSelf: "center",
-    color: "#64748b",
   },
   questionText: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 24,
-    color: "#1e293b",
-    textAlign: "center",
-    lineHeight: 26,
-  },
-  optionsContainer: {
-    marginBottom: 16,
+    fontSize: 16,
+    marginBottom: 12,
+    color: "#2c3e50",
   },
   optionButton: {
-    backgroundColor: "#f8fafc",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
     borderWidth: 1,
-    borderColor: "#e2e8f0",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    borderColor: "#e6f0ff",
   },
   optionText: {
-    fontSize: 16,
-    color: "#1e293b",
-    flex: 1,
+    fontSize: 14,
+    color: "#2c3e50",
   },
   selectedOption: {
     backgroundColor: "#e3f2fd",
-    borderColor: "#2196f3",
+    borderColor: "#1976d2",
   },
   correctOption: {
-    backgroundColor: "#f0fdf4",
-    borderColor: "#22c55e",
+    backgroundColor: "#e8f5e9",
+    borderColor: "#4caf50",
   },
   incorrectOption: {
-    backgroundColor: "#fef2f2",
-    borderColor: "#ef4444",
-  },
-  correctOptionText: {
-    color: "#16a34a",
-    fontWeight: "600",
-  },
-  incorrectOptionText: {
-    color: "#dc2626",
-    fontWeight: "600",
+    backgroundColor: "#ffebee",
+    borderColor: "#f44336",
   },
   explanationContainer: {
-    marginTop: 20,
-    padding: 16,
-    backgroundColor: "#fef3c7",
-    borderRadius: 12,
-    borderLeftWidth: 4,
-    borderLeftColor: "#f59e0b",
-  },
-  explanationIcon: {
-    marginBottom: 8,
-    color: "#92400e",
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 8,
   },
   explanationText: {
-    fontSize: 15,
-    color: "#92400e",
-    marginBottom: 20,
-    lineHeight: 22,
+    fontSize: 14,
+    color: "#616161",
+    marginBottom: 12,
   },
   nextButton: {
-    backgroundColor: "#3498db",
-    padding: 16,
-    borderRadius: 12,
-    flexDirection: "row",
+    backgroundColor: "#2c3e50",
+    padding: 12,
+    borderRadius: 8,
     alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
   },
   nextButtonText: {
     color: "white",
-    fontWeight: "600",
-    fontSize: 16,
-    marginRight: 8,
+    fontWeight: "bold",
   },
   resultContainer: {
     alignItems: "center",
   },
-  scoreContainer: {
-    width: "100%",
-    alignItems: "center",
-    marginBottom: 24,
-    backgroundColor: "#f8fafc",
-    padding: 20,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-  },
-  scoreTitle: {
+  resultText: {
     fontSize: 16,
-    fontWeight: "600",
-    color: "#64748b",
-    marginBottom: 12,
-  },
-  scoreValue: {
-    fontSize: 36,
-    fontWeight: "700",
-    color: "#1e293b",
+    fontWeight: "bold",
     marginBottom: 16,
-  },
-  scoreBar: {
-    height: 8,
-    backgroundColor: "#e2e8f0",
-    borderRadius: 4,
-    width: "100%",
-    marginBottom: 8,
-    overflow: "hidden",
-  },
-  scoreBarFill: {
-    height: "100%",
-    backgroundColor: "#3498db",
-    borderRadius: 4,
-  },
-  scorePercentage: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#3498db",
+    color: "#2c3e50",
   },
   restartButton: {
-    backgroundColor: "#1e293b",
-    padding: 16,
-    borderRadius: 12,
-    flexDirection: "row",
+    backgroundColor: "#2c3e50",
+    padding: 12,
+    borderRadius: 8,
     alignItems: "center",
-    justifyContent: "center",
     width: "100%",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
   },
   restartButtonText: {
     color: "white",
-    fontWeight: "600",
-    fontSize: 16,
-    marginLeft: 8,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: SCREEN_HEIGHT - 240,
-    padding: 20,
-  },
-  emptyCard: {
-    width: "100%",
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 3,
-    minHeight: 300,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#1e293b",
-    marginTop: 20,
-    marginBottom: 12,
-    textAlign: "center",
-  },
-  emptyText: {
-    fontSize: 16,
-    color: "#64748b",
-    textAlign: "center",
-    lineHeight: 24,
+    fontWeight: "bold",
   },
 });

@@ -22,18 +22,13 @@ import Reanimated, {
   RollInLeft,
   SlideInDown,
 } from "react-native-reanimated";
+import { UIFlashcard } from "../lib/utils/flashcardMapper";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.25;
 
-type Flashcard = {
-  question: string;
-  answer: string;
-  hints?: string[];
-};
-
 interface FlashcardComponentProps {
-  flashcards: Flashcard[];
+  flashcards: UIFlashcard[];
 }
 
 export default function FlashcardComponent({

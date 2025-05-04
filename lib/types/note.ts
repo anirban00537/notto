@@ -1,3 +1,5 @@
+import { UIFlashcard } from "../utils/flashcardMapper";
+
 export enum NoteType {
   PDF = "pdf",
   AUDIO = "audio",
@@ -84,7 +86,7 @@ export interface Note {
   fullText?: string;
   summary?: string;
   quizzes?: Quiz[];
-  flashcards?: Flashcard[];
+  flashcards?: UIFlashcard[];
 }
 
 export interface CreateNoteDto {

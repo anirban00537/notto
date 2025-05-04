@@ -27,6 +27,7 @@ import EmptyState from "../../components/EmptyState";
 import NoteContent from "../../components/NoteContent";
 import SummaryContent from "../../components/SummaryContent";
 import ContentTabs, { TabName, TABS } from "../../components/ContentTabs";
+import { mapNoteFlashcardsToUIFlashcards } from "../../lib/utils/flashcardMapper";
 
 export default function NoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -168,7 +169,9 @@ export default function NoteDetailScreen() {
                 <LoadingScreen />
               </View>
             ) : note?.flashcards && note.flashcards.length > 0 ? (
-              <FlashcardComponent flashcards={note.flashcards} />
+              <FlashcardComponent
+                flashcards={mapNoteFlashcardsToUIFlashcards(note.flashcards)}
+              />
             ) : (
               <Animated.View
                 style={styles.emptyStateContainer}
