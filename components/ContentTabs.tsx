@@ -25,21 +25,29 @@ const TABS: {
   { name: "flashcards", label: "Flashcards", icon: "card-text-outline" },
 ];
 
+export type { TabName };
+export { TABS };
+
 interface ContentTabsProps {
   activeTab: TabName;
   onTabPress: (tab: TabName) => void;
+  children?: React.ReactNode;
+  onSwipeChange?: (tab: TabName) => void;
 }
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function ContentTabs({
   activeTab,
   onTabPress,
+  children,
+  onSwipeChange,
 }: ContentTabsProps) {
   const scrollRef = useRef<ScrollView>(null);
+  const contentScrollViewRef = useRef<ScrollView>(null);
   const [tabLayouts, setTabLayouts] = useState<{ x: number; width: number }[]>(
     []
   );
-  const underlineX = useRef(new Animated.Value(0)).current;
-  const underlineWidth = useRef(new Animated.Value(0)).current;
   const [containerWidth, setContainerWidth] = useState(
     Dimensions.get("window").width
   );
@@ -49,22 +57,20 @@ export default function ContentTabs({
     const idx = TABS.findIndex((tab) => tab.name === activeTab);
     if (idx === -1) return;
     const { x, width } = tabLayouts[idx];
-    Animated.spring(underlineX, {
-      toValue: x,
-      useNativeDriver: false,
-      speed: 18,
-      bounciness: 8,
-    }).start();
-    Animated.spring(underlineWidth, {
-      toValue: width,
-      useNativeDriver: false,
-      speed: 18,
-      bounciness: 8,
-    }).start();
+
     // Auto-scroll to center active tab
     if (scrollRef.current) {
       const scrollTo = x + width / 2 - containerWidth / 2;
       scrollRef.current.scrollTo({ x: Math.max(scrollTo, 0), animated: true });
+    }
+
+    // Scroll content to the active tab
+    if (contentScrollViewRef.current) {
+      const tabIndex = TABS.findIndex((tab) => tab.name === activeTab);
+      contentScrollViewRef.current.scrollTo({
+        x: tabIndex * SCREEN_WIDTH,
+        animated: true,
+      });
     }
   }, [activeTab, tabLayouts, containerWidth]);
 
@@ -77,52 +83,99 @@ export default function ContentTabs({
     });
   };
 
+  const handleScroll = (event: any) => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const page = Math.round(offsetX / SCREEN_WIDTH);
+
+    if (page >= 0 && page < TABS.length) {
+      const newActiveTab = TABS[page].name;
+      if (newActiveTab !== activeTab && onSwipeChange) {
+        onSwipeChange(newActiveTab);
+      }
+    }
+  };
+
+  const handleTabPress = (tab: TabName) => {
+    onTabPress(tab);
+    // Scroll content to the corresponding tab
+    if (contentScrollViewRef.current) {
+      const tabIndex = TABS.findIndex((t) => t.name === tab);
+      contentScrollViewRef.current.scrollTo({
+        x: tabIndex * SCREEN_WIDTH,
+        animated: true,
+      });
+    }
+  };
+
   return (
-    <View
-      style={styles.container}
-      onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
-    >
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        bounces={false}
+    <View style={styles.rootContainer}>
+      <View
+        style={styles.container}
+        onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
       >
-        <View style={styles.tabsContainer}>
-          {TABS.map((tab, idx) => (
-            <TouchableOpacity
-              key={tab.name}
-              style={[styles.tab, activeTab === tab.name && styles.activeTab]}
-              onPress={() => onTabPress(tab.name)}
-              activeOpacity={0.8}
-              onLayout={(e) => onTabLayout(idx, e)}
-            >
-              <View style={styles.tabContent}>
-                <MaterialCommunityIcons
-                  name={tab.icon}
-                  size={20}
-                  color={activeTab === tab.name ? "#fff" : "#2c3e50"}
-                  style={styles.tabIcon}
-                />
-                <Text
-                  style={[
-                    styles.tabText,
-                    activeTab === tab.name && styles.activeTabText,
-                  ]}
-                >
-                  {tab.label}
-                </Text>
-              </View>
-            </TouchableOpacity>
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          bounces={false}
+        >
+          <View style={styles.tabsContainer}>
+            {TABS.map((tab, idx) => (
+              <TouchableOpacity
+                key={tab.name}
+                style={[styles.tab, activeTab === tab.name && styles.activeTab]}
+                onPress={() => handleTabPress(tab.name)}
+                activeOpacity={0.8}
+                onLayout={(e) => onTabLayout(idx, e)}
+              >
+                <View style={styles.tabContent}>
+                  <MaterialCommunityIcons
+                    name={tab.icon}
+                    size={20}
+                    color={activeTab === tab.name ? "#fff" : "#2c3e50"}
+                    style={styles.tabIcon}
+                  />
+                  <Text
+                    style={[
+                      styles.tabText,
+                      activeTab === tab.name && styles.activeTabText,
+                    ]}
+                  >
+                    {tab.label}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </ScrollView>
+      </View>
+
+      {children ? (
+        <ScrollView
+          ref={contentScrollViewRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={handleScroll}
+          scrollEventThrottle={16}
+          style={styles.contentContainer}
+        >
+          {React.Children.map(children, (child) => (
+            <View style={[styles.tabPage, { width: SCREEN_WIDTH }]}>
+              {child}
+            </View>
           ))}
-        </View>
-      </ScrollView>
+        </ScrollView>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  rootContainer: {
+    flex: 1,
+  },
   container: {
     backgroundColor: "transparent",
     paddingHorizontal: 16,
@@ -185,5 +238,11 @@ const styles = StyleSheet.create({
   },
   activeTabText: {
     color: "#fff",
+  },
+  contentContainer: {
+    flex: 1,
+  },
+  tabPage: {
+    flex: 1,
   },
 });

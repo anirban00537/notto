@@ -76,33 +76,35 @@ export default function RootLayout() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <UserProvider>
-        <AuthLayout>
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: "#f0f7ff" },
-            }}
-          >
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="note/[id]"
-              options={{
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
+        <UserProvider>
+          <AuthLayout>
+            <Stack
+              screenOptions={{
                 headerShown: false,
+                contentStyle: { backgroundColor: "#f0f7ff" },
               }}
-            />
-            <Stack.Screen
-              name="settings"
-              options={{
-                headerShown: false,
-                presentation: "modal",
-              }}
-            />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-        </AuthLayout>
-      </UserProvider>
-    </QueryClientProvider>
+            >
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="note/[id]"
+                options={{
+                  headerShown: false,
+                }}
+              />
+              <Stack.Screen
+                name="settings"
+                options={{
+                  headerShown: false,
+                  presentation: "modal",
+                }}
+              />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+          </AuthLayout>
+        </UserProvider>
+      </QueryClientProvider>
+    </GestureHandlerRootView>
   );
 }
