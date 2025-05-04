@@ -11,6 +11,7 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNoteDetail } from "../../hooks/useNoteDetail";
 import { format } from "date-fns";
+import Animated, { FadeIn, ZoomIn } from "react-native-reanimated";
 
 // Import the components
 import AudioPreview from "../../components/AudioPreview";
@@ -136,14 +137,25 @@ export default function NoteDetailScreen() {
                 }}
               />
             ) : (
-              <EmptyState
-                iconName="clipboard-edit-outline"
-                message="No quiz available yet."
-                buttonText="Generate Quiz & Flashcards"
-                onPress={handleGenerateMaterials}
-                loading={isGenerating}
-                disabled={isGenerating}
-              />
+              <Animated.View
+                style={styles.emptyStateContainer}
+                entering={FadeIn.duration(400)}
+              >
+                <Animated.View
+                  style={styles.emptyStateCard}
+                  entering={ZoomIn.delay(300).duration(500)}
+                >
+                  <EmptyState
+                    iconName="clipboard-edit-outline"
+                    message="No quiz available yet."
+                    description="Generate quiz questions and flashcards based on your note content to help you study more effectively."
+                    buttonText="Generate Quiz & Flashcards"
+                    onPress={handleGenerateMaterials}
+                    loading={isGenerating}
+                    disabled={isGenerating}
+                  />
+                </Animated.View>
+              </Animated.View>
             )}
           </View>
         </ScrollView>
@@ -164,14 +176,25 @@ export default function NoteDetailScreen() {
                 }))}
               />
             ) : (
-              <EmptyState
-                iconName="cards-outline"
-                message="No flashcards available yet."
-                buttonText="Generate Quiz & Flashcards"
-                onPress={handleGenerateMaterials}
-                loading={isGenerating}
-                disabled={isGenerating}
-              />
+              <Animated.View
+                style={styles.emptyStateContainer}
+                entering={FadeIn.duration(400)}
+              >
+                <Animated.View
+                  style={styles.emptyStateCard}
+                  entering={ZoomIn.delay(300).duration(500)}
+                >
+                  <EmptyState
+                    iconName="cards-outline"
+                    message="No flashcards available yet."
+                    description="Create flashcards to test your knowledge and help reinforce what you've learned from your notes."
+                    buttonText="Generate Quiz & Flashcards"
+                    onPress={handleGenerateMaterials}
+                    loading={isGenerating}
+                    disabled={isGenerating}
+                  />
+                </Animated.View>
+              </Animated.View>
             )}
           </View>
         </ScrollView>
@@ -199,5 +222,21 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     minHeight: 300,
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    minHeight: Dimensions.get("window").height - 250,
+    paddingVertical: 40,
+    paddingHorizontal: 16,
+  },
+  emptyStateCard: {
+    width: "100%",
+    backgroundColor: "transparent",
+    borderRadius: 20,
+    padding: 24,
+    minHeight: 450,
+    justifyContent: "center",
   },
 });

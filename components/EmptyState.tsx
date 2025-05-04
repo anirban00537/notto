@@ -1,13 +1,22 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import type { ComponentProps } from "react";
-type MaterialCommunityIconName = ComponentProps<typeof MaterialCommunityIcons>["name"];
+type MaterialCommunityIconName = ComponentProps<
+  typeof MaterialCommunityIcons
+>["name"];
 
 interface EmptyStateProps {
   iconName: MaterialCommunityIconName;
   message: string;
+  description?: string;
   buttonText: string;
   onPress: () => void;
   loading?: boolean;
@@ -17,6 +26,7 @@ interface EmptyStateProps {
 const EmptyState: React.FC<EmptyStateProps> = ({
   iconName,
   message,
+  description,
   buttonText,
   onPress,
   loading = false,
@@ -26,14 +36,23 @@ const EmptyState: React.FC<EmptyStateProps> = ({
     <View style={styles.container}>
       <View style={styles.iconCircle}>
         <MaterialCommunityIcons
-          name={iconName && typeof iconName === 'string' ? iconName : 'alert-circle-outline'}
+          name={
+            iconName && typeof iconName === "string"
+              ? iconName
+              : "alert-circle-outline"
+          }
           size={48}
           color="#2c3e50"
         />
       </View>
       <Text style={styles.message}>{message}</Text>
+      {description && <Text style={styles.description}>{description}</Text>}
       <TouchableOpacity
-        style={[styles.actionButton, styles.noteToolsButton, disabled && styles.disabledButton]}
+        style={[
+          styles.actionButton,
+          styles.noteToolsButton,
+          disabled && styles.disabledButton,
+        ]}
         onPress={onPress}
         disabled={disabled || loading}
         activeOpacity={0.8}
@@ -57,30 +76,36 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginVertical: 32,
     marginHorizontal: 16,
-
   },
   iconCircle: {
     backgroundColor: "#e6f0ff",
     borderRadius: 48,
-    width: 64,
-    height: 64,
+    width: 96,
+    height: 96,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 18,
+    marginBottom: 24,
   },
   message: {
-    fontSize: 18,
+    fontSize: 20,
     color: "#2c3e50",
     fontWeight: "600",
-    marginBottom: 20,
+    marginBottom: 12,
     textAlign: "center",
+  },
+  description: {
+    fontSize: 16,
+    color: "#7f8c8d",
+    textAlign: "center",
+    marginBottom: 24,
+    lineHeight: 22,
   },
   actionButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
     borderRadius: 12,
     marginHorizontal: 4,
     backgroundColor: "#2c3e50",
@@ -90,7 +115,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#fff",
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "600",
     textAlign: "center",
   },
@@ -100,3 +125,4 @@ const styles = StyleSheet.create({
 });
 
 export default EmptyState;
+export type { EmptyStateProps };

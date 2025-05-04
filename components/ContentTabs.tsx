@@ -52,6 +52,9 @@ export default function ContentTabs({
     Dimensions.get("window").width
   );
 
+  // Keep track of the last programmatic scroll to avoid feedback loops
+  const isScrollingRef = useRef(false);
+
   useEffect(() => {
     if (tabLayouts.length !== TABS.length) return;
     const idx = TABS.findIndex((tab) => tab.name === activeTab);
@@ -66,11 +69,15 @@ export default function ContentTabs({
 
     // Scroll content to the active tab
     if (contentScrollViewRef.current) {
+      isScrollingRef.current = true;
       const tabIndex = TABS.findIndex((tab) => tab.name === activeTab);
       contentScrollViewRef.current.scrollTo({
         x: tabIndex * SCREEN_WIDTH,
         animated: true,
       });
+      setTimeout(() => {
+        isScrollingRef.current = false;
+      }, 500); // Reset after animation completes
     }
   }, [activeTab, tabLayouts, containerWidth]);
 
@@ -84,26 +91,40 @@ export default function ContentTabs({
   };
 
   const handleScroll = (event: any) => {
+    // Skip if the scroll was triggered programmatically
+    if (isScrollingRef.current) return;
+
     const offsetX = event.nativeEvent.contentOffset.x;
     const page = Math.round(offsetX / SCREEN_WIDTH);
 
     if (page >= 0 && page < TABS.length) {
       const newActiveTab = TABS[page].name;
-      if (newActiveTab !== activeTab && onSwipeChange) {
-        onSwipeChange(newActiveTab);
+      if (newActiveTab !== activeTab) {
+        if (onSwipeChange) {
+          onSwipeChange(newActiveTab);
+        } else {
+          // If no onSwipeChange provided, call onTabPress instead
+          onTabPress(newActiveTab);
+        }
       }
     }
   };
 
   const handleTabPress = (tab: TabName) => {
+    // First update the active tab via the callback
     onTabPress(tab);
-    // Scroll content to the corresponding tab
+
+    // Then scroll to the corresponding tab
     if (contentScrollViewRef.current) {
+      isScrollingRef.current = true;
       const tabIndex = TABS.findIndex((t) => t.name === tab);
       contentScrollViewRef.current.scrollTo({
         x: tabIndex * SCREEN_WIDTH,
         animated: true,
       });
+      setTimeout(() => {
+        isScrollingRef.current = false;
+      }, 500); // Reset after animation completes
     }
   };
 
