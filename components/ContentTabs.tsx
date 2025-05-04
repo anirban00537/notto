@@ -198,29 +198,23 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
-    backgroundColor: "transparent",
+    backgroundColor: "#ffffff",
     paddingHorizontal: 16,
     paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
   scrollContent: {
     paddingHorizontal: 4,
   },
   tabsContainer: {
     flexDirection: "row",
-    backgroundColor: "#f5f7fa",
+    backgroundColor: "#f7f7f7",
     borderRadius: 8,
     paddingVertical: 4,
     paddingHorizontal: 4,
     alignItems: "center",
     position: "relative",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 2,
-    elevation: 2,
   },
   tab: {
     borderRadius: 6,
@@ -232,14 +226,6 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     backgroundColor: "#2c3e50",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 3,
   },
   tabContent: {
     flexDirection: "row",
@@ -249,16 +235,15 @@ const styles = StyleSheet.create({
   },
   tabIcon: {
     marginRight: 4,
-    opacity: 0.9,
   },
   tabText: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: "500",
     color: "#2c3e50",
-    letterSpacing: 0.3,
   },
   activeTabText: {
-    color: "#fff",
+    color: "#ffffff",
+    fontWeight: "600",
   },
   contentContainer: {
     flex: 1,

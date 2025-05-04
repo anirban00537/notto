@@ -42,32 +42,37 @@ const NoteCard: React.FC<NoteCardProps> = ({
         return {
           name: "file-pdf-box" as IconName,
           color: "#D32F2F",
+          label: "PDF",
         };
       case "audio":
         return {
           name: "volume-high" as IconName,
           color: "#1976D2",
+          label: "Audio",
         };
       case "youtube":
         return {
           name: "youtube" as IconName,
           color: "#FF0000",
+          label: "YouTube",
         };
       case "palette":
         return {
           name: "palette" as IconName,
           color: "#EB6C3E",
+          label: "Palette",
         };
       case "image":
         return {
           name: "image-outline" as IconName,
           color: "#9C27B0",
-          bgColor: "rgba(243, 229, 245, 0.9)",
+          label: "Image",
         };
       default:
         return {
           name: "note-text-outline" as IconName,
           color: "#4CAF50",
+          label: "Note",
         };
     }
   };
@@ -94,67 +99,87 @@ const NoteCard: React.FC<NoteCardProps> = ({
   };
 
   return (
-    <View style={styles.container}>
+    <Animated.View
+      style={[
+        styles.container,
+        {
+          transform: [{ scale: scaleAnim }],
+        },
+      ]}
+    >
       <TouchableOpacity
         style={styles.content}
         onPress={onPress}
+        activeOpacity={0.7}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        activeOpacity={0.7}
       >
-        <View style={styles.iconContainer}>
-          <MaterialCommunityIcons
-            name={typeData.name}
-            size={24}
-            color={typeData.color}
-          />
-        </View>
         <View style={styles.textContainer}>
-          <Text style={styles.title} numberOfLines={2}>
-            {title}
-          </Text>
+          <View style={styles.titleRow}>
+            <Text style={styles.title} numberOfLines={2}>
+              {title}
+            </Text>
+            <View
+              style={[
+                styles.sourceTag,
+                { backgroundColor: `${typeData.color}15` },
+              ]}
+            >
+              <Text style={[styles.sourceTagText, { color: typeData.color }]}>
+                {typeData.label}
+              </Text>
+            </View>
+          </View>
           <Text style={styles.date}>{format(createdAt, "MMM d, yyyy")}</Text>
         </View>
       </TouchableOpacity>
-    </View>
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 18,
-    marginVertical: 5,
+    marginHorizontal: 16,
+    marginVertical: 8,
     backgroundColor: "#ffffff",
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E5E5EA",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
   content: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 10,
-  },
-  iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#f0f7ff",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
+    padding: 16,
   },
   textContainer: {
     flex: 1,
   },
+  titleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 6,
+  },
   title: {
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: "600",
     color: "#2c3e50",
-    marginBottom: 4,
+    flex: 1,
+    marginRight: 8,
+  },
+  sourceTag: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    alignSelf: "flex-start",
+  },
+  sourceTagText: {
+    fontSize: 10,
+    fontWeight: "600",
   },
   date: {
     fontSize: 13,
-    color: "#666",
+    color: "#888",
   },
 });
 

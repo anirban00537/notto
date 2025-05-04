@@ -63,18 +63,6 @@ export default function Note() {
   } = useNotes(user?.uid, selectedFolderId);
 
   useEffect(() => {
-    const noteIds = notes.map((note: Note) => note.id);
-    const uniqueIds = new Set(noteIds);
-    if (noteIds.length !== uniqueIds.size) {
-      console.warn("Duplicate note IDs found in the flattened list:", noteIds);
-      const duplicates = noteIds.filter(
-        (id: string, index: number) => noteIds.indexOf(id) !== index
-      );
-      console.warn("Duplicate IDs are:", duplicates);
-    }
-  }, [notes]);
-
-  useEffect(() => {
     if (notes.length > 0) {
       Animated.spring(listAnimation, {
         toValue: 1,
@@ -194,7 +182,7 @@ export default function Note() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#f0f7ff" />
+        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
         <HomeHeader />
         <FolderSelector
@@ -222,7 +210,7 @@ export default function Note() {
                 tintColor="#2c3e50"
                 title="Loading notes..."
                 titleColor="#2c3e50"
-                progressBackgroundColor="rgba(240, 247, 255, 0.95)"
+                progressBackgroundColor="#ffffff"
               />
             }
           />
@@ -295,7 +283,7 @@ export default function Note() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#ffffff",
   },
   header: {
     flexDirection: "row",
@@ -303,12 +291,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 18,
     paddingHorizontal: 24,
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#ffffff",
   },
   folderButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#ffffff",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
@@ -357,7 +345,7 @@ const styles = StyleSheet.create({
     fontWeight: "400",
   },
   listContent: {
-    paddingHorizontal: 0,
+    paddingTop: 8,
     paddingBottom: 100,
   },
   bottomActions: {
@@ -366,11 +354,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: Platform.OS === "ios" ? 34 : 24,
     paddingTop: 12,
-    backgroundColor: "transparent",
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
   },
   recordButton: {
     flexDirection: "row",
@@ -383,6 +373,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: 6,
     height: 50,
+    elevation: 0,
   },
   newNoteButton: {
     flexDirection: "row",
@@ -397,6 +388,7 @@ const styles = StyleSheet.create({
     height: 50,
     borderWidth: 1,
     borderColor: "#E5E5EA",
+    elevation: 0,
   },
   actionButtonText: {
     marginLeft: 8,

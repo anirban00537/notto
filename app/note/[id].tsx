@@ -219,11 +219,11 @@ export default function NoteDetailScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#ffffff",
   },
   scene: {
     flex: 1,
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#ffffff",
   },
   textContentPadding: {
     paddingHorizontal: 16,

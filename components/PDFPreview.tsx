@@ -124,10 +124,11 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingHorizontal: 16,
     marginVertical: 0,
-    marginHorizontal: 16,
     justifyContent: "space-between",
     borderRadius: 0,
-    width: "auto",
+    width: "100%",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
   cardLeft: {
     flexDirection: "row",
@@ -136,7 +137,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   pdfIndicator: {
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#f5f5f5",
     color: "#2c3e50",
     fontSize: 12,
     fontWeight: "600",
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
   fileName: {
     flex: 1,
     fontSize: 14,
-    color: "#333",
+    color: "#2c3e50",
   },
   viewButton: {
     backgroundColor: "#2c3e50",
@@ -180,7 +181,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    borderBottomColor: "#f0f0f0",
   },
   modalTitle: {
     flex: 1,
@@ -198,11 +199,11 @@ const styles = StyleSheet.create({
   },
   pdfContainer: {
     flex: 1,
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#ffffff",
   },
   pdf: {
     flex: 1,
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#ffffff",
   },
 });
 

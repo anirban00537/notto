@@ -63,7 +63,7 @@ export default function NoteDetailHeader({
           <MaterialCommunityIcons
             name="chevron-left"
             size={30}
-            color="rgba(44, 62, 80, 0.9)"
+            color="#2c3e50"
           />
         </TouchableOpacity>
 
@@ -86,7 +86,7 @@ export default function NoteDetailHeader({
           <MaterialCommunityIcons
             name="dots-horizontal"
             size={28}
-            color="rgba(44, 62, 80, 0.9)"
+            color="#2c3e50"
           />
         </TouchableOpacity>
 
@@ -147,22 +147,23 @@ const styles = StyleSheet.create({
   container: {
     position: "relative",
     zIndex: 10,
-    backgroundColor: "rgba(240, 247, 255, 0.45)",
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
   header: {
     position: "relative",
-    backgroundColor: "rgba(240, 247, 255, 0.25)",
+    backgroundColor: "#ffffff",
   },
   androidHeader: {
-    backgroundColor: "rgba(240, 247, 255, 0.65)",
-    backdropFilter: "blur(10px)",
+    backgroundColor: "#ffffff",
   },
   headerContent: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
   leftSection: {
     flexDirection: "row",
@@ -176,17 +177,17 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 8,
     borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: "transparent",
   },
   optionsButton: {
     padding: 8,
     borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    backgroundColor: "transparent",
   },
   headerTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "500",
-    color: "rgba(44, 62, 80, 0.9)",
+    color: "#2c3e50",
     paddingVertical: 6,
     paddingHorizontal: 12,
   },
@@ -200,14 +201,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 8,
     minWidth: 180,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    borderWidth: 1,
+    borderColor: "#f0f0f0",
   },
   dropdownItem: {
     flexDirection: "row",

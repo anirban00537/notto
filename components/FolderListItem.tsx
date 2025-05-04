@@ -5,9 +5,15 @@ import { Folder } from "../lib/types/folder";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteFolder } from "../lib/services/folderService";
 
-type IconName = "format-list-bulleted" | "folder-outline" | "plus" | "check" | "folder" | "view-list";
+type IconName =
+  | "format-list-bulleted"
+  | "folder-outline"
+  | "plus"
+  | "check"
+  | "folder"
+  | "view-list";
 
-export interface FolderItem extends Omit<Folder, 'id'> {
+export interface FolderItem extends Omit<Folder, "id"> {
   id: string;
   icon: IconName;
 }
@@ -28,7 +34,7 @@ const FolderListItem: React.FC<FolderListItemProps> = ({
   onOptions,
 }) => {
   const queryClient = useQueryClient();
-  
+
   const deleteFolderMutation = useMutation({
     mutationFn: (folderId: string) => deleteFolder(folderId),
     onSuccess: () => {
@@ -60,12 +66,12 @@ const FolderListItem: React.FC<FolderListItemProps> = ({
       ]}
       onPress={() => onSelect(item.id)}
       activeOpacity={0.6}
-      hitSlop={{top: 15, bottom: 15, left: 15, right: 15}}
+      hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
     >
       <MaterialCommunityIcons
         name={item.icon}
         size={22}
-        color={isSelected ? "#111" : "#555"}
+        color={isSelected ? "#2c3e50" : "#666"}
       />
       <Text
         style={[
@@ -80,7 +86,7 @@ const FolderListItem: React.FC<FolderListItemProps> = ({
           <MaterialCommunityIcons
             name="check"
             size={22}
-            color="#111"
+            color="#2c3e50"
             style={styles.checkIcon}
           />
           {item.id !== "all" && (
@@ -88,7 +94,7 @@ const FolderListItem: React.FC<FolderListItemProps> = ({
               <TouchableOpacity
                 onPress={handleDelete}
                 style={styles.deleteButton}
-                hitSlop={{top: 15, bottom: 15, left: 15, right: 15}}
+                hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
               >
                 <MaterialCommunityIcons
                   name="trash-can-outline"
@@ -100,7 +106,7 @@ const FolderListItem: React.FC<FolderListItemProps> = ({
                 <TouchableOpacity
                   onPress={onOptions}
                   style={styles.optionsButton}
-                  hitSlop={{top: 15, bottom: 15, left: 15, right: 15}}
+                  hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
                 >
                   <MaterialCommunityIcons
                     name="dots-vertical"
@@ -112,7 +118,7 @@ const FolderListItem: React.FC<FolderListItemProps> = ({
             </>
           )}
         </>
-      )} 
+      )}
     </TouchableOpacity>
   );
 };
@@ -123,19 +129,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 14,
     paddingHorizontal: 24,
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#ffffff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
   selectedFolderListItem: {
-    backgroundColor: "#e6f0ff",
+    backgroundColor: "#f7f7f7",
   },
   folderListItemText: {
     fontSize: 16,
-    color: "#555",
+    color: "#666",
     marginLeft: 16,
     flex: 1,
   },
   selectedFolderListItemText: {
-    color: "#111",
+    color: "#2c3e50",
     fontWeight: "500",
   },
   checkIcon: {

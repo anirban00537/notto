@@ -191,13 +191,9 @@ const styles = StyleSheet.create({
     borderRadius: 0,
     overflow: "hidden",
     position: "relative",
-    shadowColor: "transparent",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0,
-    shadowRadius: 0,
-    elevation: 0,
-    width: "auto",
-    marginHorizontal: 16,
+    width: "100%",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
   progressBar: {
     position: "absolute",
@@ -250,23 +246,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: -8,
   },
   timeText: {
-    fontSize: 11,
+    fontSize: 12,
     color: "#666",
   },
   controlsContainer: {
     flexDirection: "row",
-    gap: 8,
+    alignItems: "center",
   },
   controlButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "rgba(0,0,0,0.05)",
-    justifyContent: "center",
-    alignItems: "center",
+    paddingHorizontal: 10,
   },
 });
 
