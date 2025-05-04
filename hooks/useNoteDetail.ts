@@ -4,9 +4,11 @@ import { useRouter } from "expo-router";
 import {
   getNoteById,
   generateLearningMaterials,
+  deleteNote,
 } from "../lib/services/noteService";
 import { Note } from "../lib/types/note";
 import { ApiResponse } from "../lib/types/response";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 type ContentTab = "note" | "transcript" | "summary" | "quiz" | "flashcards";
 
@@ -30,55 +32,49 @@ export interface NoteDetailHook {
   isGenerating: boolean;
   generationError: string | null;
   handleGenerateMaterials: () => Promise<void>;
+  handleDeleteNote: () => Promise<void>;
 }
 
 export function useNoteDetail(noteId: string): NoteDetailHook {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const scrollViewRef = useRef<ScrollView>(null);
-  const [note, setNote] = useState<Note | null>(null);
-  const [loading, setLoading] = useState(true);
   const [activeContentTab, setActiveContentTab] = useState<ContentTab>("note");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState<string | null>(null);
 
-  const fetchNote = useCallback(async () => {
-    if (!noteId) return;
-    setLoading(true);
-    try {
+  // Query for fetching note details
+  const { data: note, isLoading: loading } = useQuery({
+    queryKey: ["note", noteId],
+    queryFn: async () => {
       const response = await getNoteById(noteId);
       if (!response.success) {
         throw new Error(response.message);
       }
-      setNote(response.data);
-    } catch (e: any) {
-      console.error("Error fetching note:", e);
-      setNote(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [noteId]);
+      return response.data;
+    },
+  });
 
-  useEffect(() => {
-    fetchNote();
-  }, [noteId, fetchNote]);
+  // Delete note mutation
+  const deleteMutation = useMutation({
+    mutationFn: deleteNote,
+    onSuccess: () => {
+      // Invalidate and refetch notes list
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+      router.back();
+    },
+  });
 
-  const getIconProps = (iconType?: string): IconProps => {
-    switch (iconType) {
-      case "pdf":
-        return { name: "file-pdf-box", color: "#D32F2F", bgColor: "#FFEBEE" };
-      case "audio":
-        return {
-          name: "file-music-outline",
-          color: "#1976D2",
-          bgColor: "#E3F2FD",
-        };
-      case "youtube":
-        return { name: "youtube", color: "#FF0000", bgColor: "#FFEBEE" };
-      case "palette":
-        return { name: "palette", color: "#EB6C3E", bgColor: "#FFF5EC" };
-      default:
-        return { name: "note-text-outline", color: "#888", bgColor: "#f0f0f0" };
-    }
+  const handleDeleteNote = async () => {
+    await deleteMutation.mutateAsync(noteId);
+  };
+
+  const handleBackPress = () => {
+    router.back();
+  };
+
+  const handleOptionsPress = () => {
+    // Implement options menu functionality
   };
 
   const handleTabPress = (tab: ContentTab) => {
@@ -86,10 +82,13 @@ export function useNoteDetail(noteId: string): NoteDetailHook {
     scrollViewRef.current?.scrollTo({ y: 0, animated: true });
   };
 
-  const handleOptionsPress = () => console.log("Options pressed");
-  const handleNoteToolsPress = () => console.log("Note Tools pressed");
-  const handleEditNotePress = () => console.log("Edit Note pressed");
-  const handleBackPress = () => router.back();
+  const handleNoteToolsPress = () => {
+    // Implement note tools functionality
+  };
+
+  const handleEditNotePress = () => {
+    // Implement edit note functionality
+  };
 
   const handleGenerateMaterials = async () => {
     if (!noteId) return;
@@ -100,7 +99,7 @@ export function useNoteDetail(noteId: string): NoteDetailHook {
       if (!response.success) {
         throw new Error(response.message);
       }
-      setNote(response.data);
+      // Implement materials generation
     } catch (error: any) {
       console.error("Error generating learning materials:", error);
       setGenerationError(
@@ -111,7 +110,12 @@ export function useNoteDetail(noteId: string): NoteDetailHook {
     }
   };
 
-  const iconProps = getIconProps(note?.noteType || note?.icon);
+  // Get icon properties based on note type
+  const iconProps = {
+    name: note?.noteType || "note-text",
+    color: "#4285F4",
+    bgColor: "#E8F0FE",
+  };
 
   return {
     note,
@@ -127,5 +131,6 @@ export function useNoteDetail(noteId: string): NoteDetailHook {
     isGenerating,
     generationError,
     handleGenerateMaterials,
+    handleDeleteNote,
   };
 }

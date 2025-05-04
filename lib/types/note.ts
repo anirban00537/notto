@@ -14,9 +14,9 @@ export enum NoteStatus {
 }
 
 export interface Flashcard {
-  question: string;
-  answer: string;
-  hints?: string[];
+  id: string;
+  front: string;
+  back: string;
 }
 
 export interface QuizQuestion {
@@ -27,8 +27,16 @@ export interface QuizQuestion {
 }
 
 export interface Quiz {
-  title: string;
-  questions: QuizQuestion[];
+  id: string;
+  questions: Question[];
+}
+
+export interface Question {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
 }
 
 export interface StudyNote {
@@ -67,40 +75,28 @@ export interface TextNote extends BaseNote {
 
 export interface Note {
   id: string;
-  userId: string;
-  folderId?: string;
-  folder?: string;
   title: string;
-  description?: string;
-  noteType: NoteType;
-  fileName?: string;
-  fileSize?: number;
-  mimeType?: string;
-  url?: string;
-  duration?: number;
-  status: NoteStatus;
-  studyNote?: StudyNote;
-  flashcards?: Flashcard[];
-  quizzes?: Quiz[];
+  noteType: string;
   createdAt: Date;
   updatedAt: Date;
-  deletedAt?: Date;
-  metadata?: Record<string, any>;
-  tags?: string[];
-  isPublic?: boolean;
-  collaborators?: string[];
-  version?: number;
-  lastEditedBy?: string;
+  sourceUrl?: string;
+  note?: string;
+  fullText?: string;
+  summary?: string;
+  quizzes?: Quiz[];
+  flashcards?: Flashcard[];
 }
 
 export interface CreateNoteDto {
-  noteType: NoteType;
+  noteType: string;
+  title?: string;
+  content?: string;
   youtubeUrl?: string;
-  folderId?: string;
   file?: {
     uri: string;
-    name: string;
+    name?: string;
     type?: string;
     mimeType?: string;
   };
+  folderId?: string;
 }

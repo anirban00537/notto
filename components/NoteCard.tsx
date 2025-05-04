@@ -7,6 +7,7 @@ import {
   Animated,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { format } from "date-fns";
 
 interface NoteCardProps {
   id: string;
@@ -34,26 +35,6 @@ const NoteCard: React.FC<NoteCardProps> = ({
   icon,
   onPress,
 }) => {
-  const formatDate = (date: Date) => {
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    return `${
-      months[date.getMonth()]
-    } ${date.getDate()}, ${date.getFullYear()}`;
-  };
-
   // Get icon and color based on note type
   const getTypeData = (iconType?: string) => {
     switch (iconType) {
@@ -113,106 +94,67 @@ const NoteCard: React.FC<NoteCardProps> = ({
   };
 
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      activeOpacity={0.95}
-      style={styles.container}
-    >
-      <Animated.View
-        style={[
-          styles.noteCard,
-          {
-            transform: [{ scale: scaleAnim }],
-          },
-        ]}
+    <View style={styles.container}>
+      <TouchableOpacity
+        style={styles.content}
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={0.7}
       >
         <View style={styles.iconContainer}>
           <MaterialCommunityIcons
             name={typeData.name}
-            size={28}
+            size={24}
             color={typeData.color}
           />
         </View>
-        <View style={styles.noteContent}>
-          <Text style={styles.noteTitle} numberOfLines={1} ellipsizeMode="tail">
+        <View style={styles.textContainer}>
+          <Text style={styles.title} numberOfLines={2}>
             {title}
           </Text>
-          <Text
-            style={styles.contentPreview}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {content}
-          </Text>
-          <View style={styles.dateContainer}>
-            <MaterialCommunityIcons
-              name="clock-outline"
-              size={14}
-              color="#95a5a6"
-              style={styles.dateIcon}
-            />
-            <Text style={styles.dateText}>{formatDate(createdAt)}</Text>
-          </View>
+          <Text style={styles.date}>{format(createdAt, "MMM d, yyyy")}</Text>
         </View>
-      </Animated.View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 20,
-    marginVertical: 4,
-  },
-  noteCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 7,
-    paddingHorizontal: 7,
-    backgroundColor: "rgb(255, 255, 255)",
+    marginHorizontal: 18,
+    marginVertical: 5,
+    backgroundColor: "#ffffff",
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#E5E5EA",
   },
+  content: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10,
+  },
   iconContainer: {
-    width: 42,
-    height: 42,
+    width: 40,
+    height: 40,
     borderRadius: 20,
+    backgroundColor: "#f0f7ff",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
   },
-  noteContent: {
+  textContainer: {
     flex: 1,
-    justifyContent: "center",
   },
-  noteTitle: {
-    fontSize: 15,
+  title: {
+    fontSize: 16,
     fontWeight: "500",
-    color: "#1a1a1a",
-    marginBottom: 2,
-    letterSpacing: -0.3,
-  },
-  contentPreview: {
-    fontSize: 13,
-    color: "#666666",
+    color: "#2c3e50",
     marginBottom: 4,
-    letterSpacing: -0.2,
   },
-  dateContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  dateIcon: {
-    marginRight: 4,
-  },
-  dateText: {
-    fontSize: 12,
-    color: "#999999",
-    letterSpacing: -0.1,
+  date: {
+    fontSize: 13,
+    color: "#666",
   },
 });
 

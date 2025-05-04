@@ -6,7 +6,11 @@ import {
   InfiniteData,
 } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import { getAllNotes, createNote } from "../lib/services/noteService";
+import {
+  getAllNotes,
+  createNote,
+  deleteNote,
+} from "../lib/services/noteService";
 import { CreateNoteDto, Note, NoteType } from "../lib/types/note";
 import { ApiResponse } from "../lib/types/response";
 import { Alert } from "react-native";
@@ -144,6 +148,28 @@ export function useNotes(userId: string | undefined, folderId: string) {
     },
   });
 
+  // Delete Note Mutation
+  const deleteNoteMutation = useMutation({
+    mutationFn: deleteNote,
+    onSuccess: (response) => {
+      if (!response.success) {
+        throw new Error(response.message);
+      }
+
+      console.log("Note deletion successful");
+
+      // Reset and refetch notes when a note is deleted
+      queryClient.resetQueries({
+        queryKey: ["notes", { userId, folderId }],
+      });
+      refetch();
+    },
+    onError: (error: any) => {
+      console.error("Error deleting note:", error);
+      Alert.alert("Error", error.message || "Failed to delete note");
+    },
+  });
+
   // Handlers for YouTube Modal
   const handleAddYouTube = () => {
     setYoutubeUrl("");
@@ -181,6 +207,16 @@ export function useNotes(userId: string | undefined, folderId: string) {
     createNoteMutation.mutate(completeNoteDto);
   };
 
+  // Handler for deleting a note
+  const handleDeleteNote = async (noteId: string) => {
+    try {
+      await deleteNoteMutation.mutateAsync(noteId);
+    } catch (error) {
+      // Error is handled in onError callback
+      console.error("Failed to delete note:", error);
+    }
+  };
+
   return {
     notes: uniqueNotes,
     isNotesLoading,
@@ -198,5 +234,7 @@ export function useNotes(userId: string | undefined, folderId: string) {
     isFetchingNextPage,
     refetchNotes: refetch,
     createNoteWithFolder,
+    handleDeleteNote,
+    isDeletingNote: deleteNoteMutation.isPending,
   };
 }

@@ -12,9 +12,10 @@ import {
   Alert,
   Button,
 } from "react-native";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNoteDetail } from "../../hooks/useNoteDetail";
+import { format } from "date-fns";
 
 // Import the new components
 import NoteDetailHeader from "../../components/NoteDetailHeader";
@@ -32,6 +33,7 @@ import SummaryContent from "../../components/SummaryContent";
 
 export default function NoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const {
     note,
     loading,
@@ -46,6 +48,7 @@ export default function NoteDetailScreen() {
     isGenerating,
     generationError,
     handleGenerateMaterials,
+    handleDeleteNote,
   } = useNoteDetail(id);
 
   if (loading) return <LoadingScreen />;
@@ -57,6 +60,16 @@ export default function NoteDetailScreen() {
     // Optionally reset the error state here if needed
   }
 
+  const onDelete = async () => {
+    try {
+      await handleDeleteNote();
+      router.back();
+    } catch (error) {
+      console.error("Error deleting note:", error);
+      Alert.alert("Error", "Failed to delete note. Please try again.");
+    }
+  };
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaView style={styles.safeArea} edges={["bottom", "left", "right"]}>
@@ -65,6 +78,7 @@ export default function NoteDetailScreen() {
           title={note.title}
           onBackPress={handleBackPress}
           onOptionsPress={handleOptionsPress}
+          onDelete={onDelete}
         />
         <ScrollView
           ref={scrollViewRef}
@@ -80,7 +94,14 @@ export default function NoteDetailScreen() {
             <>
               <NoteTitleSection
                 title={note.title}
-                lastModified={note.updatedAt || note.lastModified || ""}
+                lastModified={
+                  note.updatedAt instanceof Date
+                    ? format(note.updatedAt, "MMM d, yyyy")
+                    : format(
+                        new Date(note.updatedAt || Date.now()),
+                        "MMM d, yyyy"
+                      )
+                }
                 iconName={iconProps.name as any}
                 iconColor={iconProps.color}
                 iconBackgroundColor={iconProps.bgColor}
@@ -100,10 +121,10 @@ export default function NoteDetailScreen() {
               </View>
             </>
           )}
-          {activeContentTab === "transcript" && (
+          {activeContentTab === "transcript" && note.fullText && (
             <TranscriptContent transcript={note.fullText} />
           )}
-          {activeContentTab === "summary" && (
+          {activeContentTab === "summary" && note.summary && (
             <View style={styles.textContentPadding}>
               <SummaryContent content={note.summary} />
             </View>
@@ -115,7 +136,12 @@ export default function NoteDetailScreen() {
                   <LoadingScreen />
                 </View>
               ) : note.quizzes && note.quizzes.length > 0 ? (
-                <QuizComponent quiz={note.quizzes[0]} />
+                <QuizComponent
+                  quiz={{
+                    ...note.quizzes[0],
+                    title: note.title || "Quiz",
+                  }}
+                />
               ) : (
                 <EmptyState
                   iconName="clipboard-edit-outline"
@@ -135,7 +161,13 @@ export default function NoteDetailScreen() {
                   <LoadingScreen />
                 </View>
               ) : note.flashcards && note.flashcards.length > 0 ? (
-                <FlashcardComponent flashcards={note.flashcards} />
+                <FlashcardComponent
+                  flashcards={note.flashcards.map((card) => ({
+                    question: card.front,
+                    answer: card.back,
+                    hints: [],
+                  }))}
+                />
               ) : (
                 <EmptyState
                   iconName="cards-outline"

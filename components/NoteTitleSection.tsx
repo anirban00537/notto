@@ -19,19 +19,25 @@ export default function NoteTitleSection({
 }: NoteTitleSectionProps) {
   return (
     <View style={styles.titleContainer}>
-      <View
-        style={[
-          styles.noteIconContainer,
-          { backgroundColor: iconBackgroundColor },
-        ]}
-      >
-        <MaterialCommunityIcons name={iconName} size={24} color={iconColor} />
-      </View>
       <View style={styles.titleTextContainer}>
         <Text style={styles.noteTitle} numberOfLines={1} ellipsizeMode="tail">
           {title}
         </Text>
-        <Text style={styles.lastModified}>Last Modified: {lastModified}</Text>
+        <View style={styles.iconContainer}>
+          <Text style={styles.lastModified}>Last Modified: {lastModified}</Text>
+          <View
+            style={[
+              styles.noteIconContainer,
+              { backgroundColor: iconBackgroundColor },
+            ]}
+          >
+            <MaterialCommunityIcons
+              name={iconName}
+              size={24}
+              color={iconColor}
+            />
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -51,6 +57,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
+    marginLeft: 12,
   },
   titleTextContainer: {
     flex: 1,
@@ -64,5 +71,9 @@ const styles = StyleSheet.create({
   lastModified: {
     fontSize: 13,
     color: "#888",
+  },
+  iconContainer: {
+    flexDirection: "row",
+    alignItems: "center",
   },
 });

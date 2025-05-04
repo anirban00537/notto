@@ -60,6 +60,7 @@ export default function Note() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    handleDeleteNote,
   } = useNotes(user?.uid, selectedFolderId);
 
   useEffect(() => {
@@ -175,6 +176,7 @@ export default function Note() {
               }
               icon={item.noteType}
               onPress={() => router.push(`/note/${item.id}`)}
+              onDelete={handleDeleteNote}
             />
           </View>
         </Link>
