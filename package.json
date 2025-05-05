@@ -13,7 +13,8 @@
     "prebuild": "npx expo prebuild --platform android",
     "build:apk": "cd android && ./gradlew assembleRelease && cd ..",
     "build:apk-debug": "cd android && ./gradlew assembleDebug && cd ..",
-    "clean:android": "cd android && ./gradlew clean && cd .."
+    "clean:android": "cd android && ./gradlew clean && cd ..",
+    "build:aab": "cd android && ./gradlew bundleRelease && cd .."
   },
   "jest": {
     "preset": "jest-expo"
