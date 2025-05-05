@@ -115,31 +115,41 @@ const NoteCard: React.FC<NoteCardProps> = ({
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       >
-        <View
-          style={[
-            styles.iconContainer,
-            { backgroundColor: `${typeData.color}15` },
-          ]}
-        >
-          <MaterialCommunityIcons
-            name={typeData.name}
-            size={20}
-            color={typeData.color}
-          />
-        </View>
-
-        <View style={styles.textContainer}>
-          <Text
-            style={[Typography.body1, styles.title]}
-            numberOfLines={1}
-            ellipsizeMode="tail"
+        <View style={styles.cardContent}>
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: `${typeData.color}15` },
+            ]}
           >
-            {title}
-          </Text>
+            <MaterialCommunityIcons
+              name={typeData.name}
+              size={24}
+              color={typeData.color}
+            />
+          </View>
 
-          <Text style={Typography.caption}>
-            {format(createdAt, "MMM d, yyyy · h:mm a")}
-          </Text>
+          <View style={styles.textContainer}>
+            <Text
+              style={[Typography.body1, styles.title]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {title}
+            </Text>
+
+            <View style={styles.dateContainer}>
+              <MaterialCommunityIcons
+                name="clock-outline"
+                size={12}
+                color="#999"
+                style={styles.timeIcon}
+              />
+              <Text style={[Typography.caption, styles.dateText]}>
+                {format(createdAt, "MMM d, yyyy · h:mm a")}
+              </Text>
+            </View>
+          </View>
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -154,24 +164,38 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
   },
-  content: {
+  content: {},
+  cardContent: {
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
   },
   iconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: 16,
   },
   textContainer: {
     flex: 1,
+    justifyContent: "center",
   },
   title: {
     marginBottom: 6,
+    color: "#333333",
+    fontFamily: FONTS.medium,
+  },
+  dateContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  timeIcon: {
+    marginRight: 4,
+  },
+  dateText: {
+    color: "#999",
   },
 });
 
