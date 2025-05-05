@@ -130,19 +130,11 @@ const NoteCard: React.FC<NoteCardProps> = ({
 
         <View style={styles.textContainer}>
           <Text
-            style={[Typography.noteTitle, styles.title]}
+            style={[Typography.body1, styles.title]}
             numberOfLines={1}
             ellipsizeMode="tail"
           >
             {title}
-          </Text>
-
-          <Text
-            style={[Typography.body2, styles.description]}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {content}
           </Text>
 
           <Text style={Typography.caption}>
@@ -179,11 +171,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    marginBottom: 2,
-  },
-  description: {
-    color: "#666",
-    marginBottom: 2,
+    marginBottom: 6,
   },
 });
 
