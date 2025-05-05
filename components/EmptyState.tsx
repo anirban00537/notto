@@ -43,7 +43,7 @@ const EmptyState: React.FC<EmptyStateProps> = ({
               : "alert-circle-outline"
           }
           size={48}
-          color="#2c3e50"
+          color="black"
         />
       </View>
       <Text style={[Typography.h3, styles.message]}>{message}</Text>
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     padding: 32,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f8fbff",
+    backgroundColor: "#ffff",
     borderRadius: 16,
     marginVertical: 32,
     marginHorizontal: 16,
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
   message: {
     marginBottom: 12,
     textAlign: "center",
-    color: "#2c3e50",
+    color: "black",
   },
   description: {
     color: "#7f8c8d",
@@ -111,10 +111,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     borderRadius: 12,
     marginHorizontal: 4,
-    backgroundColor: "#2c3e50",
+    backgroundColor: "black",
   },
   noteToolsButton: {
-    backgroundColor: "#2c3e50",
+    backgroundColor: "black",
   },
   buttonText: {
     color: "#fff",

@@ -178,7 +178,6 @@ export default function ContentTabs({
             })}
           </View>
         </ScrollView>
-        <View style={styles.bottomBorder} />
       </View>
 
       {children ? (
@@ -211,6 +210,9 @@ const styles = StyleSheet.create({
     paddingTop: 4,
     paddingBottom: 0,
     position: "relative",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f5f5f5",
+    marginBottom: 2,
   },
   scrollContent: {
     paddingHorizontal: 10,
@@ -248,13 +250,5 @@ const styles = StyleSheet.create({
     backgroundColor: "#111",
     bottom: 0,
     borderRadius: 2,
-  },
-  bottomBorder: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: "#E0E0E0",
   },
 });
