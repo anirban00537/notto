@@ -18,8 +18,8 @@ import Reanimated, {
   runOnJS,
   FadeIn,
   ZoomIn,
-  RollInRight,
-  RollInLeft,
+  SlideInRight,
+  SlideInLeft,
   SlideInDown,
 } from "react-native-reanimated";
 import { UIFlashcard } from "../lib/utils/flashcardMapper";
@@ -47,7 +47,7 @@ export default function FlashcardComponent({
   const progress = hasFlashcards
     ? ((currentIndex + 1) / flashcards.length) * 100
     : 0;
-  console.log(flashcards, "s>>>>>");
+
   useEffect(() => {
     progressAnim.value = withTiming(progress / 100, { duration: 600 });
   }, [currentIndex, flashcards]);
@@ -155,6 +155,13 @@ export default function FlashcardComponent({
       }
     });
 
+  const getAnswerFontSize = (text: string | undefined) => {
+    if (!text) return 20;
+    if (text.length > 200) return 16;
+    if (text.length > 120) return 18;
+    return 20;
+  };
+
   if (!hasFlashcards) {
     return (
       <Reanimated.View
@@ -165,11 +172,7 @@ export default function FlashcardComponent({
           style={styles.emptyCard}
           entering={ZoomIn.delay(300).duration(600)}
         >
-          <MaterialCommunityIcons
-            name="cards-outline"
-            size={60}
-            color="#b5c7d3"
-          />
+          <MaterialCommunityIcons name="cards-outline" size={60} color="#999" />
           <Text style={styles.emptyTitle}>No Flashcards Available</Text>
           <Text style={styles.emptyText}>
             There are no flashcards available for this note yet.
@@ -183,6 +186,7 @@ export default function FlashcardComponent({
     <ScrollView
       style={styles.scrollContainer}
       contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
     >
       <Reanimated.View style={styles.container} entering={FadeIn.duration(300)}>
         {/* Progress Bar */}
@@ -213,8 +217,8 @@ export default function FlashcardComponent({
                   style={[styles.flashcardContainer, animatedFrontStyle]}
                   entering={
                     currentIndex % 2 === 0
-                      ? RollInRight.duration(400)
-                      : RollInLeft.duration(400)
+                      ? SlideInRight.duration(300)
+                      : SlideInLeft.duration(300)
                   }
                 >
                   <View style={styles.cardContentContainer}>
@@ -226,9 +230,8 @@ export default function FlashcardComponent({
                   <View style={styles.flipIndicatorContainer}>
                     <MaterialCommunityIcons
                       name="rotate-3d-variant"
-                      size={24}
-                      color="#64748b"
-                      style={styles.flipIndicator}
+                      size={20}
+                      color="#666"
                     />
                     <Text style={styles.tapToFlip}>Tap to flip</Text>
                   </View>
@@ -243,16 +246,22 @@ export default function FlashcardComponent({
                 >
                   <View style={styles.cardContentContainer}>
                     <Text style={styles.answerLabel}>Answer</Text>
-                    <Text style={styles.answer}>
+                    <Text
+                      style={[
+                        styles.answer,
+                        {
+                          fontSize: getAnswerFontSize(currentFlashcard?.answer),
+                        },
+                      ]}
+                    >
                       {currentFlashcard?.answer}
                     </Text>
                   </View>
                   <View style={styles.flipIndicatorContainer}>
                     <MaterialCommunityIcons
                       name="rotate-3d-variant"
-                      size={24}
-                      color="#64748b"
-                      style={styles.flipIndicator}
+                      size={20}
+                      color="#666"
                     />
                     <Text style={styles.tapToFlip}>Tap to flip back</Text>
                   </View>
@@ -271,8 +280,8 @@ export default function FlashcardComponent({
           >
             <MaterialCommunityIcons
               name="chevron-left"
-              size={28}
-              color={flashcards.length > 1 ? "#3a4d6d" : "#ccc"}
+              size={24}
+              color={flashcards.length > 1 ? "#000" : "#ccc"}
             />
           </TouchableOpacity>
 
@@ -287,8 +296,8 @@ export default function FlashcardComponent({
           >
             <MaterialCommunityIcons
               name="chevron-right"
-              size={28}
-              color={flashcards.length > 1 ? "#3a4d6d" : "#ccc"}
+              size={24}
+              color={flashcards.length > 1 ? "#000" : "#ccc"}
             />
           </TouchableOpacity>
         </View>
@@ -314,7 +323,7 @@ export default function FlashcardComponent({
                     >
                       <MaterialCommunityIcons
                         name="lightbulb-outline"
-                        size={20}
+                        size={18}
                         color="#f59e0b"
                       />
                       <Text style={styles.hintText}>{hint}</Text>
@@ -332,8 +341,8 @@ export default function FlashcardComponent({
                     </Text>
                     <MaterialCommunityIcons
                       name="chevron-down"
-                      size={18}
-                      color="#3a4d6d"
+                      size={16}
+                      color="#444"
                     />
                   </TouchableOpacity>
                 )}
@@ -350,8 +359,8 @@ export default function FlashcardComponent({
         <View style={styles.instructionsContainer}>
           <MaterialCommunityIcons
             name="gesture-swipe-horizontal"
-            size={22}
-            color="#64748b"
+            size={20}
+            color="#666"
           />
           <Text style={styles.swipeHint}>Swipe left or right to navigate</Text>
         </View>
@@ -363,16 +372,16 @@ export default function FlashcardComponent({
 const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#fff",
   },
   scrollContent: {
-    minHeight: SCREEN_HEIGHT - 240,
+    minHeight: SCREEN_HEIGHT - 220,
     paddingBottom: 30,
   },
   container: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingTop: 24,
     paddingBottom: 16,
     alignItems: "center",
     justifyContent: "flex-start",
@@ -380,56 +389,48 @@ const styles = StyleSheet.create({
   },
   progressContainer: {
     width: "100%",
-    marginBottom: 24,
+    marginBottom: 28,
   },
   progressBackground: {
-    height: 6,
-    backgroundColor: "#e6f0ff",
-    borderRadius: 3,
+    height: 4,
+    backgroundColor: "#f1f1f1",
+    borderRadius: 2,
     overflow: "hidden",
   },
   progressFill: {
     height: "100%",
-    backgroundColor: "#3a4d6d",
-    borderRadius: 3,
+    backgroundColor: "#000",
+    borderRadius: 2,
   },
   progressText: {
     textAlign: "center",
     marginTop: 8,
-    color: "#64748b",
+    color: "#666",
     fontSize: 14,
-    fontWeight: "500",
+    fontWeight: "400",
   },
   swipeContainer: {
     width: "100%",
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 300,
+    minHeight: 340,
   },
   flipTouchable: {
     width: SCREEN_WIDTH * 0.88,
-    aspectRatio: 16 / 11,
-    marginBottom: 16,
+    aspectRatio: 3 / 2,
+    marginBottom: 20,
   },
   flashcardContainer: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 24,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 20,
     width: "100%",
     height: "100%",
     justifyContent: "space-between",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
     backfaceVisibility: "hidden",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
+    borderWidth: 1,
+    borderColor: "#eee",
   },
   cardContentContainer: {
     flex: 1,
@@ -437,56 +438,52 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   flashcardBack: {
-    backgroundColor: "#FDFDFD",
-    borderColor: "#e2e8f0",
+    backgroundColor: "#fff",
   },
   questionLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#64748b",
+    fontSize: 13,
+    fontWeight: "500",
+    color: "#666",
     marginBottom: 16,
     textTransform: "uppercase",
-    letterSpacing: 1.2,
+    letterSpacing: 1,
   },
   question: {
     fontSize: 22,
-    fontWeight: "600",
-    color: "#1e293b",
+    fontWeight: "500",
+    color: "#111",
     textAlign: "center",
     lineHeight: 32,
   },
   flipIndicatorContainer: {
     alignItems: "center",
-    marginTop: 16,
-    backgroundColor: "#f8fafc",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
+    marginTop: 20,
+    flexDirection: "row",
   },
   flipIndicator: {
-    marginBottom: 4,
+    marginRight: 6,
   },
   tapToFlip: {
-    fontSize: 12,
-    color: "#64748b",
-    fontWeight: "500",
+    fontSize: 13,
+    color: "#666",
+    fontWeight: "400",
   },
   answerLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#64748b",
+    fontSize: 13,
+    fontWeight: "500",
+    color: "#666",
     marginBottom: 16,
     textTransform: "uppercase",
-    letterSpacing: 1.2,
+    letterSpacing: 1,
   },
   answer: {
-    fontSize: 20,
-    color: "#1e293b",
+    color: "#111",
     textAlign: "center",
-    lineHeight: 30,
-    fontWeight: "500",
+    lineHeight: 26,
+    fontWeight: "400",
   },
   navigationContainer: {
     flexDirection: "row",
@@ -494,37 +491,24 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     width: "100%",
     paddingHorizontal: 20,
-    marginBottom: 24,
+    marginBottom: 32,
   },
   navButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#f1f5f9",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
   },
   cardIndicator: {
     fontSize: 14,
-    color: "#64748b",
-    fontWeight: "500",
+    color: "#666",
+    fontWeight: "400",
   },
   hintsSection: {
     width: "100%",
-    backgroundColor: "#ffffff",
-    borderRadius: 16,
-    padding: 20,
-    marginTop: 8,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
+    padding: 0,
+    marginTop: 0,
   },
   hintsHeader: {
     flexDirection: "row",
@@ -533,9 +517,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   hintsTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1e293b",
+    fontSize: 17,
+    fontWeight: "500",
+    color: "#111",
   },
   hintsContainer: {
     width: "100%",
@@ -543,17 +527,15 @@ const styles = StyleSheet.create({
   hintRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: "#fef3c7",
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: 10,
+    backgroundColor: "#fff9eb",
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 8,
     marginBottom: 10,
-    borderWidth: 1,
-    borderColor: "#fde68a",
   },
   hintText: {
     fontSize: 15,
-    color: "#92400e",
+    color: "#704008",
     marginLeft: 10,
     flex: 1,
     lineHeight: 22,
@@ -567,13 +549,13 @@ const styles = StyleSheet.create({
   },
   showMoreText: {
     fontSize: 14,
-    color: "#3a4d6d",
-    fontWeight: "500",
+    color: "#444",
+    fontWeight: "400",
     marginRight: 6,
   },
   noHintsText: {
     textAlign: "center",
-    color: "#94a3b8",
+    color: "#888",
     fontSize: 15,
     fontStyle: "italic",
     paddingVertical: 16,
@@ -582,17 +564,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 24,
-    backgroundColor: "#f8fafc",
+    marginTop: 28,
     paddingVertical: 8,
     paddingHorizontal: 16,
-    borderRadius: 20,
   },
   swipeHint: {
-    color: "#64748b",
+    color: "#666",
     fontSize: 14,
     marginLeft: 8,
-    fontWeight: "500",
+    fontWeight: "400",
   },
   emptyContainer: {
     flex: 1,
@@ -604,30 +584,23 @@ const styles = StyleSheet.create({
   emptyCard: {
     width: "100%",
     backgroundColor: "white",
-    borderRadius: 20,
+    borderRadius: 16,
     padding: 40,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 3,
     minHeight: 300,
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
   },
   emptyTitle: {
     fontSize: 20,
-    fontWeight: "600",
-    color: "#1e293b",
+    fontWeight: "500",
+    color: "#111",
     marginTop: 20,
     marginBottom: 12,
     textAlign: "center",
   },
   emptyText: {
     fontSize: 16,
-    color: "#64748b",
+    color: "#666",
     textAlign: "center",
     lineHeight: 24,
   },

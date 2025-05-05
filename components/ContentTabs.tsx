@@ -17,12 +17,33 @@ const TABS: {
   name: TabName;
   label: string;
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
+  color: string;
 }[] = [
-  { name: "note", label: "Note", icon: "note-text-outline" },
-  { name: "transcript", label: "Transcript", icon: "script-text-outline" },
-  { name: "summary", label: "Summary", icon: "text-box-outline" },
-  { name: "quiz", label: "Quiz", icon: "help-circle-outline" },
-  { name: "flashcards", label: "Flashcards", icon: "card-text-outline" },
+  { name: "note", label: "Note", icon: "note-text-outline", color: "#4A6FA5" },
+  {
+    name: "transcript",
+    label: "Transcript",
+    icon: "script-text-outline",
+    color: "#6B7FD7",
+  },
+  {
+    name: "summary",
+    label: "Summary",
+    icon: "text-box-outline",
+    color: "#5DA271",
+  },
+  {
+    name: "quiz",
+    label: "Quiz",
+    icon: "help-circle-outline",
+    color: "#D97706",
+  },
+  {
+    name: "flashcards",
+    label: "Flashcards",
+    icon: "card-text-outline",
+    color: "#C15C5C",
+  },
 ];
 
 export type { TabName };
@@ -51,6 +72,8 @@ export default function ContentTabs({
   const [containerWidth, setContainerWidth] = useState(
     Dimensions.get("window").width
   );
+  const activeColor =
+    TABS.find((tab) => tab.name === activeTab)?.color || "#000";
 
   // Keep track of the last programmatic scroll to avoid feedback loops
   const isScrollingRef = useRef(false);
@@ -131,7 +154,7 @@ export default function ContentTabs({
   return (
     <View style={styles.rootContainer}>
       <View
-        style={styles.container}
+        style={[styles.container, { borderBottomColor: activeColor }]}
         onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
       >
         <ScrollView
@@ -142,32 +165,44 @@ export default function ContentTabs({
           bounces={false}
         >
           <View style={styles.tabsContainer}>
-            {TABS.map((tab, idx) => (
-              <TouchableOpacity
-                key={tab.name}
-                style={[styles.tab, activeTab === tab.name && styles.activeTab]}
-                onPress={() => handleTabPress(tab.name)}
-                activeOpacity={0.8}
-                onLayout={(e) => onTabLayout(idx, e)}
-              >
-                <View style={styles.tabContent}>
+            {TABS.map((tab) => {
+              const isActive = activeTab === tab.name;
+              return (
+                <TouchableOpacity
+                  key={tab.name}
+                  style={[
+                    styles.tab,
+                    isActive && [
+                      styles.activeTab,
+                      { backgroundColor: `${tab.color}10` },
+                    ],
+                  ]}
+                  onPress={() => handleTabPress(tab.name)}
+                  activeOpacity={0.6}
+                  onLayout={(e) =>
+                    onTabLayout(
+                      TABS.findIndex((t) => t.name === tab.name),
+                      e
+                    )
+                  }
+                >
                   <MaterialCommunityIcons
                     name={tab.icon}
-                    size={20}
-                    color={activeTab === tab.name ? "#fff" : "#2c3e50"}
+                    size={24}
+                    color={isActive ? tab.color : "#888"}
                     style={styles.tabIcon}
                   />
                   <Text
                     style={[
                       styles.tabText,
-                      activeTab === tab.name && styles.activeTabText,
+                      isActive && [styles.activeTabText, { color: tab.color }],
                     ]}
                   >
                     {tab.label}
                   </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </ScrollView>
       </View>
@@ -198,51 +233,40 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
-    backgroundColor: "#ffffff",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    backgroundColor: "#fff",
+    paddingTop: 8,
+    paddingBottom: 0,
+    borderBottomWidth: 2,
   },
   scrollContent: {
-    paddingHorizontal: 4,
+    paddingHorizontal: 10,
   },
   tabsContainer: {
     flexDirection: "row",
-    backgroundColor: "#f7f7f7",
-    borderRadius: 8,
-    paddingVertical: 4,
-    paddingHorizontal: 4,
     alignItems: "center",
-    position: "relative",
+    paddingVertical: 8,
+    paddingHorizontal: 5,
   },
   tab: {
-    borderRadius: 6,
-    marginHorizontal: 2,
-    minWidth: 84,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: "transparent",
-  },
-  activeTab: {
-    backgroundColor: "#2c3e50",
-  },
-  tabContent: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
+    marginHorizontal: 4,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 30,
+  },
+  activeTab: {
+    elevation: 0,
   },
   tabIcon: {
-    marginRight: 4,
+    marginRight: 8,
   },
   tabText: {
     fontSize: 14,
     fontWeight: "500",
-    color: "#2c3e50",
+    color: "#888",
   },
   activeTabText: {
-    color: "#ffffff",
     fontWeight: "600",
   },
   contentContainer: {
@@ -250,5 +274,12 @@ const styles = StyleSheet.create({
   },
   tabPage: {
     flex: 1,
+  },
+  indicator: {
+    position: "absolute",
+    height: 3,
+    backgroundColor: "#111",
+    bottom: 0,
+    borderRadius: 2,
   },
 });

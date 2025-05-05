@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 type Question = {
   question: string;
@@ -47,39 +48,82 @@ export default function QuizComponent({ quiz }: QuizComponentProps) {
     setScore(0);
   };
 
+  const renderProgressBar = () => {
+    const progress = ((currentQuestionIndex + 1) / quiz.questions.length) * 100;
+
+    return (
+      <View style={styles.progressContainer}>
+        <View style={styles.progressBackground}>
+          <View style={[styles.progressFill, { width: `${progress}%` }]} />
+        </View>
+        <Text style={styles.progressText}>
+          Question {currentQuestionIndex + 1} of {quiz.questions.length}
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.quizCard}>
+        {renderProgressBar()}
+
         <Text style={styles.quizTitle}>{quiz.title}</Text>
 
         <View style={styles.questionContainer}>
-          <Text style={styles.questionText}>
-            {currentQuestionIndex + 1}. {currentQuestion.question}
-          </Text>
+          <Text style={styles.questionText}>{currentQuestion.question}</Text>
 
-          {currentQuestion.options.map((option, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.optionButton,
-                selectedAnswer === option && styles.selectedOption,
-                showExplanation &&
-                  option === currentQuestion.correctAnswer &&
-                  styles.correctOption,
-                showExplanation &&
-                  selectedAnswer === option &&
-                  option !== currentQuestion.correctAnswer &&
-                  styles.incorrectOption,
-              ]}
-              onPress={() => !showExplanation && handleAnswerSelect(option)}
-              disabled={showExplanation}
-            >
-              <Text style={styles.optionText}>{option}</Text>
-            </TouchableOpacity>
-          ))}
+          {currentQuestion.options.map((option, index) => {
+            const isSelected = selectedAnswer === option;
+            const isCorrect = option === currentQuestion.correctAnswer;
+            const isIncorrect = showExplanation && isSelected && !isCorrect;
+
+            return (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.optionButton,
+                  isSelected && styles.selectedOption,
+                  showExplanation && isCorrect && styles.correctOption,
+                  isIncorrect && styles.incorrectOption,
+                ]}
+                onPress={() => !showExplanation && handleAnswerSelect(option)}
+                disabled={showExplanation}
+                activeOpacity={0.7}
+              >
+                {showExplanation && isCorrect && (
+                  <MaterialCommunityIcons
+                    name="check-circle-outline"
+                    size={20}
+                    color="#4caf50"
+                    style={styles.optionIcon}
+                  />
+                )}
+                {isIncorrect && (
+                  <MaterialCommunityIcons
+                    name="close-circle-outline"
+                    size={20}
+                    color="#f44336"
+                    style={styles.optionIcon}
+                  />
+                )}
+                <Text
+                  style={[
+                    styles.optionText,
+                    isSelected && styles.selectedOptionText,
+                    showExplanation && isCorrect && styles.correctOptionText,
+                    isIncorrect && styles.incorrectOptionText,
+                  ]}
+                >
+                  {option}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
 
           {showExplanation && (
             <View style={styles.explanationContainer}>
+              <Text style={styles.explanationLabel}>Explanation</Text>
               <Text style={styles.explanationText}>
                 {currentQuestion.explanation}
               </Text>
@@ -89,7 +133,7 @@ export default function QuizComponent({ quiz }: QuizComponentProps) {
                   style={styles.nextButton}
                   onPress={handleNextQuestion}
                 >
-                  <Text style={styles.nextButtonText}>Next Question</Text>
+                  <Text style={styles.buttonText}>Next Question</Text>
                 </TouchableOpacity>
               ) : (
                 <View style={styles.resultContainer}>
@@ -100,7 +144,7 @@ export default function QuizComponent({ quiz }: QuizComponentProps) {
                     style={styles.restartButton}
                     onPress={handleRestartQuiz}
                   >
-                    <Text style={styles.restartButtonText}>Restart Quiz</Text>
+                    <Text style={styles.buttonText}>Restart Quiz</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -116,27 +160,41 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: "#f7f9fc",
+    backgroundColor: "#fff",
   },
   quizCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
-    padding: 20,
+    backgroundColor: "#fff",
+    borderRadius: 0,
+    padding: 0,
     marginBottom: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  },
+  progressContainer: {
+    width: "100%",
+    marginBottom: 24,
+  },
+  progressBackground: {
+    height: 4,
+    backgroundColor: "#f1f1f1",
+    borderRadius: 2,
+    overflow: "hidden",
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: "#000",
+    borderRadius: 2,
+  },
+  progressText: {
+    textAlign: "center",
+    marginTop: 8,
+    color: "#666",
+    fontSize: 14,
+    fontWeight: "400",
   },
   quizTitle: {
     fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 20,
-    color: "#34495e",
+    fontWeight: "500",
+    marginBottom: 24,
+    color: "#111",
     textAlign: "center",
   },
   questionContainer: {
@@ -144,86 +202,96 @@ const styles = StyleSheet.create({
   },
   questionText: {
     fontSize: 18,
-    marginBottom: 16,
-    color: "#34495e",
-    lineHeight: 24,
+    marginBottom: 20,
+    color: "#111",
+    lineHeight: 26,
+    fontWeight: "500",
   },
   optionButton: {
-    backgroundColor: "#f7f9fc",
-    padding: 15,
+    backgroundColor: "#fff",
+    padding: 16,
     borderRadius: 8,
-    marginBottom: 10,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#e1e8ed",
+    borderColor: "#eee",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  optionIcon: {
+    marginRight: 10,
   },
   optionText: {
     fontSize: 16,
-    color: "#34495e",
+    color: "#333",
+    flex: 1,
   },
   selectedOption: {
-    backgroundColor: "#e0f7fa",
-    borderColor: "#00bcd4",
-    borderWidth: 2,
+    backgroundColor: "#f8f8f8",
+    borderColor: "#ddd",
+  },
+  selectedOptionText: {
+    fontWeight: "500",
   },
   correctOption: {
-    backgroundColor: "#e8f5e9",
-    borderColor: "#4caf50",
-    borderWidth: 2,
+    backgroundColor: "#f5fbf5",
+    borderColor: "#c8e6c9",
+  },
+  correctOptionText: {
+    color: "#2e7d32",
   },
   incorrectOption: {
-    backgroundColor: "#ffebee",
-    borderColor: "#f44336",
-    borderWidth: 2,
+    backgroundColor: "#fff5f5",
+    borderColor: "#ffcdd2",
+  },
+  incorrectOptionText: {
+    color: "#c62828",
   },
   explanationContainer: {
-    marginTop: 20,
-    padding: 15,
-    backgroundColor: "#f1f3f5",
+    marginTop: 24,
+    padding: 20,
+    backgroundColor: "#fafafa",
     borderRadius: 8,
-    borderLeftWidth: 4,
-    borderLeftColor: "#6c757d",
+  },
+  explanationLabel: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#333",
+    marginBottom: 8,
   },
   explanationText: {
     fontSize: 15,
-    color: "#495057",
-    marginBottom: 12,
-    lineHeight: 21,
+    color: "#333",
+    marginBottom: 20,
+    lineHeight: 22,
   },
   nextButton: {
-    backgroundColor: "#34495e",
+    backgroundColor: "#000",
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 8,
     alignItems: "center",
-    marginTop: 10,
   },
-  nextButtonText: {
-    color: "#ffffff",
-    fontWeight: "bold",
-    fontSize: 16,
+  buttonText: {
+    color: "#fff",
+    fontWeight: "500",
+    fontSize: 15,
   },
   resultContainer: {
     alignItems: "center",
-    marginTop: 10,
   },
   resultText: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: "500",
     marginBottom: 20,
-    color: "#34495e",
+    color: "#333",
     textAlign: "center",
   },
   restartButton: {
-    backgroundColor: "#34495e",
+    backgroundColor: "#000",
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 8,
     alignItems: "center",
-    width: "80%",
-  },
-  restartButtonText: {
-    color: "#ffffff",
-    fontWeight: "bold",
-    fontSize: 16,
+    width: "100%",
   },
 });

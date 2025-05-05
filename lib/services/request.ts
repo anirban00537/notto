@@ -2,7 +2,7 @@ import axios, { AxiosError } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // API Base URL
-const BASE_URL = "http://q4skck4o8okwsg4og4ooc0c4.88.222.213.3.sslip.io"; // Update this with your NestJS server URL
+const BASE_URL = "https://api.boostfury.com";
 const TOKEN_KEY = "@auth_token";
 
 // Create axios instance
