@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  GestureResponderEvent,
+  LayoutRectangle,
 } from "react-native";
 import { Audio } from "expo-av";
-import Slider from "@react-native-community/slider";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 interface AudioPreviewProps {
@@ -24,6 +25,8 @@ const AudioPreview: React.FC<AudioPreviewProps> = ({
   const [duration, setDuration] = useState(0);
   const [position, setPosition] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [waveLayout, setWaveLayout] = useState<LayoutRectangle | null>(null);
+  const waveContainerRef = useRef<View>(null);
 
   // Format time from milliseconds to MM:SS
   const formatTime = (milliseconds: number) => {
@@ -59,7 +62,6 @@ const AudioPreview: React.FC<AudioPreviewProps> = ({
       setIsPlaying(status.isPlaying);
       if (status.didJustFinish) {
         setIsPlaying(false);
-        setPosition(0);
       }
     }
   };
@@ -74,6 +76,10 @@ const AudioPreview: React.FC<AudioPreviewProps> = ({
       if (isPlaying) {
         await sound.pauseAsync();
       } else {
+        if (position >= duration - 50) {
+          await sound.setPositionAsync(0);
+          setPosition(0);
+        }
         await sound.playAsync();
       }
     } catch (error) {
@@ -81,11 +87,41 @@ const AudioPreview: React.FC<AudioPreviewProps> = ({
     }
   }
 
-  async function handleSliderChange(value: number) {
+  async function handleSeek(direction: "backward" | "forward") {
     if (sound) {
-      await sound.setPositionAsync(value);
+      const seekAmount = direction === "backward" ? -10000 : 30000;
+      const newPosition = Math.max(
+        0,
+        Math.min(duration, position + seekAmount)
+      );
+      await sound.setPositionAsync(newPosition);
     }
   }
+
+  // Generate static wave data for visualization
+  const waveData = useMemo(() => {
+    const numberOfBars = 80;
+
+    // Generate wave pattern with variation but not completely random
+    return Array.from({ length: numberOfBars }, (_, i) => {
+      // Create a pattern that varies but is somewhat predictable
+      const baseHeight = 0.4;
+      const variation1 = Math.sin(i * 0.2) * 0.15;
+      const variation2 = Math.sin(i * 0.5) * 0.1;
+      const variation3 = Math.cos(i * 0.3) * 0.1;
+
+      // Small random component for natural look
+      const smallRandom = Math.random() * 0.1 - 0.05;
+
+      return Math.min(
+        0.9,
+        Math.max(
+          0.2,
+          baseHeight + variation1 + variation2 + variation3 + smallRandom
+        )
+      );
+    });
+  }, []);
 
   useEffect(() => {
     loadSound();
@@ -96,17 +132,30 @@ const AudioPreview: React.FC<AudioPreviewProps> = ({
     };
   }, [directPlayableUrl]);
 
+  // Calculate which bars should be filled based on current position
+  const progressPercentage = duration > 0 ? position / duration : 0;
+  const filledBars = Math.ceil(waveData.length * progressPercentage);
+
+  // Handle seek when user taps on the wave
+  const handleWavePress = (event: GestureResponderEvent) => {
+    if (sound && duration > 0 && waveLayout) {
+      const { locationX } = event.nativeEvent;
+      const containerWidth = waveLayout.width;
+
+      if (containerWidth > 0) {
+        const percentage = Math.max(0, Math.min(1, locationX / containerWidth));
+        const newPosition = percentage * duration;
+        sound.setPositionAsync(newPosition);
+      }
+    }
+  };
+
+  const handleWaveLayout = (event: any) => {
+    setWaveLayout(event.nativeEvent.layout);
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.progressBar}>
-        <View
-          style={[
-            styles.progressIndicator,
-            { width: duration > 0 ? `${(position / duration) * 100}%` : "0%" },
-          ]}
-        />
-      </View>
-
       <View style={styles.content}>
         <TouchableOpacity
           style={styles.playButtonContainer}
@@ -135,48 +184,55 @@ const AudioPreview: React.FC<AudioPreviewProps> = ({
             {fileName}
           </Text>
 
-          <View style={styles.sliderRow}>
-            <Slider
-              style={styles.slider}
-              minimumValue={0}
-              maximumValue={duration}
-              value={position}
-              onSlidingComplete={handleSliderChange}
-              minimumTrackTintColor="#2c3e50"
-              maximumTrackTintColor="rgba(0,0,0,0.1)"
-              thumbTintColor="#2c3e50"
-            />
-          </View>
+          <TouchableOpacity
+            ref={waveContainerRef}
+            style={styles.waveContainer}
+            activeOpacity={0.8}
+            onPress={handleWavePress}
+            onLayout={handleWaveLayout}
+          >
+            {waveData.map((height, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.waveBar,
+                  {
+                    height: `${Math.max(15, height * 100)}%`,
+                    backgroundColor: index < filledBars ? "#000" : "#DCDCDC",
+                    marginHorizontal: 0.5,
+                  },
+                ]}
+              />
+            ))}
+          </TouchableOpacity>
 
-          <View style={styles.timeContainer}>
+          <View style={styles.timeRow}>
             <Text style={styles.timeText}>{formatTime(position)}</Text>
+
             <View style={styles.controlsContainer}>
               <TouchableOpacity
                 style={styles.controlButton}
-                onPress={() =>
-                  sound?.setPositionAsync(Math.max(0, position - 10000))
-                }
+                onPress={() => handleSeek("backward")}
               >
                 <MaterialCommunityIcons
                   name="rewind-10"
-                  size={16}
-                  color="#2c3e50"
+                  size={18}
+                  color="#000"
                 />
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.controlButton}
-                onPress={() =>
-                  sound?.setPositionAsync(Math.min(duration, position + 30000))
-                }
+                onPress={() => handleSeek("forward")}
               >
                 <MaterialCommunityIcons
                   name="fast-forward-30"
-                  size={16}
-                  color="#2c3e50"
+                  size={18}
+                  color="#000"
                 />
               </TouchableOpacity>
             </View>
+
             <Text style={styles.timeText}>{formatTime(duration)}</Text>
           </View>
         </View>
@@ -187,76 +243,69 @@ const AudioPreview: React.FC<AudioPreviewProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#ffffff",
-    borderRadius: 0,
-    overflow: "hidden",
-    position: "relative",
+    backgroundColor: "#fff",
     width: "100%",
+    overflow: "hidden",
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-  },
-  progressBar: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 2,
-    backgroundColor: "rgba(0,0,0,0.05)",
-    zIndex: 10,
-  },
-  progressIndicator: {
-    height: "100%",
-    backgroundColor: "#2c3e50",
+    borderBottomColor: "#f5f5f5",
   },
   content: {
     flexDirection: "row",
-    padding: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    padding: 14,
     alignItems: "center",
   },
   playButtonContainer: {
     marginRight: 12,
   },
   playButton: {
-    backgroundColor: "#2c3e50",
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    backgroundColor: "#000",
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
   },
   infoContainer: {
     flex: 1,
+    justifyContent: "center",
   },
   fileName: {
     fontSize: 14,
-    fontWeight: "600",
-    color: "#2c3e50",
-    marginBottom: 4,
+    fontWeight: "500",
+    color: "#111",
+    marginBottom: 8,
   },
-  sliderRow: {
-    paddingRight: 8,
-  },
-  slider: {
-    height: 30,
-    marginHorizontal: -6,
-  },
-  timeContainer: {
+  waveContainer: {
+    height: 40,
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 6,
+    gap: 0,
+  },
+  waveBar: {
+    flex: 1,
+    width: 2,
+    borderRadius: 1,
+    alignSelf: "center",
+  },
+  timeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   timeText: {
     fontSize: 12,
-    color: "#666",
+    color: "#8E8E93",
+    fontWeight: "400",
+    fontVariant: ["tabular-nums"],
   },
   controlsContainer: {
     flexDirection: "row",
     alignItems: "center",
   },
   controlButton: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
 });
 

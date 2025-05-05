@@ -116,9 +116,9 @@ const NoteCard: React.FC<NoteCardProps> = ({
       >
         <View style={styles.textContainer}>
           <View style={styles.titleRow}>
-            <Text style={styles.title} numberOfLines={2}>
-              {title}
-            </Text>
+          <Text style={styles.title} numberOfLines={2}>
+            {title}
+          </Text>
             <View
               style={[
                 styles.sourceTag,

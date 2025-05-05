@@ -17,33 +17,12 @@ const TABS: {
   name: TabName;
   label: string;
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
-  color: string;
 }[] = [
-  { name: "note", label: "Note", icon: "note-text-outline", color: "#4A6FA5" },
-  {
-    name: "transcript",
-    label: "Transcript",
-    icon: "script-text-outline",
-    color: "#6B7FD7",
-  },
-  {
-    name: "summary",
-    label: "Summary",
-    icon: "text-box-outline",
-    color: "#5DA271",
-  },
-  {
-    name: "quiz",
-    label: "Quiz",
-    icon: "help-circle-outline",
-    color: "#D97706",
-  },
-  {
-    name: "flashcards",
-    label: "Flashcards",
-    icon: "card-text-outline",
-    color: "#C15C5C",
-  },
+  { name: "note", label: "Note", icon: "note-text-outline" },
+  { name: "transcript", label: "Transcript", icon: "script-text-outline" },
+  { name: "summary", label: "Summary", icon: "text-box-outline" },
+  { name: "quiz", label: "Quiz", icon: "help-circle-outline" },
+  { name: "flashcards", label: "Flashcards", icon: "card-text-outline" },
 ];
 
 export type { TabName };
@@ -72,8 +51,6 @@ export default function ContentTabs({
   const [containerWidth, setContainerWidth] = useState(
     Dimensions.get("window").width
   );
-  const activeColor =
-    TABS.find((tab) => tab.name === activeTab)?.color || "#000";
 
   // Keep track of the last programmatic scroll to avoid feedback loops
   const isScrollingRef = useRef(false);
@@ -174,7 +151,7 @@ export default function ContentTabs({
                     styles.tab,
                     isActive && [
                       styles.activeTab,
-                      { backgroundColor: `${tab.color}10` },
+                      { backgroundColor: "#f5f5f5" },
                     ],
                   ]}
                   onPress={() => handleTabPress(tab.name)}
@@ -189,14 +166,11 @@ export default function ContentTabs({
                   <MaterialCommunityIcons
                     name={tab.icon}
                     size={24}
-                    color={isActive ? tab.color : "#888"}
+                    color={isActive ? "#000" : "#888"}
                     style={styles.tabIcon}
                   />
                   <Text
-                    style={[
-                      styles.tabText,
-                      isActive && [styles.activeTabText, { color: tab.color }],
-                    ]}
+                    style={[styles.tabText, isActive && styles.activeTabText]}
                   >
                     {tab.label}
                   </Text>
@@ -205,6 +179,7 @@ export default function ContentTabs({
             })}
           </View>
         </ScrollView>
+        <View style={styles.bottomBorder} />
       </View>
 
       {children ? (
@@ -236,6 +211,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingTop: 4,
     paddingBottom: 0,
+    position: "relative",
   },
   scrollContent: {
     paddingHorizontal: 10,
@@ -267,6 +243,7 @@ const styles = StyleSheet.create({
   },
   activeTabText: {
     fontWeight: "600",
+    color: "#000",
   },
   contentContainer: {
     flex: 1,
@@ -280,5 +257,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#111",
     bottom: 0,
     borderRadius: 2,
+  },
+  bottomBorder: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 1,
+    backgroundColor: "#f0f0f0",
   },
 });
