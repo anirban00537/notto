@@ -154,7 +154,7 @@ export default function ContentTabs({
   return (
     <View style={styles.rootContainer}>
       <View
-        style={[styles.container, { borderBottomColor: activeColor }]}
+        style={styles.container}
         onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
       >
         <ScrollView
@@ -234,9 +234,8 @@ const styles = StyleSheet.create({
   },
   container: {
     backgroundColor: "#fff",
-    paddingTop: 8,
+    paddingTop: 4,
     paddingBottom: 0,
-    borderBottomWidth: 2,
   },
   scrollContent: {
     paddingHorizontal: 10,
@@ -244,14 +243,14 @@ const styles = StyleSheet.create({
   tabsContainer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 8,
+    paddingVertical: 5,
     paddingHorizontal: 5,
   },
   tab: {
     flexDirection: "row",
     alignItems: "center",
     marginHorizontal: 4,
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 30,
   },
