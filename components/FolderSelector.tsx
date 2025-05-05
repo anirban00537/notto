@@ -19,11 +19,11 @@ export const FolderSelector: React.FC<FolderSelectorProps> = ({
       onPress={onFolderPress}
       activeOpacity={0.7}
     >
-      <MaterialCommunityIcons name="folder-outline" size={22} color="#555" />
-      <Text style={[Typography.noteTitle, styles.folderName]}>
+      <MaterialCommunityIcons name="folder-outline" size={18} color="#555" />
+      <Text style={[Typography.body2, styles.folderName]}>
         {selectedFolder.name}
       </Text>
-      <MaterialCommunityIcons name="chevron-down" size={20} color="#555" />
+      <MaterialCommunityIcons name="chevron-down" size={16} color="#555" />
     </TouchableOpacity>
   );
 };
@@ -33,16 +33,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#ffffff",
-    paddingVertical: 12,
+    paddingVertical: 8,
     paddingHorizontal: 16,
     marginHorizontal: 16,
-    marginVertical: 8,
+    marginVertical: 4,
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
   },
   folderName: {
     flex: 1,
     color: "#000000",
-    marginLeft: 10,
+    marginLeft: 8,
   },
 });
