@@ -138,7 +138,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
           </Text>
 
           <Text style={Typography.caption}>
-            {format(createdAt, "MMM d, yyyy")}
+            {format(createdAt, "MMM d, yyyy · h:mm a")}
           </Text>
         </View>
       </TouchableOpacity>
