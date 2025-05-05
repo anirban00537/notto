@@ -7,7 +7,8 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
-import CommonBottomSheet from './CommonBottomSheet';
+import CommonBottomSheet from "./CommonBottomSheet";
+import { Typography, FONTS } from "../constants/Typography";
 
 interface AudioModalProps {
   visible: boolean;
@@ -49,8 +50,8 @@ const AudioModal: React.FC<AudioModalProps> = ({
       visible={visible}
       snapPoints={snapPoints}
       onClose={onClose}
-      backgroundStyle={{ backgroundColor: '#fff' }}
-      handleIndicatorStyle={{ backgroundColor: '#ccc' }}
+      backgroundStyle={{ backgroundColor: "#fff" }}
+      handleIndicatorStyle={{ backgroundColor: "#ccc" }}
     >
       <View style={styles.audioModalContent}>
         <View
@@ -61,9 +62,9 @@ const AudioModal: React.FC<AudioModalProps> = ({
             marginBottom: 24,
           }}
         >
-          <Text style={styles.audioModalTitle}>Add Audio</Text>
+          <Text style={[Typography.h3, styles.audioModalTitle]}>Add Audio</Text>
           <TouchableOpacity onPress={onClose} disabled={loading}>
-            <Text style={{ color: "#1976d2", fontSize: 16, fontWeight: "600" }}>
+            <Text style={[Typography.buttonText, { color: "#1976d2" }]}>
               Cancel
             </Text>
           </TouchableOpacity>
@@ -76,7 +77,7 @@ const AudioModal: React.FC<AudioModalProps> = ({
               minHeight: 80,
             }}
           >
-            <Text style={{ marginBottom: 12, fontSize: 16 }}>
+            <Text style={[Typography.body1, { marginBottom: 12 }]}>
               Processing...
             </Text>
             <View style={{ marginBottom: 8 }}>
@@ -90,7 +91,9 @@ const AudioModal: React.FC<AudioModalProps> = ({
             activeOpacity={0.7}
             disabled={loading}
           >
-            <Text style={styles.fileSelectText}>Select Audio File</Text>
+            <Text style={[Typography.buttonText, styles.fileSelectText]}>
+              Select Audio File
+            </Text>
           </TouchableOpacity>
         ) : (
           <>
@@ -110,7 +113,9 @@ const AudioModal: React.FC<AudioModalProps> = ({
                 onPress={onSubmit}
                 disabled={loading}
               >
-                <Text style={styles.submitButtonText}>Submit</Text>
+                <Text style={[Typography.buttonText, styles.submitButtonText]}>
+                  Submit
+                </Text>
               </TouchableOpacity>
             </View>
           </>
@@ -121,7 +126,7 @@ const AudioModal: React.FC<AudioModalProps> = ({
 };
 
 const styles = StyleSheet.create({
-  audioModalContent: { 
+  audioModalContent: {
     width: "100%",
     backgroundColor: "#fff",
     borderTopLeftRadius: 16,
@@ -134,8 +139,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
   audioModalTitle: {
-    fontSize: 20,
-    fontWeight: "600",
     color: "#1a1a1a",
   },
   audioInput: {
@@ -146,6 +149,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     fontSize: 16,
     backgroundColor: "#f8f9fa",
+    fontFamily: FONTS.regular,
   },
   actionButtonsContainer: {
     flexDirection: "row",
@@ -162,29 +166,25 @@ const styles = StyleSheet.create({
     marginHorizontal: 0,
   },
   submitButton: {
-    backgroundColor: "#2c3e50",
+    backgroundColor: "#000000",
     width: "100%",
   },
   submitButtonText: {
     color: "#fff",
-    fontSize: 15,
-    fontWeight: "600",
   },
   fileSelectArea: {
     borderWidth: 2,
-    borderColor: '#1976d2',
-    borderStyle: 'dashed',
+    borderColor: "#1976d2",
+    borderStyle: "dashed",
     borderRadius: 12,
     padding: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 24,
-    backgroundColor: '#f0f7ff',
+    backgroundColor: "#f0f7ff",
   },
   fileSelectText: {
-    color: '#1976d2',
-    fontSize: 16,
-    fontWeight: '600',
+    color: "#1976d2",
   },
 });
 

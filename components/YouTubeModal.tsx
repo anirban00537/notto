@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import CommonBottomSheet from "./CommonBottomSheet";
 import ProcessingModal from "./ProcessingModal";
+import { Typography, FONTS } from "../constants/Typography";
 
 interface YouTubeModalProps {
   bottomSheetRef: React.RefObject<any>;
@@ -43,7 +44,9 @@ const YouTubeModal: React.FC<YouTubeModalProps> = ({
         handleIndicatorStyle={{ backgroundColor: "#ccc" }}
       >
         <View style={styles.modalHeader}>
-          <Text style={styles.modalHeaderText}>Add YouTube Video</Text>
+          <Text style={[Typography.h3, styles.modalHeaderText]}>
+            Add YouTube Video
+          </Text>
         </View>
         <View style={styles.modalContent}>
           <TextInput
@@ -60,7 +63,9 @@ const YouTubeModal: React.FC<YouTubeModalProps> = ({
             onPress={onSubmit}
             disabled={loading || !url}
           >
-            <Text style={styles.submitButtonText}>Add Video</Text>
+            <Text style={[Typography.buttonText, styles.submitButtonText]}>
+              Add Video
+            </Text>
           </TouchableOpacity>
         </View>
       </CommonBottomSheet>
@@ -78,8 +83,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalHeaderText: {
-    fontSize: 18,
-    fontWeight: "600",
     color: "#333",
   },
   modalContent: {
@@ -93,17 +96,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 16,
     backgroundColor: "#fff",
+    fontFamily: FONTS.regular,
   },
   submitButton: {
-    backgroundColor: "#2c3e50",
+    backgroundColor: "#000000",
     padding: 14,
     borderRadius: 8,
     alignItems: "center",
   },
   submitButtonText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
   },
 });
 

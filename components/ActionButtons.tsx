@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Typography, FONTS } from "../constants/Typography";
 
 interface ActionButtonsProps {
   onNoteToolsPress: () => void;
@@ -23,7 +24,9 @@ export default function ActionButtons({
           color="#fff"
           style={{ transform: [{ rotate: "90deg" }], marginRight: 8 }}
         />
-        <Text style={styles.noteToolsButtonText}>Note Tools</Text>
+        <Text style={[Typography.buttonText, styles.noteToolsButtonText]}>
+          Note Tools
+        </Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={[styles.actionButton, styles.editNoteButton]}
@@ -35,7 +38,9 @@ export default function ActionButtons({
           color="#333"
           style={{ marginRight: 8 }}
         />
-        <Text style={styles.editNoteButtonText}>Edit Note</Text>
+        <Text style={[Typography.buttonText, styles.editNoteButtonText]}>
+          Edit Note
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -59,7 +64,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   noteToolsButton: {
-    backgroundColor: "#2c3e50",
+    backgroundColor: "#000000",
   },
   editNoteButton: {
     backgroundColor: "#fff",
@@ -68,12 +73,8 @@ const styles = StyleSheet.create({
   },
   noteToolsButtonText: {
     color: "#fff",
-    fontSize: 15,
-    fontWeight: "600",
   },
   editNoteButtonText: {
-    color: "#2c3e50",
-    fontSize: 15,
-    fontWeight: "600",
+    color: "#000000",
   },
 });

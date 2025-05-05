@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { Typography } from "../constants/Typography";
 
 interface NoteTitleSectionProps {
   title: string;
@@ -8,64 +9,35 @@ interface NoteTitleSectionProps {
   insideCard?: boolean;
 }
 
-export default function NoteTitleSection({
+const NoteTitleSection: React.FC<NoteTitleSectionProps> = ({
   title,
   lastModified,
-  showFullTitle = true,
+  showFullTitle = false,
   insideCard = false,
-}: NoteTitleSectionProps) {
-  const formattedTitle = title.trim() || "Untitled Note";
-
+}) => {
   return (
-    <View
-      style={[
-        styles.titleContainer,
-        insideCard && styles.titleContainerInsideCard,
-      ]}
-    >
-      <View style={styles.titleTextContainer}>
-        <Text
-          style={styles.noteTitle}
-          numberOfLines={showFullTitle ? undefined : 1}
-          ellipsizeMode={showFullTitle ? undefined : "tail"}
-        >
-          {formattedTitle}
-        </Text>
-        <Text style={styles.lastModified}>Last modified: {lastModified}</Text>
-      </View>
+    <View style={[styles.container, insideCard && styles.insideCard]}>
+      <Text
+        style={Typography.noteTitle}
+        numberOfLines={showFullTitle ? undefined : 1}
+        ellipsizeMode="tail"
+      >
+        {title}
+      </Text>
+      <Text style={Typography.caption}>{lastModified}</Text>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: "row",
-    alignItems: "flex-start",
+  container: {
+    padding: 16,
+    paddingBottom: 0,
+  },
+  insideCard: {
     paddingHorizontal: 0,
-    paddingVertical: 16,
-    marginBottom: 0,
-    width: "100%",
-  },
-  titleContainerInsideCard: {
-    paddingTop: 16,
-    paddingBottom: 8,
-    backgroundColor: "transparent",
-  },
-  titleTextContainer: {
-    flex: 1,
-    justifyContent: "center",
-    paddingRight: 0,
-  },
-  noteTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#2c3e50",
-    marginBottom: 8,
-    flexWrap: "wrap",
-    paddingRight: 0,
-  },
-  lastModified: {
-    fontSize: 14,
-    color: "#888",
+    paddingTop: 0,
   },
 });
+
+export default NoteTitleSection;

@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { View, StyleSheet, Alert, Text } from "react-native";
 import YoutubeIframe from "react-native-youtube-iframe";
+import { Typography, FONTS } from "../constants/Typography";
 
 interface YouTubePreviewProps {
   directPlayableUrl: string;
@@ -40,7 +41,7 @@ export default function YouTubePreview({
   if (!videoId) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>
+        <Text style={[Typography.body1, styles.errorText]}>
           {!directPlayableUrl ? "Missing Video URL" : "Invalid YouTube URL"}
         </Text>
       </View>
@@ -81,6 +82,5 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: "#888",
-    fontSize: 16,
   },
 });

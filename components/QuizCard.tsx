@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Typography, FONTS } from "../constants/Typography";
 
 interface QuizCardProps {
   id: string;
@@ -40,11 +41,13 @@ const QuizCard: React.FC<QuizCardProps> = ({
   return (
     <TouchableOpacity style={styles.quizCard} onPress={onPress}>
       <View style={styles.quizContent}>
-        <Text style={styles.quizQuestion}>{question}</Text>
+        <Text style={[Typography.body1, styles.quizQuestion]}>{question}</Text>
         <View style={styles.bottomContent}>
-          <Text style={styles.quizDate}>{formatDate(createdAt)}</Text>
+          <Text style={[Typography.caption, styles.quizDate]}>
+            {formatDate(createdAt)}
+          </Text>
           <View style={styles.optionsCount}>
-            <Text style={styles.optionsCountText}>
+            <Text style={[Typography.caption, styles.optionsCountText]}>
               {options.length} options
             </Text>
           </View>
@@ -69,8 +72,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   quizQuestion: {
-    fontSize: 15,
-    fontWeight: "400",
     color: "#111",
     marginBottom: 6,
     letterSpacing: -0.3,
@@ -81,7 +82,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   quizDate: {
-    fontSize: 10,
     color: "#999",
   },
   optionsCount: {
@@ -91,8 +91,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#2c3e50",
   },
   optionsCountText: {
-    fontSize: 9,
-    fontWeight: "500",
     color: "#fff",
   },
 });

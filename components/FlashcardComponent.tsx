@@ -23,6 +23,7 @@ import Reanimated, {
   SlideInDown,
 } from "react-native-reanimated";
 import { UIFlashcard } from "../lib/utils/flashcardMapper";
+import { Typography, FONTS } from "../constants/Typography";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.25;
@@ -223,7 +224,7 @@ export default function FlashcardComponent({
                 >
                   <View style={styles.cardContentContainer}>
                     <Text style={styles.questionLabel}>Question</Text>
-                    <Text style={styles.question}>
+                    <Text style={[Typography.h3, styles.question]}>
                       {currentFlashcard?.question}
                     </Text>
                   </View>
@@ -248,6 +249,7 @@ export default function FlashcardComponent({
                     <Text style={styles.answerLabel}>Answer</Text>
                     <Text
                       style={[
+                        Typography.body1,
                         styles.answer,
                         {
                           fontSize: getAnswerFontSize(currentFlashcard?.answer),
@@ -285,7 +287,7 @@ export default function FlashcardComponent({
             />
           </TouchableOpacity>
 
-          <Text style={styles.cardIndicator}>
+          <Text style={[Typography.body2, styles.cardIndicator]}>
             Card {currentIndex + 1} of {flashcards.length}
           </Text>
 
@@ -308,7 +310,7 @@ export default function FlashcardComponent({
           entering={SlideInDown.delay(300).duration(400)}
         >
           <View style={styles.hintsHeader}>
-            <Text style={styles.hintsTitle}>Hints</Text>
+            <Text style={[Typography.h4, styles.hintsTitle]}>Hints</Text>
           </View>
           <View style={styles.hintsContainer}>
             {currentFlashcard?.hints && currentFlashcard.hints.length > 0 ? (
@@ -326,7 +328,9 @@ export default function FlashcardComponent({
                         size={18}
                         color="#f59e0b"
                       />
-                      <Text style={styles.hintText}>{hint}</Text>
+                      <Text style={[Typography.body1, styles.hintText]}>
+                        {hint}
+                      </Text>
                     </Reanimated.View>
                   ))}
                 {visibleHintCount < currentFlashcard.hints.length && (
@@ -334,7 +338,7 @@ export default function FlashcardComponent({
                     style={styles.showMoreButton}
                     onPress={showMoreHints}
                   >
-                    <Text style={styles.showMoreText}>
+                    <Text style={[Typography.body2, styles.showMoreText]}>
                       Show more hints (
                       {currentFlashcard.hints.length - visibleHintCount}{" "}
                       remaining)
@@ -348,7 +352,7 @@ export default function FlashcardComponent({
                 )}
               </>
             ) : (
-              <Text style={styles.noHintsText}>
+              <Text style={[Typography.body1, styles.noHintsText]}>
                 No hints available for this card.
               </Text>
             )}
@@ -362,7 +366,9 @@ export default function FlashcardComponent({
             size={20}
             color="#666"
           />
-          <Text style={styles.swipeHint}>Swipe left or right to navigate</Text>
+          <Text style={[Typography.body2, styles.swipeHint]}>
+            Swipe left or right to navigate
+          </Text>
         </View>
       </Reanimated.View>
     </ScrollView>
@@ -407,7 +413,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: "#666",
     fontSize: 14,
-    fontWeight: "400",
+    fontFamily: FONTS.regular,
   },
   swipeContainer: {
     width: "100%",
@@ -452,8 +458,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   question: {
-    fontSize: 22,
-    fontWeight: "500",
     color: "#111",
     textAlign: "center",
     lineHeight: 32,
@@ -469,7 +473,7 @@ const styles = StyleSheet.create({
   tapToFlip: {
     fontSize: 13,
     color: "#666",
-    fontWeight: "400",
+    fontFamily: FONTS.regular,
   },
   answerLabel: {
     fontSize: 13,
@@ -483,7 +487,6 @@ const styles = StyleSheet.create({
     color: "#111",
     textAlign: "center",
     lineHeight: 26,
-    fontWeight: "400",
   },
   navigationContainer: {
     flexDirection: "row",
@@ -501,9 +504,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   cardIndicator: {
-    fontSize: 14,
     color: "#666",
-    fontWeight: "400",
   },
   hintsSection: {
     width: "100%",
@@ -517,8 +518,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   hintsTitle: {
-    fontSize: 17,
-    fontWeight: "500",
     color: "#111",
   },
   hintsContainer: {
@@ -534,7 +533,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   hintText: {
-    fontSize: 15,
     color: "#704008",
     marginLeft: 10,
     flex: 1,
@@ -548,15 +546,12 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   showMoreText: {
-    fontSize: 14,
     color: "#444",
-    fontWeight: "400",
     marginRight: 6,
   },
   noHintsText: {
     textAlign: "center",
     color: "#888",
-    fontSize: 15,
     fontStyle: "italic",
     paddingVertical: 16,
   },
@@ -570,9 +565,7 @@ const styles = StyleSheet.create({
   },
   swipeHint: {
     color: "#666",
-    fontSize: 14,
     marginLeft: 8,
-    fontWeight: "400",
   },
   emptyContainer: {
     flex: 1,
@@ -592,7 +585,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 20,
-    fontWeight: "500",
+    fontFamily: FONTS.medium,
     color: "#111",
     marginTop: 20,
     marginBottom: 12,
@@ -600,6 +593,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
+    fontFamily: FONTS.regular,
     color: "#666",
     textAlign: "center",
     lineHeight: 24,

@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
+import { Typography, FONTS } from "../constants/Typography";
 
 interface NoteDetailHeaderProps {
   title: string;
@@ -72,7 +73,10 @@ export default function NoteDetailHeader({
           showsHorizontalScrollIndicator={false}
           scrollEnabled={true}
         >
-          <Text style={styles.headerTitle} numberOfLines={1}>
+          <Text
+            style={[Typography.body1, styles.headerTitle]}
+            numberOfLines={1}
+          >
             {title}
           </Text>
         </ScrollView>
@@ -118,7 +122,9 @@ export default function NoteDetailHeader({
                   size={24}
                   color="#ff4444"
                 />
-                <Text style={styles.dropdownItemText}>Delete Note</Text>
+                <Text style={[Typography.body1, styles.dropdownItemText]}>
+                  Delete Note
+                </Text>
               </TouchableOpacity>
               {/* Add more dropdown items here */}
             </View>
@@ -185,8 +191,6 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
   headerTitle: {
-    fontSize: 16,
-    fontWeight: "500",
     color: "#2c3e50",
     paddingVertical: 6,
     paddingHorizontal: 12,
@@ -212,8 +216,6 @@ const styles = StyleSheet.create({
   },
   dropdownItemText: {
     marginLeft: 12,
-    fontSize: 16,
     color: "#ff4444",
-    fontWeight: "500",
   },
 });

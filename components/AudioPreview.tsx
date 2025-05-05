@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Audio } from "expo-av";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Typography, FONTS } from "../constants/Typography";
 
 interface AudioPreviewProps {
   directPlayableUrl: string;
@@ -177,7 +178,7 @@ const AudioPreview: React.FC<AudioPreviewProps> = ({
 
         <View style={styles.infoContainer}>
           <Text
-            style={styles.fileName}
+            style={[Typography.body2, styles.fileName]}
             numberOfLines={1}
             ellipsizeMode="middle"
           >
@@ -207,7 +208,9 @@ const AudioPreview: React.FC<AudioPreviewProps> = ({
           </TouchableOpacity>
 
           <View style={styles.timeRow}>
-            <Text style={styles.timeText}>{formatTime(position)}</Text>
+            <Text style={[Typography.caption, styles.timeText]}>
+              {formatTime(position)}
+            </Text>
 
             <View style={styles.controlsContainer}>
               <TouchableOpacity
@@ -233,7 +236,9 @@ const AudioPreview: React.FC<AudioPreviewProps> = ({
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.timeText}>{formatTime(duration)}</Text>
+            <Text style={[Typography.caption, styles.timeText]}>
+              {formatTime(duration)}
+            </Text>
           </View>
         </View>
       </View>
@@ -270,8 +275,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   fileName: {
-    fontSize: 14,
-    fontWeight: "500",
     color: "#111",
     marginBottom: 8,
   },
@@ -294,9 +297,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   timeText: {
-    fontSize: 12,
     color: "#8E8E93",
-    fontWeight: "400",
     fontVariant: ["tabular-nums"],
   },
   controlsContainer: {

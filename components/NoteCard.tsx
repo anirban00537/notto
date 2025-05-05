@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { format } from "date-fns";
+import { Typography, FONTS } from "../constants/Typography";
 
 interface NoteCardProps {
   id: string;
@@ -114,23 +115,39 @@ const NoteCard: React.FC<NoteCardProps> = ({
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
       >
+        <View
+          style={[
+            styles.iconContainer,
+            { backgroundColor: `${typeData.color}15` },
+          ]}
+        >
+          <MaterialCommunityIcons
+            name={typeData.name}
+            size={20}
+            color={typeData.color}
+          />
+        </View>
+
         <View style={styles.textContainer}>
-          <View style={styles.titleRow}>
-          <Text style={styles.title} numberOfLines={2}>
+          <Text
+            style={[Typography.noteTitle, styles.title]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
             {title}
           </Text>
-            <View
-              style={[
-                styles.sourceTag,
-                { backgroundColor: `${typeData.color}15` },
-              ]}
-            >
-              <Text style={[styles.sourceTagText, { color: typeData.color }]}>
-                {typeData.label}
-              </Text>
-            </View>
-          </View>
-          <Text style={styles.date}>{format(createdAt, "MMM d, yyyy")}</Text>
+
+          <Text
+            style={[Typography.body2, styles.description]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {content}
+          </Text>
+
+          <Text style={Typography.caption}>
+            {format(createdAt, "MMM d, yyyy")}
+          </Text>
         </View>
       </TouchableOpacity>
     </Animated.View>
@@ -139,10 +156,9 @@ const NoteCard: React.FC<NoteCardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    marginHorizontal: 16,
-    marginVertical: 8,
+    marginHorizontal: 0,
+    marginVertical: 0,
     backgroundColor: "#ffffff",
-    borderRadius: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
   },
@@ -151,35 +167,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
   },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
   textContainer: {
     flex: 1,
   },
-  titleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 6,
-  },
   title: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#2c3e50",
-    flex: 1,
-    marginRight: 8,
+    marginBottom: 2,
   },
-  sourceTag: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    alignSelf: "flex-start",
-  },
-  sourceTagText: {
-    fontSize: 10,
-    fontWeight: "600",
-  },
-  date: {
-    fontSize: 13,
-    color: "#888",
+  description: {
+    color: "#666",
+    marginBottom: 2,
   },
 });
 

@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { Typography, FONTS } from "../constants/Typography";
 
 export const HomeHeader: React.FC = () => {
   return (
@@ -13,7 +14,7 @@ export const HomeHeader: React.FC = () => {
       <View style={styles.headerRight}>
         <TouchableOpacity style={styles.proButton}>
           <MaterialCommunityIcons name="rocket-launch" size={14} color="#fff" />
-          <Text style={styles.proText}>PRO</Text>
+          <Text style={[Typography.buttonText, styles.proText]}>PRO</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.profileButton}
@@ -43,12 +44,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: "700",
-    color: "#2c3e50",
+    fontFamily: FONTS.semiBold,
+    color: "#000000",
   },
   aiText: {
     fontSize: 24,
-    fontWeight: "700",
+    fontFamily: FONTS.semiBold,
     color: "#3498db",
     marginLeft: 4,
   },
@@ -59,7 +60,7 @@ const styles = StyleSheet.create({
   proButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#2c3e50",
+    backgroundColor: "#000000",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 20,
@@ -67,9 +68,7 @@ const styles = StyleSheet.create({
   },
   proText: {
     color: "#fff",
-    fontWeight: "bold",
     marginLeft: 6,
-    fontSize: 12,
   },
   profileButton: {
     width: 40,

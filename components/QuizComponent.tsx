@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Typography, FONTS } from "../constants/Typography";
 
 type Question = {
   question: string;
@@ -68,10 +69,12 @@ export default function QuizComponent({ quiz }: QuizComponentProps) {
       <View style={styles.quizCard}>
         {renderProgressBar()}
 
-        <Text style={styles.quizTitle}>{quiz.title}</Text>
+        <Text style={[Typography.h2, styles.quizTitle]}>{quiz.title}</Text>
 
         <View style={styles.questionContainer}>
-          <Text style={styles.questionText}>{currentQuestion.question}</Text>
+          <Text style={[Typography.h4, styles.questionText]}>
+            {currentQuestion.question}
+          </Text>
 
           {currentQuestion.options.map((option, index) => {
             const isSelected = selectedAnswer === option;
@@ -123,8 +126,10 @@ export default function QuizComponent({ quiz }: QuizComponentProps) {
 
           {showExplanation && (
             <View style={styles.explanationContainer}>
-              <Text style={styles.explanationLabel}>Explanation</Text>
-              <Text style={styles.explanationText}>
+              <Text style={[Typography.h4, styles.explanationLabel]}>
+                Explanation
+              </Text>
+              <Text style={[Typography.body1, styles.explanationText]}>
                 {currentQuestion.explanation}
               </Text>
 
@@ -133,18 +138,22 @@ export default function QuizComponent({ quiz }: QuizComponentProps) {
                   style={styles.nextButton}
                   onPress={handleNextQuestion}
                 >
-                  <Text style={styles.buttonText}>Next Question</Text>
+                  <Text style={[Typography.buttonText, styles.buttonText]}>
+                    Next Question
+                  </Text>
                 </TouchableOpacity>
               ) : (
                 <View style={styles.resultContainer}>
-                  <Text style={styles.resultText}>
+                  <Text style={[Typography.h3, styles.resultText]}>
                     You scored {score} out of {quiz.questions.length}
                   </Text>
                   <TouchableOpacity
                     style={styles.restartButton}
                     onPress={handleRestartQuiz}
                   >
-                    <Text style={styles.buttonText}>Restart Quiz</Text>
+                    <Text style={[Typography.buttonText, styles.buttonText]}>
+                      Restart Quiz
+                    </Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -189,10 +198,9 @@ const styles = StyleSheet.create({
     color: "#666",
     fontSize: 14,
     fontWeight: "400",
+    fontFamily: FONTS.regular,
   },
   quizTitle: {
-    fontSize: 22,
-    fontWeight: "500",
     marginBottom: 24,
     color: "#111",
     textAlign: "center",
@@ -201,11 +209,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   questionText: {
-    fontSize: 18,
     marginBottom: 20,
     color: "#111",
     lineHeight: 26,
-    fontWeight: "500",
   },
   optionButton: {
     backgroundColor: "#fff",
@@ -224,13 +230,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
     flex: 1,
+    fontFamily: FONTS.regular,
   },
   selectedOption: {
     backgroundColor: "#f8f8f8",
     borderColor: "#ddd",
   },
   selectedOptionText: {
-    fontWeight: "500",
+    fontFamily: FONTS.medium,
   },
   correctOption: {
     backgroundColor: "#f5fbf5",
@@ -238,6 +245,7 @@ const styles = StyleSheet.create({
   },
   correctOptionText: {
     color: "#2e7d32",
+    fontFamily: FONTS.medium,
   },
   incorrectOption: {
     backgroundColor: "#fff5f5",
@@ -245,6 +253,7 @@ const styles = StyleSheet.create({
   },
   incorrectOptionText: {
     color: "#c62828",
+    fontFamily: FONTS.medium,
   },
   explanationContainer: {
     marginTop: 24,
@@ -253,15 +262,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   explanationLabel: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#333",
     marginBottom: 8,
+    color: "#333",
   },
   explanationText: {
-    fontSize: 15,
-    color: "#333",
     marginBottom: 20,
+    color: "#333",
     lineHeight: 22,
   },
   nextButton: {
@@ -273,15 +279,11 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#fff",
-    fontWeight: "500",
-    fontSize: 15,
   },
   resultContainer: {
     alignItems: "center",
   },
   resultText: {
-    fontSize: 18,
-    fontWeight: "500",
     marginBottom: 20,
     color: "#333",
     textAlign: "center",

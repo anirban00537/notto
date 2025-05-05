@@ -9,6 +9,7 @@ import {
   Dimensions,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Typography, FONTS } from "../constants/Typography";
 
 interface ProcessingModalProps {
   visible: boolean;
@@ -95,8 +96,8 @@ const ProcessingModal: React.FC<ProcessingModalProps> = ({
             />
           )}
 
-          <Text style={styles.title}>{getTitle()}</Text>
-          <Text style={styles.message}>{getMessage()}</Text>
+          <Text style={[Typography.h3, styles.title]}>{getTitle()}</Text>
+          <Text style={[Typography.body1, styles.message]}>{getMessage()}</Text>
         </View>
       </View>
     </Modal>
@@ -142,14 +143,11 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   title: {
-    fontSize: 20,
-    fontWeight: "600",
     color: "#2c3e50",
     marginBottom: 8,
     textAlign: "center",
   },
   message: {
-    fontSize: 16,
     color: "#666",
     textAlign: "center",
     lineHeight: 22,

@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useNoteDetail } from "../../hooks/useNoteDetail";
 import { format } from "date-fns";
 import Animated, { FadeIn, ZoomIn } from "react-native-reanimated";
+import { Typography, FONTS } from "@/constants/Typography";
 
 // Import the components
 import AudioPreview from "../../components/AudioPreview";
@@ -38,7 +39,7 @@ export default function NoteDetailScreen() {
   } = useNoteDetail(id);
 
   if (loading) return <LoadingScreen />;
-  if (!note) return <Text>Note not found</Text>;
+  if (!note) return <Text style={Typography.body1}>Note not found</Text>;
 
   const getFormattedTitle = () => {
     return note?.title?.trim() || "Untitled Note";
@@ -65,7 +66,11 @@ export default function NoteDetailScreen() {
         onSwipeChange={handleSwipeChange}
       >
         {/* Note Tab */}
-        <ScrollView style={styles.scene} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scene}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContentContainer}
+        >
           <View style={styles.noteContainer}>
             {note?.sourceUrl && (
               <View style={styles.mediaContainer}>
@@ -106,7 +111,11 @@ export default function NoteDetailScreen() {
         </ScrollView>
 
         {/* Transcript Tab */}
-        <ScrollView style={styles.scene} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scene}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContentContainer}
+        >
           <View style={styles.noteContainer}>
             {note?.fullText ? (
               <View style={styles.contentCard}>
@@ -114,14 +123,18 @@ export default function NoteDetailScreen() {
               </View>
             ) : (
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No transcript available</Text>
+                <Text style={Typography.body1}>No transcript available</Text>
               </View>
             )}
           </View>
         </ScrollView>
 
         {/* Summary Tab */}
-        <ScrollView style={styles.scene} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scene}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContentContainer}
+        >
           <View style={styles.noteContainer}>
             {note?.summary ? (
               <View style={styles.contentCard}>
@@ -129,14 +142,18 @@ export default function NoteDetailScreen() {
               </View>
             ) : (
               <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No summary available</Text>
+                <Text style={Typography.body1}>No summary available</Text>
               </View>
             )}
           </View>
         </ScrollView>
 
         {/* Quiz Tab */}
-        <ScrollView style={styles.scene} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scene}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContentContainer}
+        >
           <View style={styles.noteContainer}>
             {isGenerating ? (
               <View style={styles.loadingContainer}>
@@ -176,7 +193,11 @@ export default function NoteDetailScreen() {
         </ScrollView>
 
         {/* Flashcards Tab */}
-        <ScrollView style={styles.scene} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.scene}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContentContainer}
+        >
           <View style={styles.noteContainer}>
             {isGenerating ? (
               <View style={styles.loadingContainer}>
@@ -225,6 +246,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#ffffff",
   },
+  scrollContentContainer: {
+    paddingBottom: 40,
+  },
   textContentPadding: {
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -242,7 +266,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   mediaContainer: {
-    marginBottom: 16,
+    marginBottom: 20,
     marginHorizontal: 0,
     borderRadius: 0,
     overflow: "hidden",
@@ -251,14 +275,14 @@ const styles = StyleSheet.create({
   contentCard: {
     backgroundColor: "transparent",
     padding: 0,
-    marginHorizontal: 16,
+    marginHorizontal: 20,
     marginBottom: 0,
     marginTop: 0,
     width: "auto",
   },
   noteTextContainer: {
     paddingVertical: 16,
-    marginTop: 0,
+    marginTop: 5,
     width: "100%",
   },
   emptyContainer: {
@@ -269,18 +293,15 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     minHeight: 150,
   },
-  emptyText: {
-    fontSize: 16,
-    color: "#888",
-    textAlign: "center",
-  },
   quizContainer: {
     backgroundColor: "transparent",
     padding: 0,
+    marginHorizontal: 20,
   },
   flashcardsContainer: {
     backgroundColor: "transparent",
     padding: 0,
+    marginHorizontal: 20,
   },
   emptyStateContainer: {
     flex: 1,
@@ -288,7 +309,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     minHeight: Dimensions.get("window").height - 250,
     paddingVertical: 40,
-    paddingHorizontal: 0,
+    paddingHorizontal: 20,
   },
   emptyStateCard: {
     width: "100%",

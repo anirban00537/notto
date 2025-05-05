@@ -13,6 +13,7 @@ import { setAuthToken } from "../lib/services";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { FONTS } from "@/constants/Typography";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -62,6 +63,9 @@ function AuthLayout({ children }: { children: React.ReactNode }) {
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
+    [FONTS.regular]: require("../assets/fonts/Inter/Inter-Regular.ttf"),
+    [FONTS.medium]: require("../assets/fonts/Inter/Inter-Medium.ttf"),
+    [FONTS.semiBold]: require("../assets/fonts/Inter/Inter-SemiBold.ttf"),
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 

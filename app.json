@@ -40,6 +40,20 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "fonts": [
+      {
+        "asset": "./assets/fonts/Inter/Inter-Regular.ttf",
+        "family": "Inter"
+      },
+      {
+        "asset": "./assets/fonts/Inter/Inter-Medium.ttf",
+        "family": "Inter-Medium"
+      },
+      {
+        "asset": "./assets/fonts/Inter/Inter-SemiBold.ttf",
+        "family": "Inter-SemiBold"
+      }
+    ]
   }
 }

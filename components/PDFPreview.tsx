@@ -10,6 +10,7 @@ import {
   Pressable,
 } from "react-native";
 import Pdf from "react-native-pdf";
+import { Typography, FONTS } from "../constants/Typography";
 
 interface PDFPreviewProps {
   directPlayableUrl: string;
@@ -40,9 +41,9 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({
         onPress={() => setModalVisible(true)}
       >
         <View style={styles.cardLeft}>
-          <Text style={styles.pdfIndicator}>PDF</Text>
+          <Text style={[Typography.caption, styles.pdfIndicator]}>PDF</Text>
           <Text
-            style={styles.fileName}
+            style={[Typography.body2, styles.fileName]}
             numberOfLines={1}
             ellipsizeMode="middle"
           >
@@ -53,7 +54,9 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({
           style={styles.viewButton}
           onPress={() => setModalVisible(true)}
         >
-          <Text style={styles.viewButtonText}>View</Text>
+          <Text style={[Typography.buttonText, styles.viewButtonText]}>
+            View
+          </Text>
         </TouchableOpacity>
       </TouchableOpacity>
 
@@ -67,7 +70,7 @@ const PDFPreview: React.FC<PDFPreviewProps> = ({
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text
-                style={styles.modalTitle}
+                style={[Typography.h4, styles.modalTitle]}
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
@@ -139,15 +142,12 @@ const styles = StyleSheet.create({
   pdfIndicator: {
     backgroundColor: "#f5f5f5",
     color: "#2c3e50",
-    fontSize: 12,
-    fontWeight: "600",
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
   },
   fileName: {
     flex: 1,
-    fontSize: 14,
     color: "#2c3e50",
   },
   viewButton: {
@@ -159,8 +159,6 @@ const styles = StyleSheet.create({
   },
   viewButtonText: {
     color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
   },
   modalContainer: {
     flex: 1,
@@ -185,8 +183,6 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     flex: 1,
-    fontSize: 18,
-    fontWeight: "600",
     marginRight: 16,
   },
   closeButton: {
@@ -195,7 +191,7 @@ const styles = StyleSheet.create({
   closeButtonText: {
     fontSize: 20,
     color: "#666",
-    fontWeight: "600",
+    fontFamily: FONTS.medium,
   },
   pdfContainer: {
     flex: 1,

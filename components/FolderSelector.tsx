@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Folder } from "../lib/types/folder";
+import { Typography, FONTS } from "../constants/Typography";
 
 interface FolderSelectorProps {
   selectedFolder: Folder | { id: string; name: string };
@@ -19,7 +20,9 @@ export const FolderSelector: React.FC<FolderSelectorProps> = ({
       activeOpacity={0.7}
     >
       <MaterialCommunityIcons name="folder-outline" size={22} color="#555" />
-      <Text style={styles.folderName}>{selectedFolder.name}</Text>
+      <Text style={[Typography.noteTitle, styles.folderName]}>
+        {selectedFolder.name}
+      </Text>
       <MaterialCommunityIcons name="chevron-down" size={20} color="#555" />
     </TouchableOpacity>
   );
@@ -39,9 +42,7 @@ const styles = StyleSheet.create({
   },
   folderName: {
     flex: 1,
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#2c3e50",
+    color: "#000000",
     marginLeft: 10,
   },
 });

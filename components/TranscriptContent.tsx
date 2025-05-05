@@ -1,5 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { Typography, FONTS } from "../constants/Typography";
 
 interface TranscriptContentProps {
   transcript: string;
@@ -11,10 +12,15 @@ export default function TranscriptContent({
   return (
     <View style={styles.container}>
       <View style={styles.contentSection}>
-        <Text style={styles.sectionTitle}>Transcript</Text>
-        <Text style={styles.transcriptText}>
-          {transcript || "No transcript available"}
-        </Text>
+        <Text style={Typography.h3}>Transcript</Text>
+        <ScrollView
+          style={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={[Typography.body1, styles.transcriptText]}>
+            {transcript || "No transcript available"}
+          </Text>
+        </ScrollView>
       </View>
     </View>
   );
@@ -22,21 +28,16 @@ export default function TranscriptContent({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 4,
     paddingVertical: 10,
   },
   contentSection: {
     marginBottom: 24,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#2c3e50",
-    marginBottom: 8,
+  scrollContainer: {
+    marginTop: 12,
   },
   transcriptText: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: "#333",
+    color: "#2D3748",
   },
 });

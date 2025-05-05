@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Typography, FONTS } from "../constants/Typography";
 
 import type { ComponentProps } from "react";
 type MaterialCommunityIconName = ComponentProps<
@@ -45,8 +46,12 @@ const EmptyState: React.FC<EmptyStateProps> = ({
           color="#2c3e50"
         />
       </View>
-      <Text style={styles.message}>{message}</Text>
-      {description && <Text style={styles.description}>{description}</Text>}
+      <Text style={[Typography.h3, styles.message]}>{message}</Text>
+      {description && (
+        <Text style={[Typography.body1, styles.description]}>
+          {description}
+        </Text>
+      )}
       <TouchableOpacity
         style={[
           styles.actionButton,
@@ -60,7 +65,9 @@ const EmptyState: React.FC<EmptyStateProps> = ({
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>{buttonText}</Text>
+          <Text style={[Typography.buttonText, styles.buttonText]}>
+            {buttonText}
+          </Text>
         )}
       </TouchableOpacity>
     </View>
@@ -87,18 +94,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   message: {
-    fontSize: 20,
-    color: "#2c3e50",
-    fontWeight: "600",
     marginBottom: 12,
     textAlign: "center",
+    color: "#2c3e50",
   },
   description: {
-    fontSize: 16,
     color: "#7f8c8d",
     textAlign: "center",
     marginBottom: 24,
-    lineHeight: 22,
   },
   actionButton: {
     flexDirection: "row",
@@ -115,8 +118,6 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
     textAlign: "center",
   },
   disabledButton: {

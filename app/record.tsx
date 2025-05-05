@@ -24,6 +24,7 @@ import { createNote } from "../lib/services";
 import { CreateNoteDto, NoteType, Note } from "../lib/types/note";
 import ProcessingModal from "../components/ProcessingModal";
 import { LinearGradient } from "expo-linear-gradient";
+import { Typography, FONTS } from "../constants/Typography";
 
 interface CreateNoteResponse {
   data?: Note;
@@ -462,10 +463,12 @@ export default function RecordScreen() {
   const renderError = () => (
     <View style={styles.centerContainer}>
       <MaterialCommunityIcons name="alert-circle" size={64} color="#FF6B6B" />
-      <Text style={styles.errorTitle}>Error</Text>
-      <Text style={styles.errorText}>{errorMessage}</Text>
+      <Text style={[Typography.h3, styles.errorTitle]}>Error</Text>
+      <Text style={[Typography.body1, styles.errorText]}>{errorMessage}</Text>
       <TouchableOpacity style={styles.retryButton} onPress={checkPermissions}>
-        <Text style={styles.buttonTextWhite}>Try Again</Text>
+        <Text style={[Typography.buttonText, styles.buttonTextWhite]}>
+          Try Again
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -478,7 +481,7 @@ export default function RecordScreen() {
 
       {/* Timer display with animated background */}
       <View style={styles.timerContainer}>
-        <Text style={styles.timerText}>
+        <Text style={[Typography.h1, styles.timerText]}>
           {mode === "playing"
             ? formatTime(playbackPosition)
             : formatTime(recordingDuration)}
@@ -486,7 +489,9 @@ export default function RecordScreen() {
         {mode === "recording" && (
           <View style={styles.recordingIndicator}>
             <View style={styles.recordingDot} />
-            <Text style={styles.recordingIndicatorText}>Recording</Text>
+            <Text style={[Typography.body2, styles.recordingIndicatorText]}>
+              Recording
+            </Text>
           </View>
         )}
       </View>
@@ -557,7 +562,7 @@ export default function RecordScreen() {
               style={{ marginRight: 8 }}
             />
           ) : null}
-          <Text style={styles.buttonTextWhite}>
+          <Text style={[Typography.buttonText, styles.buttonTextWhite]}>
             {isProcessing || createNoteMutation.isPending
               ? "Generating..."
               : "Generate Notes"}
@@ -581,10 +586,10 @@ export default function RecordScreen() {
         <MaterialCommunityIcons
           name="microphone"
           size={48}
-          color="#2c3e50"
+          color="#000000"
           style={styles.hintIcon}
         />
-        <Text style={styles.hintText}>
+        <Text style={[Typography.h4, styles.hintText]}>
           Tap the button below to start recording
         </Text>
       </View>
@@ -605,10 +610,10 @@ export default function RecordScreen() {
           <MaterialCommunityIcons
             name="chevron-left"
             size={30}
-            color="#2c3e50"
+            color="#000000"
           />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>
+        <Text style={[Typography.h3, styles.headerTitle]}>
           {mode === "recording" ? "Recording..." : "Voice Notes"}
         </Text>
         <View style={styles.headerRight} />
@@ -646,9 +651,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#f0f0f0",
   },
   headerTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#2c3e50",
+    color: "#000000",
   },
   backButton: {
     padding: 8,
@@ -757,14 +760,12 @@ const styles = StyleSheet.create({
   },
   hintIcon: {
     marginBottom: 16,
-    color: "#2c3e50",
+    color: "#000000",
   },
   hintText: {
-    fontSize: 18,
-    color: "#2c3e50",
+    color: "#000000",
     textAlign: "center",
     lineHeight: 24,
-    fontWeight: "500",
   },
   timerContainer: {
     alignItems: "center",
@@ -775,9 +776,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   timerText: {
-    fontSize: 60,
-    fontWeight: "300",
-    color: "#2c3e50",
+    color: "#000000",
     fontVariant: ["tabular-nums"],
     letterSpacing: 2,
   },
@@ -795,9 +794,7 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
   recordingIndicatorText: {
-    fontSize: 14,
     color: "#FF4A4A",
-    fontWeight: "500",
   },
   pulsingButtonContainer: {
     position: "relative",
@@ -817,7 +814,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#2c3e50",
+    backgroundColor: "#000000",
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 0,
@@ -827,7 +824,7 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 3,
-    borderColor: "#2c3e50",
+    borderColor: "#000000",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
@@ -841,15 +838,13 @@ const styles = StyleSheet.create({
   },
   buttonTextWhite: {
     color: "#FFF",
-    fontSize: 18,
-    fontWeight: "600",
     marginLeft: 8,
   },
   generateButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#2c3e50",
+    backgroundColor: "#000000",
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 30,
@@ -860,21 +855,18 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   errorTitle: {
-    fontSize: 24,
-    fontWeight: "600",
     color: "#111",
     marginTop: 16,
     marginBottom: 8,
   },
   errorText: {
-    fontSize: 16,
     color: "#555",
     textAlign: "center",
     marginBottom: 24,
     paddingHorizontal: 32,
   },
   retryButton: {
-    backgroundColor: "#2c3e50",
+    backgroundColor: "#000000",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 25,
@@ -914,6 +906,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#2c3e50",
+    borderColor: "#000000",
   },
 });

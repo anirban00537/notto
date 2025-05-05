@@ -7,7 +7,8 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
-import CommonBottomSheet from './CommonBottomSheet';
+import CommonBottomSheet from "./CommonBottomSheet";
+import { Typography, FONTS } from "../constants/Typography";
 
 interface PDFModalProps {
   visible: boolean;
@@ -51,8 +52,8 @@ const PDFModal: React.FC<PDFModalProps> = ({
       snapPoints={[1, 340]}
       onClose={onClose}
       enablePanDownToClose={!loading}
-      backgroundStyle={{ backgroundColor: '#fff' }}
-      handleIndicatorStyle={{ backgroundColor: '#ccc' }}
+      backgroundStyle={{ backgroundColor: "#fff" }}
+      handleIndicatorStyle={{ backgroundColor: "#ccc" }}
     >
       <View style={styles.pdfModalContent}>
         <View
@@ -63,9 +64,9 @@ const PDFModal: React.FC<PDFModalProps> = ({
             marginBottom: 24,
           }}
         >
-          <Text style={styles.pdfModalTitle}>Add PDF</Text>
+          <Text style={[Typography.h3, styles.pdfModalTitle]}>Add PDF</Text>
           <TouchableOpacity onPress={onClose} disabled={loading}>
-            <Text style={{ color: "#1976d2", fontSize: 16, fontWeight: "600" }}>
+            <Text style={[Typography.buttonText, { color: "#1976d2" }]}>
               Cancel
             </Text>
           </TouchableOpacity>
@@ -78,7 +79,7 @@ const PDFModal: React.FC<PDFModalProps> = ({
               minHeight: 80,
             }}
           >
-            <Text style={{ marginBottom: 12, fontSize: 16 }}>
+            <Text style={[Typography.body1, { marginBottom: 12 }]}>
               Processing...
             </Text>
             <View style={{ marginBottom: 8 }}>
@@ -92,7 +93,9 @@ const PDFModal: React.FC<PDFModalProps> = ({
             activeOpacity={0.7}
             disabled={loading}
           >
-            <Text style={styles.fileSelectText}>Select PDF File</Text>
+            <Text style={[Typography.buttonText, styles.fileSelectText]}>
+              Select PDF File
+            </Text>
           </TouchableOpacity>
         ) : (
           <>
@@ -112,7 +115,9 @@ const PDFModal: React.FC<PDFModalProps> = ({
                 onPress={onSubmit}
                 disabled={loading}
               >
-                <Text style={styles.submitButtonText}>Submit</Text>
+                <Text style={[Typography.buttonText, styles.submitButtonText]}>
+                  Submit
+                </Text>
               </TouchableOpacity>
             </View>
           </>
@@ -123,7 +128,7 @@ const PDFModal: React.FC<PDFModalProps> = ({
 };
 
 const styles = StyleSheet.create({
-  pdfModalContent: { 
+  pdfModalContent: {
     width: "100%",
     backgroundColor: "#fff",
     borderTopLeftRadius: 16,
@@ -136,8 +141,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
   },
   pdfModalTitle: {
-    fontSize: 20,
-    fontWeight: "600",
     color: "#1a1a1a",
   },
   pdfInput: {
@@ -169,24 +172,20 @@ const styles = StyleSheet.create({
   },
   submitButtonText: {
     color: "#fff",
-    fontSize: 15,
-    fontWeight: "600",
   },
   fileSelectArea: {
     borderWidth: 2,
-    borderColor: '#1976d2',
-    borderStyle: 'dashed',
+    borderColor: "#1976d2",
+    borderStyle: "dashed",
     borderRadius: 12,
     padding: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 24,
-    backgroundColor: '#f0f7ff',
+    backgroundColor: "#f0f7ff",
   },
   fileSelectText: {
-    color: '#1976d2',
-    fontSize: 16,
-    fontWeight: '600',
+    color: "#1976d2",
   },
 });
 

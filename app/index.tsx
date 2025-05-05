@@ -30,6 +30,7 @@ import { HomeHeader } from "../components/HomeHeader";
 import { FolderSelector } from "../components/FolderSelector";
 import { useNotes } from "../hooks/useNotes";
 import { useFolders } from "../hooks/useFolders";
+import { Typography, FONTS } from "../constants/Typography";
 
 export default function Note() {
   const { user, loading } = useUser();
@@ -174,7 +175,7 @@ export default function Note() {
     if (!isFetchingNextPage) return null;
     return (
       <View style={styles.footerLoadingContainer}>
-        <ActivityIndicator size="small" color="#2c3e50" />
+        <ActivityIndicator size="small" color="#000000" />
       </View>
     );
   };
@@ -206,10 +207,10 @@ export default function Note() {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={onRefresh}
-                colors={["#2c3e50"]}
-                tintColor="#2c3e50"
+                colors={["#000000"]}
+                tintColor="#000000"
                 title="Loading notes..."
-                titleColor="#2c3e50"
+                titleColor="#000000"
                 progressBackgroundColor="#ffffff"
               />
             }
@@ -227,7 +228,13 @@ export default function Note() {
               size={24}
               color="#FFFFFF"
             />
-            <Text style={[styles.actionButtonText, { color: "#FFFFFF" }]}>
+            <Text
+              style={[
+                Typography.buttonText,
+                styles.actionButtonText,
+                { color: "#FFFFFF" },
+              ]}
+            >
               Record
             </Text>
           </TouchableOpacity>
@@ -240,9 +247,15 @@ export default function Note() {
             <MaterialCommunityIcons
               name="pencil-plus"
               size={24}
-              color="#2c3e50"
+              color="#000000"
             />
-            <Text style={[styles.actionButtonText, { color: "#2c3e50" }]}>
+            <Text
+              style={[
+                Typography.buttonText,
+                styles.actionButtonText,
+                { color: "#000000" },
+              ]}
+            >
               New Note
             </Text>
           </TouchableOpacity>
@@ -305,10 +318,9 @@ const styles = StyleSheet.create({
   },
   folderName: {
     flex: 1,
-    fontSize: 16,
-    fontWeight: "500",
     color: "#111",
     marginLeft: 10,
+    fontFamily: FONTS.medium,
   },
   headerRight: {
     flexDirection: "row",
@@ -317,7 +329,7 @@ const styles = StyleSheet.create({
   proButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#2c3e50",
+    backgroundColor: "#000000",
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 20,
@@ -325,9 +337,8 @@ const styles = StyleSheet.create({
   },
   proText: {
     color: "#fff",
-    fontWeight: "bold",
     marginLeft: 6,
-    fontSize: 13,
+    fontFamily: FONTS.medium,
   },
   profileButton: {
     width: 40,
@@ -338,11 +349,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
   },
   sectionTitle: {
-    fontSize: 14,
     color: "#111",
     marginLeft: 24,
     marginBottom: 16,
-    fontWeight: "400",
+    fontFamily: FONTS.regular,
   },
   listContent: {
     paddingTop: 8,
@@ -366,7 +376,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#2c3e50",
+    backgroundColor: "#000000",
     borderRadius: 25,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -392,9 +402,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     marginLeft: 8,
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#2c3e50",
+    color: "#000000",
   },
   emptyStateContainer: {
     flex: 1,

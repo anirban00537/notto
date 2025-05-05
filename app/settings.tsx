@@ -22,6 +22,7 @@ import Animated, {
   interpolate,
   Easing,
 } from "react-native-reanimated";
+import { Typography, FONTS } from "../constants/Typography";
 
 const AnimatedIcon = Animated.createAnimatedComponent(MaterialCommunityIcons);
 
@@ -73,11 +74,15 @@ const PremiumButton = () => {
           />
         </Animated.View>
         <View style={styles.premiumTextContainer}>
-          <Text style={styles.premiumTitle}>Upgrade to Premium</Text>
-          <Text style={styles.premiumSubtitle}>Unlock all features</Text>
+          <Text style={[Typography.body1, styles.premiumTitle]}>
+            Upgrade to Premium
+          </Text>
+          <Text style={[Typography.caption, styles.premiumSubtitle]}>
+            Unlock all features
+          </Text>
         </View>
       </View>
-      <MaterialCommunityIcons name="chevron-right" size={20} color="#2c3e50" />
+      <MaterialCommunityIcons name="chevron-right" size={20} color="#000000" />
     </TouchableOpacity>
   );
 };
@@ -103,9 +108,9 @@ export default function SettingsScreen() {
           onPress={() => router.back()}
           activeOpacity={0.7}
         >
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#2c3e50" />
+          <MaterialCommunityIcons name="arrow-left" size={24} color="#000000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Settings</Text>
+        <Text style={[Typography.h4, styles.headerTitle]}>Settings</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -130,9 +135,13 @@ export default function SettingsScreen() {
               )}
             </View>
             <View style={styles.userDetails}>
-              <Text style={styles.name}>{user?.displayName || "User"}</Text>
-              <Text style={styles.email}>{user?.email}</Text>
-              <Text style={styles.joinedDate}>
+              <Text style={[Typography.h4, styles.name]}>
+                {user?.displayName || "User"}
+              </Text>
+              <Text style={[Typography.body2, styles.email]}>
+                {user?.email}
+              </Text>
+              <Text style={[Typography.caption, styles.joinedDate]}>
                 Joined {user?.metadata.creationTime?.split("T")[0]}
               </Text>
             </View>
@@ -147,7 +156,7 @@ export default function SettingsScreen() {
           activeOpacity={0.8}
         >
           <MaterialCommunityIcons name="logout" size={20} color="#e74c3c" />
-          <Text style={styles.signOutText}>Sign Out</Text>
+          <Text style={[Typography.body1, styles.signOutText]}>Sign Out</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -174,9 +183,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#2c3e50",
+    color: "#000000",
   },
   content: {
     flex: 1,
@@ -212,7 +219,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: "#2c3e50",
+    backgroundColor: "#000000",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -220,18 +227,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   name: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#2c3e50",
+    color: "#000000",
     marginBottom: 4,
   },
   email: {
-    fontSize: 14,
     color: "#666",
     marginBottom: 4,
   },
   joinedDate: {
-    fontSize: 12,
     color: "#999",
   },
   premiumButton: {
@@ -261,12 +264,9 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   premiumTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#2c3e50",
+    color: "#000000",
   },
   premiumSubtitle: {
-    fontSize: 13,
     color: "#666",
     marginTop: 2,
   },
@@ -282,9 +282,7 @@ const styles = StyleSheet.create({
     borderColor: "#ffebeb",
   },
   signOutText: {
-    fontSize: 16,
     color: "#e74c3c",
     marginLeft: 8,
-    fontWeight: "500",
   },
 });

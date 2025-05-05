@@ -10,6 +10,7 @@ import {
   Dimensions,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Typography, FONTS } from "../constants/Typography";
 
 type TabName = "note" | "transcript" | "summary" | "quiz" | "flashcards";
 
@@ -147,13 +148,7 @@ export default function ContentTabs({
               return (
                 <TouchableOpacity
                   key={tab.name}
-                  style={[
-                    styles.tab,
-                    isActive && [
-                      styles.activeTab,
-                      { backgroundColor: "#f5f5f5" },
-                    ],
-                  ]}
+                  style={[styles.tab, isActive && styles.activeTab]}
                   onPress={() => handleTabPress(tab.name)}
                   activeOpacity={0.6}
                   onLayout={(e) =>
@@ -166,11 +161,15 @@ export default function ContentTabs({
                   <MaterialCommunityIcons
                     name={tab.icon}
                     size={24}
-                    color={isActive ? "#000" : "#888"}
+                    color={isActive ? "#000000" : "#757575"}
                     style={styles.tabIcon}
                   />
                   <Text
-                    style={[styles.tabText, isActive && styles.activeTabText]}
+                    style={[
+                      isActive
+                        ? Typography.tabLabelActive
+                        : Typography.tabLabel,
+                    ]}
                   >
                     {tab.label}
                   </Text>
@@ -231,19 +230,11 @@ const styles = StyleSheet.create({
     borderRadius: 30,
   },
   activeTab: {
+    backgroundColor: "#f8f9fa",
     elevation: 0,
   },
   tabIcon: {
     marginRight: 8,
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#888",
-  },
-  activeTabText: {
-    fontWeight: "600",
-    color: "#000",
   },
   contentContainer: {
     flex: 1,
@@ -260,10 +251,10 @@ const styles = StyleSheet.create({
   },
   bottomBorder: {
     position: "absolute",
+    bottom: 0,
     left: 0,
     right: 0,
-    bottom: 0,
     height: 1,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#E0E0E0",
   },
 });

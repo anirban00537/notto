@@ -24,6 +24,7 @@ import { CreateNoteDto, NoteType, NoteStatus, Note } from "../lib/types/note";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import ProcessingModal from "./ProcessingModal";
 import * as ExpoAV from "expo-av";
+import { Typography, FONTS } from "../constants/Typography";
 const { Audio } = ExpoAV;
 
 interface NoteOptionsModalProps {
@@ -81,7 +82,7 @@ const ModalOptionButton: React.FC<ModalOptionButtonProps> = ({
         accessibilityLabel={label}
       >
         {icon}
-        <Text style={styles.modalOptionText}>{label}</Text>
+        <Text style={[Typography.body1, styles.modalOptionText]}>{label}</Text>
       </Pressable>
     </Animated.View>
   );
@@ -382,12 +383,14 @@ const NoteOptionsModal: React.FC<NoteOptionsModalProps> = ({
         handleIndicatorStyle={styles.handleIndicator}
       >
         <View style={styles.modalHeader}>
-          <Text style={styles.modalHeaderText}>Create New Note</Text>
+          <Text style={[Typography.h3, styles.modalHeaderText]}>
+            Create New Note
+          </Text>
         </View>
         <View style={styles.modalContent}>
           {isRecording ? (
             <View style={styles.recordingContainer}>
-              <Text style={styles.recordingTimer}>
+              <Text style={[Typography.h2, styles.recordingTimer]}>
                 {formatDuration(recordingDuration)}
               </Text>
               <View style={styles.equalizerContainer}>
@@ -532,8 +535,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   modalHeaderText: {
-    fontSize: 20,
-    fontWeight: "600",
     color: "#1A1A1A",
     letterSpacing: 0.15,
   },
@@ -559,9 +560,7 @@ const styles = StyleSheet.create({
     lineHeight: 28,
   },
   modalOptionText: {
-    fontSize: 16,
     color: "#2C3E50",
-    fontWeight: "500",
     letterSpacing: 0.1,
   },
   recordingContainer: {
@@ -571,8 +570,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   recordingTimer: {
-    fontSize: 48,
-    fontWeight: "600",
     color: "#1A1A1A",
     marginBottom: 24,
     fontVariant: ["tabular-nums"],

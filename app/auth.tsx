@@ -11,6 +11,7 @@ import {
 import auth from "@react-native-firebase/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Typography, FONTS } from "../constants/Typography";
 
 GoogleSignin.configure({
   webClientId:
@@ -80,11 +81,13 @@ const AuthComponent = () => {
         ]}
       >
         <View style={styles.logoContainer}>
-          <MaterialCommunityIcons name="notebook" size={64} color="#4285F4" />
+          <MaterialCommunityIcons name="notebook" size={64} color="#000000" />
         </View>
 
-        <Text style={styles.title}>Welcome to Notto</Text>
-        <Text style={styles.subtitle}>Capture your thoughts, seamlessly</Text>
+        <Text style={[Typography.h1, styles.title]}>Welcome to Notto</Text>
+        <Text style={[Typography.body1, styles.subtitle]}>
+          Capture your thoughts, seamlessly
+        </Text>
 
         <TouchableOpacity
           style={styles.googleButton}
@@ -102,18 +105,22 @@ const AuthComponent = () => {
                 color="#fff"
                 style={styles.googleIcon}
               />
-              <Text style={styles.googleButtonText}>Continue with Google</Text>
+              <Text style={[Typography.buttonText, styles.googleButtonText]}>
+                Continue with Google
+              </Text>
             </>
           )}
         </TouchableOpacity>
 
         {error && (
-          <Animated.Text style={[styles.errorText, { opacity: fadeAnim }]}>
+          <Animated.Text
+            style={[Typography.body2, styles.errorText, { opacity: fadeAnim }]}
+          >
             {error}
           </Animated.Text>
         )}
 
-        <Text style={styles.termsText}>
+        <Text style={[Typography.caption, styles.termsText]}>
           By continuing, you agree to our Terms of Service and Privacy Policy
         </Text>
       </Animated.View>
@@ -144,14 +151,10 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   title: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: "#2c3e50",
     marginBottom: 12,
     textAlign: "center",
   },
   subtitle: {
-    fontSize: 18,
     color: "#666666",
     marginBottom: 48,
     textAlign: "center",
@@ -159,7 +162,7 @@ const styles = StyleSheet.create({
   googleButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#4285F4",
+    backgroundColor: "#000000",
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderRadius: 12,
@@ -171,14 +174,11 @@ const styles = StyleSheet.create({
   },
   googleButtonText: {
     color: "#ffffff",
-    fontSize: 18,
-    fontWeight: "600",
   },
   errorText: {
     color: "#f44336",
     marginTop: 24,
     textAlign: "center",
-    fontSize: 16,
     backgroundColor: "#ffebee",
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -189,7 +189,6 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 32,
     color: "#666666",
-    fontSize: 14,
     textAlign: "center",
     paddingHorizontal: 24,
   },
