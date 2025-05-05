@@ -12,6 +12,7 @@ import {
   RefreshControl,
   Animated,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
@@ -31,9 +32,11 @@ import { FolderSelector } from "../components/FolderSelector";
 import { useNotes } from "../hooks/useNotes";
 import { useFolders } from "../hooks/useFolders";
 import { Typography, FONTS } from "../constants/Typography";
+import SwipeableNoteCard from "../components/SwipeableNoteCard";
 
 export default function Note() {
   const { user, loading } = useUser();
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const router = useRouter();
   const [selectedFolderId, setSelectedFolderId] = useState<string>("all");
   const noteOptionsBottomSheetRef = useRef<BottomSheet>(null);
@@ -61,6 +64,8 @@ export default function Note() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    handleDeleteNote,
+    isDeletingNote,
   } = useNotes(user?.uid, selectedFolderId);
 
   useEffect(() => {
@@ -73,6 +78,12 @@ export default function Note() {
       }).start();
     }
   }, [notes.length]);
+
+  useEffect(() => {
+    if (!loading && !isNotesLoading && isInitialLoad) {
+      setIsInitialLoad(false);
+    }
+  }, [loading, isNotesLoading]);
 
   const onOpenNoteOptions = () => {
     noteOptionsBottomSheetRef.current?.snapToIndex(1);
@@ -97,8 +108,8 @@ export default function Note() {
     }
   };
 
-  // Return loading screen if loading
-  if (loading || isNotesLoading) {
+  // Return loading screen only on initial load
+  if ((loading || isNotesLoading) && isInitialLoad) {
     return <LoadingScreen />;
   }
 
@@ -137,6 +148,15 @@ export default function Note() {
       outputRange: [0.8, 1.1, 1],
     });
 
+    const onDelete = async () => {
+      try {
+        await handleDeleteNote(item.id);
+      } catch (error) {
+        console.error("Error deleting note:", error);
+        Alert.alert("Error", "Failed to delete note");
+      }
+    };
+
     return (
       <Animated.View
         style={{
@@ -144,29 +164,21 @@ export default function Note() {
           opacity,
         }}
       >
-        <Link
-          href={{
-            pathname: "/note/[id]",
-            params: { id: item.id },
-          }}
-          asChild
-        >
-          <View>
-            <NoteCard
-              id={item.id}
-              title={item.title}
-              createdAt={
-                new Date(
-                  item.createdAt?._seconds
-                    ? item.createdAt._seconds * 1000
-                    : item.createdAt
-                )
-              }
-              icon={item.noteType}
-              onPress={() => router.push(`/note/${item.id}`)}
-            />
-          </View>
-        </Link>
+        <SwipeableNoteCard
+          id={item.id}
+          title={item.title}
+          createdAt={
+            new Date(
+              item.createdAt?._seconds
+                ? item.createdAt._seconds * 1000
+                : item.createdAt
+            )
+          }
+          icon={item.noteType}
+          onPress={() => router.push(`/note/${item.id}`)}
+          onDelete={onDelete}
+          isDeleting={isDeletingNote}
+        />
       </Animated.View>
     );
   };
@@ -196,22 +208,18 @@ export default function Note() {
         ) : (
           <FlatList
             data={notes}
-            keyExtractor={(item, index) => `${item.id}-${index}`}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
             renderItem={renderAnimatedItem}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContainer}
+            showsVerticalScrollIndicator={false}
             onEndReached={loadMore}
             onEndReachedThreshold={0.5}
             ListFooterComponent={renderFooter}
             refreshControl={
               <RefreshControl
-                refreshing={refreshing}
+                refreshing={refreshing || (isNotesLoading && !isInitialLoad)}
                 onRefresh={onRefresh}
-                colors={["#000000"]}
                 tintColor="#000000"
-                title="Loading notes..."
-                titleColor="#000000"
-                progressBackgroundColor="#ffffff"
               />
             }
           />
@@ -354,7 +362,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontFamily: FONTS.regular,
   },
-  listContent: {
+  listContainer: {
     paddingTop: 8,
     paddingBottom: 100,
   },

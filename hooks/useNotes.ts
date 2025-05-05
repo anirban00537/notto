@@ -161,22 +161,65 @@ export function useNotes(userId: string | undefined, folderId: string) {
   // Delete Note Mutation
   const deleteNoteMutation = useMutation({
     mutationFn: deleteNote,
+    onMutate: async (noteId) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: ["notes", { userId, folderId }],
+      });
+
+      // Snapshot the previous value
+      const previousNotes = queryClient.getQueryData<
+        InfiniteData<ApiResponse<NotesApiResponse>>
+      >(["notes", { userId, folderId }]);
+
+      // Optimistically update the cache
+      if (previousNotes) {
+        queryClient.setQueryData<InfiniteData<ApiResponse<NotesApiResponse>>>(
+          ["notes", { userId, folderId }],
+          {
+            ...previousNotes,
+            pages: previousNotes.pages.map((page) => ({
+              ...page,
+              data: {
+                ...page.data,
+                notes:
+                  page.data?.notes.filter((note) => note.id !== noteId) || [],
+                pagination: page.data?.pagination || {
+                  currentPage: 1,
+                  totalPages: 1,
+                  totalNotes: 0,
+                  limit: 10,
+                },
+              },
+            })),
+          }
+        );
+      }
+
+      return { previousNotes };
+    },
     onSuccess: (response) => {
       if (!response.success) {
         throw new Error(response.message);
       }
-
       console.log("Note deletion successful");
-
-      // Reset and refetch notes when a note is deleted
-      queryClient.resetQueries({
+    },
+    onError: (error: any, noteId, context) => {
+      console.error("Error deleting note:", error);
+      // Rollback to the previous state
+      if (context?.previousNotes) {
+        queryClient.setQueryData(
+          ["notes", { userId, folderId }],
+          context.previousNotes
+        );
+      }
+      Alert.alert("Error", error.message || "Failed to delete note");
+    },
+    onSettled: () => {
+      // Refetch after error or success
+      queryClient.invalidateQueries({
         queryKey: ["notes", { userId, folderId }],
       });
-      refetch();
-    },
-    onError: (error: any) => {
-      console.error("Error deleting note:", error);
-      Alert.alert("Error", error.message || "Failed to delete note");
     },
   });
 
