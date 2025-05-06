@@ -1,7 +1,7 @@
 export enum FolderStatus {
-  ACTIVE = 'active',
-  ARCHIVED = 'archived',
-  DELETED = 'deleted'
+  ACTIVE = "active",
+  ARCHIVED = "archived",
+  DELETED = "deleted",
 }
 
 export interface Folder {

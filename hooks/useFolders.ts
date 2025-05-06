@@ -5,15 +5,16 @@ import { Keyboard } from "react-native";
 import { ApiResponse } from "../lib/types/response";
 import { Folder } from "../lib/types/folder";
 
-export const useFolders = () => {
+export const useFolders = (userId: string) => {
   const [newFolderName, setNewFolderName] = useState<string>("");
   const queryClient = useQueryClient();
 
   const { data: foldersResponse, refetch: refetchFolders } = useQuery<
     ApiResponse<Folder[]>
   >({
-    queryKey: ["folders"],
-    queryFn: getAllFolders,
+    queryKey: ["folders", userId],
+    queryFn: () => getAllFolders(userId),
+    enabled: !!userId,
   });
 
   const folders = foldersResponse?.data || [];
@@ -24,12 +25,12 @@ export const useFolders = () => {
       if (!response.success) {
         throw new Error(response.message);
       }
-      queryClient.invalidateQueries({ queryKey: ["folders"] });
+      queryClient.invalidateQueries({ queryKey: ["folders", userId] });
       refetchFolders();
     },
   });
 
-  const handleCreateFolder = async (userId: string) => {
+  const handleCreateFolder = async () => {
     if (!userId || newFolderName.trim() === "") return;
 
     try {
