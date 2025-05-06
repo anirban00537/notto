@@ -167,13 +167,7 @@ export default function Note() {
         <SwipeableNoteCard
           id={item.id}
           title={item.title}
-          createdAt={
-            new Date(
-              item.createdAt?._seconds
-                ? item.createdAt._seconds * 1000
-                : item.createdAt
-            )
-          }
+          createdAt={item.createdAt}
           icon={item.noteType}
           onPress={() => {
             console.log(`Navigating to note/${item.id}`);

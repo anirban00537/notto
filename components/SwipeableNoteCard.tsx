@@ -13,7 +13,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 interface SwipeableNoteCardProps {
   id: string;
   title: string;
-  createdAt: Date;
+  createdAt: Date | { seconds: number; nanoseconds: number } | string | number;
   icon: string;
   onPress: () => void;
   onDelete: () => Promise<void>;

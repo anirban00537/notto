@@ -40,7 +40,7 @@ export default function NoteDetailScreen() {
 
   if (loading) return <LoadingScreen />;
   if (!note) return <Text style={Typography.body1}>Note not found</Text>;
-
+  console.log("note", note);
   const getFormattedTitle = () => {
     return note?.title?.trim() || "Untitled Note";
   };
@@ -89,14 +89,7 @@ export default function NoteDetailScreen() {
             <View style={styles.contentCard}>
               <NoteTitleSection
                 title={getFormattedTitle()}
-                lastModified={
-                  note?.updatedAt instanceof Date
-                    ? format(note.updatedAt, "MMM d, yyyy")
-                    : format(
-                        new Date(note?.updatedAt || Date.now()),
-                        "MMM d, yyyy"
-                      )
-                }
+                createdAt={note?.createdAt}
                 showFullTitle={true}
                 insideCard={true}
               />

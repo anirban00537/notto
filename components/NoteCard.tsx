@@ -14,7 +14,7 @@ interface NoteCardProps {
   id: string;
   title?: string;
   content?: string;
-  createdAt: Date;
+  createdAt: Date | { seconds: number; nanoseconds: number } | string | number;
   icon?: string;
   onPress?: () => void;
 }
@@ -77,6 +77,34 @@ const NoteCard: React.FC<NoteCardProps> = ({
         };
     }
   };
+
+  // Convert createdAt to a valid Date object
+  const getValidDate = () => {
+    try {
+      if (createdAt instanceof Date) {
+        return createdAt;
+      } else if (
+        typeof createdAt === "object" &&
+        createdAt !== null &&
+        "seconds" in createdAt
+      ) {
+        // Handle Firestore timestamp
+        return new Date(createdAt.seconds * 1000);
+      } else if (
+        typeof createdAt === "string" ||
+        typeof createdAt === "number"
+      ) {
+        return new Date(createdAt);
+      } else {
+        return new Date(); // Fallback to current date
+      }
+    } catch (error) {
+      console.error("Error parsing date:", error);
+      return new Date(); // Fallback to current date
+    }
+  };
+
+  const dateToDisplay = getValidDate();
 
   const typeData = getTypeData(icon);
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
@@ -147,7 +175,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
                   style={styles.timeIcon}
                 />
                 <Text style={[Typography.caption, styles.dateText]}>
-                  {format(createdAt, "MMM d, yyyy · h:mm a")}
+                  {format(dateToDisplay, "MMM d, yyyy · h:mm a")}
                 </Text>
               </View>
             </View>
@@ -186,7 +214,7 @@ const NoteCard: React.FC<NoteCardProps> = ({
                   style={styles.timeIcon}
                 />
                 <Text style={[Typography.caption, styles.dateText]}>
-                  {format(createdAt, "MMM d, yyyy · h:mm a")}
+                  {format(dateToDisplay, "MMM d, yyyy · h:mm a")}
                 </Text>
               </View>
             </View>
