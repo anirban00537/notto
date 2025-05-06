@@ -16,7 +16,7 @@ interface NoteCardProps {
   content?: string;
   createdAt: Date;
   icon?: string;
-  onPress: () => void;
+  onPress?: () => void;
 }
 
 // Define the icon names type to match available MaterialCommunityIcons
@@ -108,50 +108,91 @@ const NoteCard: React.FC<NoteCardProps> = ({
         },
       ]}
     >
-      <TouchableOpacity
-        style={styles.content}
-        onPress={onPress}
-        activeOpacity={0.7}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-      >
-        <View style={styles.cardContent}>
-          <View
-            style={[
-              styles.iconContainer,
-              { backgroundColor: `${typeData.color}15` },
-            ]}
-          >
-            <MaterialCommunityIcons
-              name={typeData.name}
-              size={24}
-              color={typeData.color}
-            />
-          </View>
-
-          <View style={styles.textContainer}>
-            <Text
-              style={[Typography.body1, styles.title]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
+      {typeof onPress === "function" ? (
+        <TouchableOpacity
+          style={styles.content}
+          onPress={onPress}
+          activeOpacity={0.7}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
+        >
+          <View style={styles.cardContent}>
+            <View
+              style={[
+                styles.iconContainer,
+                { backgroundColor: `${typeData.color}15` },
+              ]}
             >
-              {title}
-            </Text>
-
-            <View style={styles.dateContainer}>
               <MaterialCommunityIcons
-                name="clock-outline"
-                size={12}
-                color="#999"
-                style={styles.timeIcon}
+                name={typeData.name}
+                size={24}
+                color={typeData.color}
               />
-              <Text style={[Typography.caption, styles.dateText]}>
-                {format(createdAt, "MMM d, yyyy · h:mm a")}
+            </View>
+
+            <View style={styles.textContainer}>
+              <Text
+                style={[Typography.body1, styles.title]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {title}
               </Text>
+
+              <View style={styles.dateContainer}>
+                <MaterialCommunityIcons
+                  name="clock-outline"
+                  size={12}
+                  color="#999"
+                  style={styles.timeIcon}
+                />
+                <Text style={[Typography.caption, styles.dateText]}>
+                  {format(createdAt, "MMM d, yyyy · h:mm a")}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.content}>
+          <View style={styles.cardContent}>
+            <View
+              style={[
+                styles.iconContainer,
+                { backgroundColor: `${typeData.color}15` },
+              ]}
+            >
+              <MaterialCommunityIcons
+                name={typeData.name}
+                size={24}
+                color={typeData.color}
+              />
+            </View>
+
+            <View style={styles.textContainer}>
+              <Text
+                style={[Typography.body1, styles.title]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {title}
+              </Text>
+
+              <View style={styles.dateContainer}>
+                <MaterialCommunityIcons
+                  name="clock-outline"
+                  size={12}
+                  color="#999"
+                  style={styles.timeIcon}
+                />
+                <Text style={[Typography.caption, styles.dateText]}>
+                  {format(createdAt, "MMM d, yyyy · h:mm a")}
+                </Text>
+              </View>
             </View>
           </View>
         </View>
-      </TouchableOpacity>
+      )}
     </Animated.View>
   );
 };

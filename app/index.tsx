@@ -175,7 +175,10 @@ export default function Note() {
             )
           }
           icon={item.noteType}
-          onPress={() => router.push(`/note/${item.id}`)}
+          onPress={() => {
+            console.log(`Navigating to note/${item.id}`);
+            router.push(`/note/${item.id}`);
+          }}
           onDelete={onDelete}
           isDeleting={isDeletingNote}
         />
