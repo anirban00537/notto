@@ -3,7 +3,15 @@ import firestore, {
 } from "@react-native-firebase/firestore";
 import { Folder, CreateFolderDto } from "../types/folder";
 import { ApiResponse } from "../types/response";
-import { v4 as uuidv4 } from "uuid";
+
+// Simple UUID generator for React Native that doesn't use crypto
+const generateUUID = () => {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
 
 const getFolderCollection = (userId: string) => {
   return firestore().collection("users").doc(userId).collection("folders");
@@ -66,7 +74,8 @@ export const createFolder = async (
 ): Promise<ApiResponse<Folder>> => {
   try {
     const { name, userId } = newFolder;
-    const folderId = uuidv4();
+    // Replace uuidv4() with our custom implementation
+    const folderId = generateUUID();
     const now = new Date();
 
     const folderData: Folder = {

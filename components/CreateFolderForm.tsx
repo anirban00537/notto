@@ -8,6 +8,7 @@ import {
   Platform,
   Keyboard,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFolder } from "../lib/services/folderService";
@@ -15,44 +16,78 @@ import { createFolder } from "../lib/services/folderService";
 interface CreateFolderFormProps {
   userId: string;
   onClose: () => void;
+  onSuccess?: () => void;
   autoFocus?: boolean;
 }
 
 const CreateFolderForm: React.FC<CreateFolderFormProps> = ({
   userId,
   onClose,
+  onSuccess,
   autoFocus = false,
 }) => {
   const [newFolderName, setNewFolderName] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const createFolderMutation = useMutation({
-    mutationFn: (newFolder: { name: string; userId: string }) =>
-      createFolder(newFolder),
-    onSuccess: () => {
+    mutationFn: (newFolder: { name: string; userId: string }) => {
+      console.log("Creating folder:", newFolder);
+      return createFolder(newFolder);
+    },
+    onSuccess: (response) => {
+      console.log("Folder created successfully:", response);
+
+      // Invalidate and refetch folders to ensure list is updated
       queryClient.invalidateQueries({ queryKey: ["folders"] });
+
+      // Clear form and dismiss keyboard
       setNewFolderName("");
       Keyboard.dismiss();
+
+      // Close create form modal
       onClose();
-      queryClient.refetchQueries({ queryKey: ["folders"] });
+
+      // Wait a moment then call onSuccess to open the folder list modal
+      setTimeout(() => {
+        if (onSuccess) {
+          onSuccess();
+        }
+      }, 300);
+    },
+    onError: (error: any) => {
+      console.error("Error in createFolderMutation:", error);
+      setError(error.message || "Failed to create folder");
+      Alert.alert(
+        "Error Creating Folder",
+        error.message || "Failed to create folder. Please try again."
+      );
     },
   });
 
   const handleCreateFolder = async () => {
     if (newFolderName.trim() === "") return;
+    setError(null);
 
     try {
+      console.log("Attempting to create folder:", {
+        name: newFolderName.trim(),
+        userId,
+      });
+
       await createFolderMutation.mutateAsync({
         name: newFolderName.trim(),
         userId,
       });
-    } catch (error) {
-      console.error("Error creating folder:", error);
+    } catch (error: any) {
+      console.error("Error in handleCreateFolder:", error);
+      setError(error.message || "Failed to create folder");
     }
   };
 
   return (
     <View style={styles.createFolderModalContent}>
+      {error && <Text style={styles.errorText}>{error}</Text>}
       <TextInput
         style={styles.createFolderInput}
         placeholder="Enter folder name"
@@ -62,9 +97,12 @@ const CreateFolderForm: React.FC<CreateFolderFormProps> = ({
         onSubmitEditing={handleCreateFolder}
       />
       <TouchableOpacity
-        style={styles.saveFolderButton}
+        style={[
+          styles.saveFolderButton,
+          newFolderName.trim() === "" && styles.disabledButton,
+        ]}
         onPress={handleCreateFolder}
-        disabled={createFolderMutation.isPending}
+        disabled={createFolderMutation.isPending || newFolderName.trim() === ""}
       >
         {createFolderMutation.isPending ? (
           <ActivityIndicator color="#fff" />
@@ -86,23 +124,37 @@ const styles = StyleSheet.create({
   createFolderInput: {
     fontSize: 16,
     padding: 16,
-    borderColor: "#f0f0f0",
+    borderColor: "#e5e5e5",
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: 14,
     marginBottom: 20,
-    backgroundColor: "#f7f7f7",
-    color: "#2c3e50",
+    backgroundColor: "#f8f8f8",
+    color: "#333",
   },
   saveFolderButton: {
-    backgroundColor: "#2c3e50",
+    backgroundColor: "#000",
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   saveFolderButtonText: {
     color: "#ffffff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  disabledButton: {
+    opacity: 0.5,
+    backgroundColor: "#666",
+  },
+  errorText: {
+    color: "#FF3B30",
+    marginBottom: 15,
+    fontSize: 14,
   },
 });
 
