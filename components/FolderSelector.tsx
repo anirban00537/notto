@@ -5,24 +5,27 @@ import { Folder } from "../lib/types/folder";
 import { Typography, FONTS } from "../constants/Typography";
 
 interface FolderSelectorProps {
-  selectedFolder: Folder | { id: string; name: string };
+  selectedFolder?: Folder | { id: string; name: string };
   onFolderPress: () => void;
 }
 
 export const FolderSelector: React.FC<FolderSelectorProps> = ({
-  selectedFolder,
+  selectedFolder = { id: "all", name: "All Notes" },
   onFolderPress,
 }) => {
+  // Safety check to ensure a valid selectedFolder is provided
+  const folderName = selectedFolder?.name || "All Notes";
+  const iconName =
+    selectedFolder?.id === "all" ? "view-list" : "folder-outline";
+
   return (
     <TouchableOpacity
       style={styles.folderButton}
       onPress={onFolderPress}
       activeOpacity={0.7}
     >
-      <MaterialCommunityIcons name="folder-outline" size={18} color="#555" />
-      <Text style={[Typography.body2, styles.folderName]}>
-        {selectedFolder.name}
-      </Text>
+      <MaterialCommunityIcons name={iconName} size={18} color="#555" />
+      <Text style={[Typography.body2, styles.folderName]}>{folderName}</Text>
       <MaterialCommunityIcons name="chevron-down" size={16} color="#555" />
     </TouchableOpacity>
   );

@@ -27,6 +27,7 @@ import EmptyNotesState from "../components/EmptyNotesState";
 import { useUser } from "./context/UserContext";
 import { Folder } from "../lib/types/folder";
 import LoadingScreen from "../components/LoadingScreen";
+import NotesSkeleton from "../components/NotesSkeleton";
 import { HomeHeader } from "../components/HomeHeader";
 import { FolderSelector } from "../components/FolderSelector";
 import { useNotes } from "../hooks/useNotes";
@@ -39,12 +40,14 @@ export default function Note() {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const router = useRouter();
   const [selectedFolderId, setSelectedFolderId] = useState<string>("all");
+  const [isFolderChanging, setIsFolderChanging] = useState(false);
   const noteOptionsBottomSheetRef = useRef<BottomSheet>(null);
   const folderDrawerRef = useRef<any>(null);
   const createFolderModalRef = useRef<any>(null);
   const youtubeBottomSheetRef = useRef<BottomSheet>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [listAnimation] = useState(new Animated.Value(0));
+  const [isAnimationReady, setIsAnimationReady] = useState(false);
 
   const { folders, newFolderName, setNewFolderName, handleCreateFolder } =
     useFolders();
@@ -68,16 +71,27 @@ export default function Note() {
     isDeletingNote,
   } = useNotes(user?.uid, selectedFolderId);
 
+  // Pre-animate list when notes are loaded
   useEffect(() => {
-    if (notes.length > 0) {
-      Animated.spring(listAnimation, {
-        toValue: 1,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }).start();
+    if (notes.length > 0 && !isNotesLoading) {
+      // Reset animation when folder changes
+      if (isFolderChanging) {
+        listAnimation.setValue(0);
+      }
+
+      // Start animation with slight delay to ensure rendering is complete
+      setTimeout(() => {
+        Animated.spring(listAnimation, {
+          toValue: 1,
+          tension: 50,
+          friction: 7,
+          useNativeDriver: true,
+        }).start(() => {
+          setIsAnimationReady(true);
+        });
+      }, 50);
     }
-  }, [notes.length]);
+  }, [notes.length, isNotesLoading, isFolderChanging]);
 
   useEffect(() => {
     if (!loading && !isNotesLoading && isInitialLoad) {
@@ -108,16 +122,39 @@ export default function Note() {
     }
   };
 
-  // Return loading screen only on initial load
-  if ((loading || isNotesLoading) && isInitialLoad) {
-    return <LoadingScreen />;
-  }
+  // Handle folder selection with skeleton loading
+  const handleFolderSelect = (folderId: string) => {
+    if (folderId !== selectedFolderId) {
+      setIsFolderChanging(true);
+      setIsAnimationReady(false);
+      setSelectedFolderId(folderId);
+    }
+  };
+
+  // Reset folder changing state when notes finish loading
+  useEffect(() => {
+    if (!isNotesLoading && isFolderChanging) {
+      // Add a small delay to ensure notes are fully loaded before animation starts
+      setTimeout(() => {
+        setIsFolderChanging(false);
+      }, 100);
+    }
+  }, [isNotesLoading]);
 
   // Return auth component if no user
   if (!user) {
     return <AuthComponent />;
   }
 
+  // Show skeleton for initial loading or during folder changes
+  const showSkeleton =
+    ((loading || isNotesLoading) && isInitialLoad) || isFolderChanging;
+
+  // Keep showing skeleton until animation is ready to start
+  const shouldShowSkeleton =
+    showSkeleton || (notes.length > 0 && !isAnimationReady);
+
+  // Ensure selectedFolder is defined even during skeleton loading
   const selectedFolder =
     selectedFolderId === "all"
       ? { id: "all", name: "All Notes" }
@@ -125,6 +162,21 @@ export default function Note() {
           id: "all",
           name: "All Notes",
         };
+
+  // If showing skeleton, return the skeleton loader
+  if (shouldShowSkeleton) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+        <HomeHeader />
+        <FolderSelector
+          selectedFolder={selectedFolder}
+          onFolderPress={openFolderDrawer}
+        />
+        <NotesSkeleton />
+      </SafeAreaView>
+    );
+  }
 
   const renderAnimatedItem = ({
     item,
@@ -214,7 +266,10 @@ export default function Note() {
             ListFooterComponent={renderFooter}
             refreshControl={
               <RefreshControl
-                refreshing={refreshing || (isNotesLoading && !isInitialLoad)}
+                refreshing={
+                  refreshing ||
+                  (isNotesLoading && !isInitialLoad && !isFolderChanging)
+                }
                 onRefresh={onRefresh}
                 tintColor="#000000"
               />
@@ -290,7 +345,7 @@ export default function Note() {
         bottomSheetRef={folderDrawerRef}
         bottomSheetCreateRef={createFolderModalRef}
         selectedFolderId={selectedFolderId}
-        onFolderSelect={setSelectedFolderId}
+        onFolderSelect={handleFolderSelect}
         userId={user.uid}
         folders={folders}
       />
