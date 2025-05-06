@@ -14,10 +14,12 @@ import {
   Vibration,
   Dimensions,
   Image,
+  AppState,
+  BackHandler,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
-import { useRouter } from "expo-router";
+import { useRouter, useNavigation } from "expo-router";
 import { PermissionsAndroid } from "react-native";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createNote } from "../lib/services";
@@ -155,6 +157,7 @@ const PulsatingRecordButton = ({ onPress }: { onPress: () => void }) => {
 
 export default function RecordScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<
     "idle" | "recording" | "stopped" | "error" | "playing"
@@ -168,6 +171,10 @@ export default function RecordScreen() {
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackPosition, setPlaybackPosition] = useState(0);
+  const [appActive, setAppActive] = useState(true);
+  const appStateRef = useRef(AppState.currentState);
+  const hasAttemptedCleanupRef = useRef(false);
+  const recordingCleanedUpRef = useRef(true);
 
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const playbackTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -211,33 +218,396 @@ export default function RecordScreen() {
     },
   });
 
+  // Handle Android back button specifically
   useEffect(() => {
-    checkPermissions();
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        console.log("Android back button pressed");
+
+        // If currently recording, show alert and prevent navigation
+        if (mode === "recording") {
+          Alert.alert(
+            "Recording in Progress",
+            "Are you sure you want to stop recording and leave this screen?",
+            [
+              {
+                text: "Continue Recording",
+                style: "cancel",
+              },
+              {
+                text: "Stop & Leave",
+                style: "destructive",
+                onPress: async () => {
+                  // Stop recording first, then navigate
+                  try {
+                    await stopRecording();
+                    await releaseMicrophoneAndCleanup();
+                    // Allow a small delay for cleanup before navigation
+                    setTimeout(() => {
+                      router.back();
+                    }, 300);
+                  } catch (err) {
+                    console.warn("Error during cleanup after alert:", err);
+                    releaseMicrophoneAndCleanup();
+                    router.back();
+                  }
+                },
+              },
+            ]
+          );
+          // Return true to prevent default back navigation
+          return true;
+        }
+
+        // Not recording, perform cleanup and allow navigation
+        releaseMicrophoneAndCleanup();
+        return false; // Allow default back navigation
+      }
+    );
+
+    return () => backHandler.remove();
+  }, [mode]);
+
+  // Prevent navigation when recording is active (for Expo Router navigation)
+  useEffect(() => {
+    if (mode === "recording") {
+      // Set up a listener to prevent navigation
+      const unsubscribe = navigation.addListener("beforeRemove", (e: any) => {
+        // Prevent default navigation behavior
+        e.preventDefault();
+
+        // Show alert to confirm leaving
+        Alert.alert(
+          "Recording in Progress",
+          "Are you sure you want to stop recording and leave this screen?",
+          [
+            {
+              text: "Continue Recording",
+              style: "cancel",
+              onPress: () => {
+                // Do nothing, just continue recording
+              },
+            },
+            {
+              text: "Stop & Leave",
+              style: "destructive",
+              onPress: async () => {
+                // Stop recording and allow navigation
+                try {
+                  await stopRecording();
+                  await releaseMicrophoneAndCleanup();
+                  // Delay to ensure cleanup completes
+                  setTimeout(() => {
+                    // Allow navigation by removing the block and navigating
+                    unsubscribe();
+                    navigation.dispatch(e.data.action);
+                  }, 300);
+                } catch (err) {
+                  console.warn("Error during cleanup before navigation:", err);
+                  // Clean up and attempt navigation anyway
+                  releaseMicrophoneAndCleanup();
+                  unsubscribe();
+                  navigation.dispatch(e.data.action);
+                }
+              },
+            },
+          ]
+        );
+      });
+
+      // Clean up listener when component unmounts or recording stops
+      return unsubscribe;
+    }
+  }, [mode, navigation]);
+
+  // Monitor AppState to detect when app goes to background/foreground
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (
+        appStateRef.current === "active" &&
+        nextAppState.match(/inactive|background/)
+      ) {
+        // App is going to background
+        console.log(
+          "App going to background - releasing microphone and cleaning up"
+        );
+
+        // If recording, show alert if possible (won't work if app is completely backgrounded)
+        if (mode === "recording" && Platform.OS === "android") {
+          try {
+            // For Android, try to alert the user that recording will be stopped
+            Alert.alert(
+              "Recording Stopped",
+              "Your recording has been stopped because you left the app.",
+              [{ text: "OK" }]
+            );
+          } catch (err) {
+            console.warn("Could not show alert when leaving app:", err);
+          }
+        }
+
+        releaseMicrophoneAndCleanup();
+      } else if (
+        appStateRef.current.match(/inactive|background/) &&
+        nextAppState === "active"
+      ) {
+        // App coming to foreground
+        console.log("App coming to foreground - resetting state");
+        resetRecordingScreen();
+      }
+
+      appStateRef.current = nextAppState;
+      setAppActive(nextAppState === "active");
+    });
+
     return () => {
-      cleanupTimers();
-      cleanupRecording();
-      cleanupSound();
+      subscription.remove();
+    };
+  }, [mode]); // Add mode as dependency to check recording state
+
+  // Use useEffect for initial setup and cleanup
+  useEffect(() => {
+    hasAttemptedCleanupRef.current = false;
+
+    // Completely reset everything when component mounts
+    resetRecordingScreen();
+
+    // Cleanup when component unmounts
+    return () => {
+      console.log("Component unmounting - final cleanup");
+      releaseMicrophoneAndCleanup();
     };
   }, []);
+
+  const resetRecordingScreen = async () => {
+    console.log("Resetting record screen to initial state");
+
+    try {
+      // Reset all state variables first
+      setMode("idle");
+      setRecordingDuration(0);
+      setRecordingUri(null);
+      setPlaybackPosition(0);
+      setIsPlaying(false);
+      setErrorMessage(null);
+      setIsProcessing(false);
+      setIsSuccess(false);
+      setRecording(null);
+      setSound(null);
+
+      // Then do a complete cleanup
+      await releaseMicrophoneAndCleanup();
+
+      // Finally check permissions and setup
+      await checkPermissions();
+
+      // Mark that we've cleaned up properly
+      recordingCleanedUpRef.current = true;
+    } catch (error) {
+      console.error("Error resetting record screen:", error);
+      setMode("error");
+      setErrorMessage(
+        "Failed to initialize recording. Please restart the app and try again."
+      );
+    }
+  };
+
+  // Add a specific function to release the microphone
+  const releaseMicrophoneAndCleanup = async () => {
+    console.log(
+      "CRITICAL: Releasing microphone and cleaning up audio resources"
+    );
+
+    // First stop any active recording
+    if (recording) {
+      try {
+        console.log("Stopping active recording to release microphone");
+        await recording.stopAndUnloadAsync();
+      } catch (err) {
+        console.warn("Error stopping recording:", err);
+      } finally {
+        setRecording(null);
+      }
+    }
+
+    // Forcefully reset audio mode multiple times with different settings
+    // This helps ensure the microphone is truly released at the OS level
+    try {
+      console.log("Forcefully releasing microphone - step 1");
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: false,
+        staysActiveInBackground: false,
+        shouldDuckAndroid: false,
+        playThroughEarpieceAndroid: false,
+      });
+
+      // Short delay between audio mode changes
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      console.log("Forcefully releasing microphone - step 2");
+      // Try a different configuration to ensure release
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: false,
+        staysActiveInBackground: false,
+        shouldDuckAndroid: false,
+        playThroughEarpieceAndroid: false,
+        interruptionModeIOS: 1,
+        interruptionModeAndroid: 1,
+      });
+
+      // Try to call internal methods to force cleanup
+      const AudioModule = Audio as any;
+      if (AudioModule._cleanupForUnloadedRecorders) {
+        console.log("Calling _cleanupForUnloadedRecorders");
+        await AudioModule._cleanupForUnloadedRecorders();
+      }
+
+      if (AudioModule._unloadAllAndStopPlaying) {
+        console.log("Calling _unloadAllAndStopPlaying");
+        await AudioModule._unloadAllAndStopPlaying();
+      }
+    } catch (err) {
+      console.warn("Error releasing microphone:", err);
+    }
+
+    // Run the regular cleanup after microphone release
+    await forceFullCleanup();
+
+    // Set extra flag to ensure we know the microphone has been released
+    recordingCleanedUpRef.current = true;
+  };
+
+  const forceFullCleanup = async () => {
+    console.log("Performing complete audio system cleanup");
+
+    // Prevent multiple cleanups in quick succession
+    if (hasAttemptedCleanupRef.current) {
+      console.log("Cleanup already attempted, skipping");
+      return;
+    }
+
+    hasAttemptedCleanupRef.current = true;
+
+    // Reset state variables related to recording
+    setIsPlaying(false);
+    setPlaybackPosition(0);
+
+    // Clean up timers
+    cleanupTimers();
+
+    try {
+      // Clean up recording first
+      if (recording) {
+        console.log("Cleaning up active recording");
+        try {
+          await recording.stopAndUnloadAsync();
+        } catch (err) {
+          console.warn("Error stopping recording:", err);
+        } finally {
+          setRecording(null);
+        }
+      }
+
+      // Clean up sound
+      if (sound) {
+        try {
+          await sound.unloadAsync();
+        } catch (err) {
+          console.warn("Error unloading sound:", err);
+        } finally {
+          setSound(null);
+        }
+      }
+
+      // Force manual cleanup of any existing recordings
+      try {
+        const AudioRecording = Audio.Recording as any;
+        if (AudioRecording._cleanupForUnloadedRecorders) {
+          console.log("Forcing cleanup of all recording instances");
+          await AudioRecording._cleanupForUnloadedRecorders();
+        }
+      } catch (err) {
+        console.warn("Error during recording cleanup:", err);
+      }
+
+      // Reset audio mode with all options explicitly set
+      try {
+        console.log("Resetting audio mode");
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: false,
+          playsInSilentModeIOS: false,
+          staysActiveInBackground: false,
+          shouldDuckAndroid: false,
+          playThroughEarpieceAndroid: false,
+          interruptionModeIOS: 1,
+          interruptionModeAndroid: 1,
+        });
+      } catch (err) {
+        console.warn("Error resetting audio mode:", err);
+      }
+
+      // Additional platform-specific cleanup
+      if (Platform.OS === "android") {
+        // On Android, we need to ensure the recording session is truly released
+        console.log("Performing Android-specific cleanup");
+
+        try {
+          // Reset audio mode a second time with different settings
+          // This can help release the microphone on some Android devices
+          await Audio.setAudioModeAsync({
+            allowsRecordingIOS: false,
+            playsInSilentModeIOS: false,
+            staysActiveInBackground: false,
+            shouldDuckAndroid: true,
+            playThroughEarpieceAndroid: false,
+            interruptionModeIOS: 2,
+            interruptionModeAndroid: 2,
+          });
+        } catch (err) {
+          console.warn("Error during secondary audio mode reset:", err);
+        }
+
+        try {
+          // Try to force garbage collection of native resources
+          if (global.gc) {
+            console.log("Forcing garbage collection");
+            global.gc();
+          }
+        } catch (err) {
+          console.warn("Could not force garbage collection:", err);
+        }
+
+        // Add a small delay to let the system release resources
+        await new Promise((resolve) => setTimeout(resolve, 800));
+      }
+
+      // Reset the cleanup flag after a delay
+      setTimeout(() => {
+        hasAttemptedCleanupRef.current = false;
+        recordingCleanedUpRef.current = true;
+        console.log("Cleanup completed, reset flags");
+      }, 1000);
+    } catch (err) {
+      console.warn("Error during full cleanup:", err);
+      // Even on error, reset the flags after a delay
+      setTimeout(() => {
+        hasAttemptedCleanupRef.current = false;
+        recordingCleanedUpRef.current = true;
+      }, 1500);
+    }
+  };
 
   const cleanupTimers = () => {
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
     }
     if (playbackTimerRef.current) {
       clearInterval(playbackTimerRef.current);
-    }
-  };
-
-  const cleanupRecording = async () => {
-    if (recording) {
-      await recording.stopAndUnloadAsync();
-    }
-  };
-
-  const cleanupSound = async () => {
-    if (sound) {
-      await sound.unloadAsync();
+      playbackTimerRef.current = null;
     }
   };
 
@@ -310,20 +680,50 @@ export default function RecordScreen() {
   };
 
   const startRecording = async () => {
-    try {
-      vibrate();
-      await cleanupRecording();
-      await cleanupSound();
-      setRecordingUri(null);
-      setPlaybackPosition(0);
+    // Prevent recording if we haven't properly cleaned up
+    if (!recordingCleanedUpRef.current) {
+      console.log("Cannot start recording - previous session not cleaned up");
+      setErrorMessage(
+        "Cannot start recording right now. Please wait a moment and try again."
+      );
+      setMode("error");
+      return;
+    }
 
+    try {
+      // Mark that we're going to start recording
+      recordingCleanedUpRef.current = false;
+      vibrate();
+
+      // Force cleanup of any existing recordings including microphone release
+      await releaseMicrophoneAndCleanup();
+
+      // Add an additional delay to ensure cleanup is complete
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      console.log("Setting up audio mode...");
+      // Reset Audio settings for recording
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: false,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+        interruptionModeIOS: 1,
+        interruptionModeAndroid: 1,
+      });
+
+      console.log("Creating new recording...");
       const { recording: newRecording } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
 
+      console.log("Recording created successfully");
       setRecording(newRecording);
       setMode("recording");
       setRecordingDuration(0);
+      setRecordingUri(null);
+      setPlaybackPosition(0);
 
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
@@ -333,12 +733,23 @@ export default function RecordScreen() {
       }, 1000);
     } catch (err: any) {
       console.error("Failed to start recording", err);
+
+      // Try to clean up after error including microphone release
+      try {
+        await releaseMicrophoneAndCleanup();
+      } catch (cleanupErr) {
+        console.warn("Error during post-error cleanup:", cleanupErr);
+      }
+
       setErrorMessage(
         `Could not start recording: ${
           err?.message || "Unknown error"
         }. Please try again.`
       );
       setMode("error");
+
+      // Reset the cleanup flag after error
+      recordingCleanedUpRef.current = true;
     }
   };
 
@@ -348,6 +759,7 @@ export default function RecordScreen() {
       vibrate();
 
       cleanupTimers();
+      console.log("Stopping recording...");
       await recording.stopAndUnloadAsync();
       const uri = recording.getURI();
       console.log("Recording stopped and stored at", uri);
@@ -358,8 +770,30 @@ export default function RecordScreen() {
 
       // Load the sound for playback
       if (uri) {
-        const { sound: newSound } = await Audio.Sound.createAsync({ uri });
-        setSound(newSound);
+        console.log("Loading sound for playback");
+        // Cleanup any existing sound first
+        if (sound) {
+          try {
+            await sound.unloadAsync();
+            setSound(null);
+          } catch (err) {
+            console.warn("Error cleaning up previous sound:", err);
+          }
+        }
+
+        try {
+          const { sound: newSound } = await Audio.Sound.createAsync({ uri });
+          setSound(newSound);
+          // Allow recording again
+          recordingCleanedUpRef.current = true;
+        } catch (err) {
+          console.warn("Error creating sound from recording:", err);
+          // Make sure we can record again even if playback fails
+          recordingCleanedUpRef.current = true;
+        }
+      } else {
+        // No URI means we need to reset state to allow recording again
+        recordingCleanedUpRef.current = true;
       }
     } catch (err: any) {
       console.error("Failed to stop recording", err);
@@ -369,6 +803,10 @@ export default function RecordScreen() {
         }. Please try again.`
       );
       setMode("error");
+
+      // Reset the recording state so we can try again
+      await releaseMicrophoneAndCleanup();
+      recordingCleanedUpRef.current = true;
     }
   };
 
@@ -405,15 +843,16 @@ export default function RecordScreen() {
     } catch (error) {
       console.error("Playback error:", error);
       Alert.alert("Error", "Failed to play recording");
+
+      // Reset the sound if there's an error
+      await releaseMicrophoneAndCleanup();
+      setMode("stopped");
     }
   };
 
   const handleDiscard = async () => {
     vibrate();
-    await cleanupSound();
-    setRecordingUri(null);
-    setRecordingDuration(0);
-    setPlaybackPosition(0);
+    await releaseMicrophoneAndCleanup();
     setMode("idle");
   };
 
