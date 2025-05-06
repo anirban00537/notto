@@ -20,7 +20,7 @@ export const HomeHeader: React.FC = () => {
           style={styles.profileButton}
           onPress={() => router.push("/settings")}
         >
-          <MaterialCommunityIcons name="cog-outline" size={22} color="#555" />
+          <MaterialCommunityIcons name="account" size={22} color="#555" />
         </TouchableOpacity>
       </View>
     </View>
@@ -33,7 +33,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: 16,
-    paddingHorizontal: 22,
+    paddingHorizontal: 32,
     backgroundColor: "#ffffff",
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
@@ -76,6 +76,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#f0f0f0",
   },
 });
