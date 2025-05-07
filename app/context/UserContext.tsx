@@ -19,17 +19,30 @@ const UserProviderComponent: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("Setting up auth state listener");
+    console.log("USER CONTEXT: Setting up auth state listener");
     const subscriber = auth().onAuthStateChanged((user) => {
       console.log(
-        "Auth state changed:",
-        user ? "User authenticated" : "No user"
+        "USER CONTEXT: Auth state changed:",
+        user ? `User authenticated (${user.email})` : "No user (signed out)"
       );
+
+      if (user) {
+        // User is signed in
+        console.log("USER CONTEXT: User ID:", user.uid);
+        console.log("USER CONTEXT: User email:", user.email);
+      } else {
+        // User is signed out
+        console.log("USER CONTEXT: Setting user to null");
+      }
+
       setUser(user);
       setLoading(false);
     });
 
-    return subscriber;
+    return () => {
+      console.log("USER CONTEXT: Cleaning up auth state listener");
+      subscriber();
+    };
   }, []);
 
   return (
@@ -43,8 +56,8 @@ const UserProviderComponent: React.FC<{ children: React.ReactNode }> = ({
 export const useUser = () => {
   const context = useContext(UserContext);
   console.log(
-    "useUser hook called, user:",
-    context.user ? "exists" : "null",
+    "USER CONTEXT: useUser hook called, user:",
+    context.user ? `exists (${context.user.email})` : "null",
     "loading:",
     context.loading
   );

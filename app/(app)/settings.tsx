@@ -13,6 +13,8 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useUser } from "../context/UserContext";
 import { router } from "expo-router";
 import auth from "@react-native-firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { setAuthToken } from "../../lib/services/request";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -135,12 +137,32 @@ export default function SettingsScreen() {
 
   const handleSignOut = async () => {
     try {
-      console.log("Signing out...");
+      console.log("SIGN OUT: Starting sign out process");
+
+      // Clear the authentication token from storage and memory
+      await setAuthToken(null);
+      console.log("SIGN OUT: Auth token cleared");
+
+      // Clear any other app state storage
+      try {
+        const keys = await AsyncStorage.getAllKeys();
+        await AsyncStorage.multiRemove(keys);
+        console.log("SIGN OUT: AsyncStorage cleared");
+      } catch (storageError) {
+        console.error("Error clearing AsyncStorage:", storageError);
+      }
+
+      // Sign out from Firebase
       await auth().signOut();
-      console.log("Signed out, redirecting to auth screen");
+      console.log("SIGN OUT: Firebase sign out complete");
+
+      // Force immediate navigation to auth screen
+      // This direct approach bypasses the normal routing flow and forces the redirect
       router.replace("/(auth)");
     } catch (error) {
-      console.error("Error signing out:", error);
+      console.error("SIGN OUT: Error during sign out process:", error);
+      // As a fallback, try to force navigation to auth
+      router.replace("/(auth)");
     }
   };
 
