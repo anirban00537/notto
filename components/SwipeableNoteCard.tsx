@@ -9,6 +9,7 @@ import {
 import { Swipeable } from "react-native-gesture-handler";
 import NoteCard from "./NoteCard";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Colors } from "../constants/Colors";
 
 interface SwipeableNoteCardProps {
   id: string;
@@ -79,7 +80,7 @@ export const SwipeableNoteCard = ({
           ) : (
             <MaterialCommunityIcons
               name="trash-can-outline"
-              size={24}
+              size={22}
               color="#fff"
             />
           )}
@@ -104,6 +105,7 @@ export const SwipeableNoteCard = ({
         onPress={onPress}
         activeOpacity={0.7}
         disabled={isDisabled}
+        style={styles.cardWrapper}
       >
         <NoteCard id={id} title={title} createdAt={createdAt} icon={icon} />
       </TouchableOpacity>
@@ -112,8 +114,11 @@ export const SwipeableNoteCard = ({
 };
 
 const styles = StyleSheet.create({
+  cardWrapper: {
+    backgroundColor: Colors.light.background,
+  },
   rightAction: {
-    backgroundColor: "#FFF",
+    backgroundColor: Colors.light.background,
     justifyContent: "center",
     alignItems: "flex-end",
     paddingHorizontal: 16,
@@ -122,10 +127,10 @@ const styles = StyleSheet.create({
   deleteButton: {
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FF3B30",
-    width: 80,
-    height: "100%",
-    borderRadius: 12,
+    backgroundColor: Colors.light.deleteButton,
+    width: 70,
+    height: "85%",
+    borderRadius: 10,
   },
 });
 

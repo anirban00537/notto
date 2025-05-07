@@ -17,16 +17,14 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import AuthComponent from "./auth";
 import FolderModals from "../components/FolderModals";
-import NoteCard from "../components/NoteCard";
 import NoteOptionsModal from "../components/NoteOptionsModal";
 import YouTubeModal from "../components/YouTubeModal";
 import EmptyNotesState from "../components/EmptyNotesState";
 import { useUser } from "./context/UserContext";
 import { Folder } from "../lib/types/folder";
-import LoadingScreen from "../components/LoadingScreen";
 import NotesSkeleton from "../components/NotesSkeleton";
 import { HomeHeader } from "../components/HomeHeader";
 import { FolderSelector } from "../components/FolderSelector";
@@ -34,6 +32,7 @@ import { useNotes } from "../hooks/useNotes";
 import { useFolders } from "../hooks/useFolders";
 import { Typography, FONTS } from "../constants/Typography";
 import SwipeableNoteCard from "../components/SwipeableNoteCard";
+import { Colors } from "../constants/Colors";
 
 export default function Note() {
   const { user, loading } = useUser();
@@ -167,7 +166,10 @@ export default function Note() {
   if (shouldShowSkeleton) {
     return (
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+        <StatusBar
+          barStyle="light-content"
+          backgroundColor={Colors.light.background}
+        />
         <HomeHeader />
         <FolderSelector
           selectedFolder={selectedFolder}
@@ -286,7 +288,7 @@ export default function Note() {
             <MaterialCommunityIcons
               name="microphone-plus"
               size={24}
-              color="#FFFFFF"
+              color={Colors.light.recordIconColor}
             />
             <Text
               style={[
@@ -307,13 +309,13 @@ export default function Note() {
             <MaterialCommunityIcons
               name="pencil-plus"
               size={24}
-              color="#000000"
+              color={Colors.light.tint}
             />
             <Text
               style={[
                 Typography.buttonText,
                 styles.actionButtonText,
-                { color: "#000000" },
+                { color: Colors.light.tint },
               ]}
             >
               New Note
@@ -356,7 +358,7 @@ export default function Note() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: Colors.light.background,
   },
   header: {
     flexDirection: "row",
@@ -364,12 +366,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 18,
     paddingHorizontal: 24,
-    backgroundColor: "#ffffff",
+    backgroundColor: Colors.light.background,
   },
   folderButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ffffff",
+    backgroundColor: Colors.light.cardBackground,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 12,
@@ -389,14 +391,14 @@ const styles = StyleSheet.create({
   proButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#000000",
+    backgroundColor: Colors.light.text,
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 20,
     marginRight: 16,
   },
   proText: {
-    color: "#fff",
+    color: Colors.light.background,
     marginLeft: 6,
     fontFamily: FONTS.medium,
   },
@@ -406,10 +408,10 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f5f5f5",
+    backgroundColor: Colors.light.cardBackground,
   },
   sectionTitle: {
-    color: "#111",
+    color: Colors.light.text,
     marginLeft: 24,
     marginBottom: 16,
     fontFamily: FONTS.regular,
@@ -424,19 +426,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: Platform.OS === "ios" ? 34 : 24,
     paddingTop: 12,
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    backgroundColor: "transparent",
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
   },
   recordButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#000000",
+    backgroundColor: Colors.light.recordButton,
     borderRadius: 25,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.background,
     borderRadius: 25,
     paddingVertical: 12,
     paddingHorizontal: 20,
@@ -457,12 +457,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 6,
     height: 50,
     borderWidth: 1,
-    borderColor: "#E5E5EA",
+    borderColor: Colors.light.border,
     elevation: 0,
   },
   actionButtonText: {
     marginLeft: 8,
-    color: "#000000",
+    color: Colors.light.text,
   },
   emptyStateContainer: {
     flex: 1,

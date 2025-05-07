@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Typography, FONTS } from "../constants/Typography";
+import { Colors } from "../constants/Colors";
 
 export const HomeHeader: React.FC = () => {
   return (
@@ -20,7 +21,11 @@ export const HomeHeader: React.FC = () => {
           style={styles.profileButton}
           onPress={() => router.push("/settings")}
         >
-          <MaterialCommunityIcons name="account" size={22} color="#555" />
+          <MaterialCommunityIcons
+            name="account"
+            size={22}
+            color={Colors.light.icon}
+          />
         </TouchableOpacity>
       </View>
     </View>
@@ -33,10 +38,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: 16,
-    paddingHorizontal: 32,
-    backgroundColor: "#ffffff",
+    paddingHorizontal: 24,
+    backgroundColor: Colors.light.background,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: Colors.light.border,
   },
   titleContainer: {
     flexDirection: "row",
@@ -45,13 +50,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontFamily: FONTS.semiBold,
-    color: "#000000",
+    color: Colors.light.tint,
   },
   aiText: {
     fontSize: 24,
     fontFamily: FONTS.semiBold,
-    color: "#3498db",
-    marginLeft: 4,
+    color: Colors.light.tintLight,
+    marginLeft: 2,
   },
   headerRight: {
     flexDirection: "row",
@@ -60,9 +65,9 @@ const styles = StyleSheet.create({
   proButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#000000",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    backgroundColor: Colors.light.tint,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: 20,
     marginRight: 16,
   },
@@ -76,8 +81,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.background,
     borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: Colors.light.border,
   },
 });

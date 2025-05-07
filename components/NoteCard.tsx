@@ -9,6 +9,7 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { format } from "date-fns";
 import { Typography, FONTS } from "../constants/Typography";
+import { Colors } from "@/constants/Colors";
 
 interface NoteCardProps {
   id: string;
@@ -227,11 +228,13 @@ const NoteCard: React.FC<NoteCardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 16,
+    borderRadius: 6,
     marginVertical: 2,
     paddingHorizontal: 11,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    marginHorizontal: 16,
+    backgroundColor: Colors.light.cardBackground,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
   },
   content: {},
   cardContent: {

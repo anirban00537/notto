@@ -25,6 +25,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import ProcessingModal from "./ProcessingModal";
 import * as ExpoAV from "expo-av";
 import { Typography, FONTS } from "../constants/Typography";
+import { Colors } from "@/constants/Colors";
 const { Audio } = ExpoAV;
 
 interface NoteOptionsModalProps {
@@ -513,12 +514,12 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
   bottomSheetBackground: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.background,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
   },
   handleIndicator: {
-    backgroundColor: "#E0E0E0",
+    backgroundColor: Colors.light.background,
     width: 40,
     height: 4,
     borderRadius: 2,
@@ -530,9 +531,9 @@ const styles = StyleSheet.create({
   modalHeader: {
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
+    borderBottomColor: Colors.light.border,
     alignItems: "center",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.background,
   },
   modalHeaderText: {
     color: "#1A1A1A",
@@ -541,14 +542,14 @@ const styles = StyleSheet.create({
   modalContent: {
     paddingHorizontal: 24,
     paddingVertical: 20,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.background,
   },
   modalOption: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 16,
     marginVertical: 4,
-    backgroundColor: "#F8F9FA",
+    backgroundColor: Colors.light.cardBackground,
     borderRadius: 12,
     paddingHorizontal: 16,
   },
@@ -560,17 +561,17 @@ const styles = StyleSheet.create({
     lineHeight: 28,
   },
   modalOptionText: {
-    color: "#2C3E50",
+    color: Colors.light.text,
     letterSpacing: 0.1,
   },
   recordingContainer: {
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 32,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: Colors.light.cardBackground,
   },
   recordingTimer: {
-    color: "#1A1A1A",
+    color: Colors.light.text,
     marginBottom: 24,
     fontVariant: ["tabular-nums"],
     letterSpacing: 1,
@@ -586,14 +587,14 @@ const styles = StyleSheet.create({
   equalizerBar: {
     width: 4,
     height: 60,
-    backgroundColor: "#2C3E50",
+    backgroundColor: Colors.light.text,
     borderRadius: 4,
   },
   stopButton: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "rgba(211, 47, 47, 0.08)",
+    backgroundColor: Colors.light.recordButton,
     alignItems: "center",
     justifyContent: "center",
     elevation: 2,

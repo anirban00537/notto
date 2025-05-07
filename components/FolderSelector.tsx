@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Folder } from "../lib/types/folder";
 import { Typography, FONTS } from "../constants/Typography";
+import { Colors } from "@/constants/Colors";
 
 interface FolderSelectorProps {
   selectedFolder?: Folder | { id: string; name: string };
@@ -35,13 +36,14 @@ const styles = StyleSheet.create({
   folderButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ffffff",
+    backgroundColor: Colors.light.background,
+    borderColor: Colors.light.border,
     paddingVertical: 15,
     paddingHorizontal: 16,
     marginHorizontal: 16,
     marginVertical: 4,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: Colors.light.border,
   },
   folderName: {
     flex: 1,
