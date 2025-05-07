@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { Colors } from "./Colors";
 
 // Font family constants
 export const FONTS = {
@@ -44,7 +45,7 @@ export const Typography = StyleSheet.create({
     fontFamily: FONTS.regular,
     fontSize: 16,
     lineHeight: 24,
-    color: "#000000",
+    color: Colors.light.text,
   },
   body2: {
     fontFamily: FONTS.regular,

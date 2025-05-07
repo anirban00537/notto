@@ -13,6 +13,7 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Typography, FONTS } from "../constants/Typography";
+import { Colors } from "@/constants/Colors";
 
 interface NoteDetailHeaderProps {
   title: string;
@@ -153,16 +154,16 @@ const styles = StyleSheet.create({
   container: {
     position: "relative",
     zIndex: 10,
-    backgroundColor: "#ffffff",
+    backgroundColor: Colors.light.background,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: Colors.light.border,
   },
   header: {
     position: "relative",
-    backgroundColor: "#ffffff",
+    backgroundColor: Colors.light.background,
   },
   androidHeader: {
-    backgroundColor: "#ffffff",
+    backgroundColor: Colors.light.background,
   },
   headerContent: {
     flexDirection: "row",
@@ -201,12 +202,12 @@ const styles = StyleSheet.create({
   },
   dropdownMenu: {
     position: "absolute",
-    backgroundColor: "#ffffff",
+    backgroundColor: Colors.light.background,
     borderRadius: 12,
     padding: 8,
     minWidth: 180,
     borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: Colors.light.border,
   },
   dropdownItem: {
     flexDirection: "row",

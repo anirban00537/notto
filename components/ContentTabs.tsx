@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Typography, FONTS } from "../constants/Typography";
+import { Colors } from "@/constants/Colors";
 
 type TabName = "note" | "transcript" | "summary" | "quiz" | "flashcards";
 
@@ -206,12 +207,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.deepBackground,
     paddingTop: 4,
     paddingBottom: 0,
     position: "relative",
     borderBottomWidth: 1,
-    borderBottomColor: "#f5f5f5",
+    borderBottomColor: Colors.light.border,
     marginBottom: 2,
   },
   scrollContent: {
@@ -232,7 +233,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
   },
   activeTab: {
-    backgroundColor: "#f8f9fa",
+    backgroundColor: Colors.light.tintBackground,
     elevation: 0,
   },
   tabIcon: {

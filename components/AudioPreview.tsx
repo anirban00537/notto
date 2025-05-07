@@ -11,6 +11,7 @@ import {
 import { Audio } from "expo-av";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Typography, FONTS } from "../constants/Typography";
+import { Colors } from "@/constants/Colors";
 
 interface AudioPreviewProps {
   directPlayableUrl: string;
@@ -248,11 +249,11 @@ const AudioPreview: React.FC<AudioPreviewProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.background,
     width: "100%",
     overflow: "hidden",
     borderBottomWidth: 1,
-    borderBottomColor: "#f5f5f5",
+    borderBottomColor: Colors.light.border,
   },
   content: {
     flexDirection: "row",

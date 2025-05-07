@@ -2,6 +2,7 @@ import React, { useState, useCallback } from "react";
 import { View, StyleSheet, Alert, Text } from "react-native";
 import YoutubeIframe from "react-native-youtube-iframe";
 import { Typography, FONTS } from "../constants/Typography";
+import { Colors } from "@/constants/Colors";
 
 interface YouTubePreviewProps {
   directPlayableUrl: string;
@@ -67,7 +68,7 @@ const styles = StyleSheet.create({
     padding: 0,
     borderRadius: 0,
     overflow: "hidden",
-    backgroundColor: "#000",
+    backgroundColor: Colors.light.background,
     width: "100%",
   },
   errorContainer: {

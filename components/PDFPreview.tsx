@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import Pdf from "react-native-pdf";
 import { Typography, FONTS } from "../constants/Typography";
+import { Colors } from "@/constants/Colors";
 
 interface PDFPreviewProps {
   directPlayableUrl: string;
@@ -123,15 +124,15 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ffffff",
+    backgroundColor: Colors.light.cardBackground,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
     padding: 16,
-    paddingHorizontal: 16,
-    marginVertical: 0,
+    marginVertical: 8,
+    marginHorizontal: 16,
     justifyContent: "space-between",
-    borderRadius: 0,
-    width: "100%",
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderRadius: 10,
+    width: "auto",
   },
   cardLeft: {
     flexDirection: "row",
@@ -140,25 +141,25 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   pdfIndicator: {
-    backgroundColor: "#f5f5f5",
-    color: "#2c3e50",
+    backgroundColor: Colors.light.tintBackground,
+    color: Colors.light.tint,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
   },
   fileName: {
     flex: 1,
-    color: "#2c3e50",
+    color: Colors.light.text,
   },
   viewButton: {
-    backgroundColor: "#2c3e50",
+    backgroundColor: Colors.light.tint,
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
     marginLeft: 8,
   },
   viewButtonText: {
-    color: "#fff",
+    color: Colors.light.background,
   },
   modalContainer: {
     flex: 1,
@@ -167,7 +168,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalContent: {
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.background,
     width: windowWidth * 0.9,
     height: windowHeight * 0.8,
     borderRadius: 12,
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: Colors.light.border,
   },
   modalTitle: {
     flex: 1,
@@ -190,16 +191,16 @@ const styles = StyleSheet.create({
   },
   closeButtonText: {
     fontSize: 20,
-    color: "#666",
+    color: Colors.light.secondaryText,
     fontFamily: FONTS.medium,
   },
   pdfContainer: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: Colors.light.background,
   },
   pdf: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: Colors.light.background,
   },
 });
 

@@ -22,6 +22,7 @@ import NoteContent from "../../components/NoteContent";
 import SummaryContent from "../../components/SummaryContent";
 import ContentTabs from "../../components/ContentTabs";
 import { mapNoteFlashcardsToUIFlashcards } from "../../lib/utils/flashcardMapper";
+import { Colors } from "@/constants/Colors";
 
 export default function NoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -111,7 +112,7 @@ export default function NoteDetailScreen() {
         >
           <View style={styles.noteContainer}>
             {note?.fullText ? (
-              <View style={styles.contentCard}>
+              <View style={{ ...styles.contentCard, marginTop: 10 }}>
                 <TranscriptContent transcript={note.fullText} />
               </View>
             ) : (
@@ -130,7 +131,7 @@ export default function NoteDetailScreen() {
         >
           <View style={styles.noteContainer}>
             {note?.summary ? (
-              <View style={styles.contentCard}>
+              <View style={{ ...styles.contentCard, marginTop: 10 }}>
                 <SummaryContent content={note.summary} />
               </View>
             ) : (
@@ -233,11 +234,11 @@ export default function NoteDetailScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: Colors.light.background,
   },
   scene: {
     flex: 1,
-    backgroundColor: "#ffffff",
+    backgroundColor: Colors.light.background,
   },
   scrollContentContainer: {
     paddingBottom: 40,
@@ -266,8 +267,11 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   contentCard: {
-    backgroundColor: "transparent",
-    padding: 0,
+    backgroundColor: Colors.light.cardBackground,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    borderRadius: 10,
     marginHorizontal: 20,
     marginBottom: 0,
     marginTop: 0,
