@@ -9,10 +9,13 @@ import {
   Alert,
   TextInput,
   ActivityIndicator,
-  ScrollView,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import CommonBottomSheet from "./CommonBottomSheet";
+import BottomSheet, {
+  BottomSheetView,
+  BottomSheetBackdrop,
+  BottomSheetScrollView,
+} from "@gorhom/bottom-sheet";
 import { Folder } from "../lib/types/folder";
 import FolderListItem, { FolderItem } from "./FolderListItem";
 import CreateFolderForm from "./CreateFolderForm";
@@ -95,25 +98,41 @@ const FolderOptionsModal: React.FC<{
   isLoading,
 }) => {
   const [newName, setNewName] = useState(folder?.name || "");
+  const snapPoints = React.useMemo(() => [1, 260], []);
+
   useEffect(() => {
     setNewName(folder?.name || "");
   }, [folder]);
+
   return (
-    <CommonBottomSheet
+    <BottomSheet
       ref={bottomSheetRef}
-      visible={!!folder}
-      snapPoints={[1, 260]}
+      index={folder ? 1 : -1}
+      snapPoints={snapPoints}
+      enablePanDownToClose
       backgroundStyle={styles.bottomSheetBackground}
       handleIndicatorStyle={styles.handleIndicator}
       onClose={() => {
         setIsRenaming(false);
         onClose();
       }}
+      backdropComponent={(backdropProps) => (
+        <BottomSheetBackdrop
+          {...backdropProps}
+          appearsOnIndex={1}
+          disappearsOnIndex={-1}
+          pressBehavior="close"
+        />
+      )}
     >
       <View style={styles.modalHeader}>
         <Text style={styles.modalHeaderText}>Folder Options</Text>
       </View>
-      <View style={styles.modalContent}>
+      <BottomSheetScrollView
+        contentContainerStyle={styles.modalContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         {isRenaming ? (
           <View style={{ marginBottom: 16 }}>
             <TextInput
@@ -165,8 +184,8 @@ const FolderOptionsModal: React.FC<{
             />
           </>
         )}
-      </View>
-    </CommonBottomSheet>
+      </BottomSheetScrollView>
+    </BottomSheet>
   );
 };
 
@@ -183,6 +202,12 @@ const FolderModals: React.FC<FolderModalsProps> = ({
   const [isFolderSheetOpen, setIsFolderSheetOpen] = useState(false);
   const queryClient = useQueryClient();
   const [loadingFolders, setLoadingFolders] = useState(false);
+
+  // Main folder list snap points
+  const folderSnapPoints = React.useMemo(() => [1, 500], []);
+
+  // Create folder snap points
+  const createFolderSnapPoints = React.useMemo(() => [1, 320], []);
 
   // Use the useFolders hook to get folders directly
   const { folders: hookFolders, refetchFolders } = useFolders();
@@ -378,18 +403,31 @@ const FolderModals: React.FC<FolderModalsProps> = ({
 
   return (
     <>
-      <CommonBottomSheet
+      <BottomSheet
         ref={bottomSheetRef}
-        visible={isFolderSheetOpen}
-        snapPoints={[1, 500]}
+        index={isFolderSheetOpen ? 1 : -1}
+        snapPoints={folderSnapPoints}
+        enablePanDownToClose
         backgroundStyle={styles.bottomSheetBackground}
         handleIndicatorStyle={styles.handleIndicator}
         onClose={() => setIsFolderSheetOpen(false)}
+        backdropComponent={(backdropProps) => (
+          <BottomSheetBackdrop
+            {...backdropProps}
+            appearsOnIndex={1}
+            disappearsOnIndex={-1}
+            pressBehavior="close"
+          />
+        )}
       >
         <View style={styles.drawerHeader}>
           <Text style={styles.drawerTitle}>Select Folder</Text>
         </View>
-        <View style={styles.listDrawerContent}>
+        <BottomSheetScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
           {renderHeader()}
           {loadingFolders ? (
             <View style={styles.loadingContainer}>
@@ -418,27 +456,43 @@ const FolderModals: React.FC<FolderModalsProps> = ({
               No folders found. Create a new folder to get started.
             </Text>
           )}
-        </View>
-      </CommonBottomSheet>
+        </BottomSheetScrollView>
+      </BottomSheet>
 
-      <CommonBottomSheet
+      <BottomSheet
         ref={bottomSheetCreateRef}
-        visible={isCreateSheetOpen}
-        snapPoints={[1, 320]}
+        index={isCreateSheetOpen ? 1 : -1}
+        snapPoints={createFolderSnapPoints}
+        enablePanDownToClose
         backgroundStyle={styles.bottomSheetBackground}
         handleIndicatorStyle={styles.handleIndicator}
         onClose={() => setIsCreateSheetOpen(false)}
+        backdropComponent={(backdropProps) => (
+          <BottomSheetBackdrop
+            {...backdropProps}
+            appearsOnIndex={1}
+            disappearsOnIndex={-1}
+            pressBehavior="close"
+          />
+        )}
       >
         <View style={styles.drawerHeader}>
           <Text style={styles.drawerTitle}>Create New Folder</Text>
         </View>
-        <CreateFolderForm
-          userId={userId}
-          onClose={handleCreateFolderClose}
-          onSuccess={handleCreateFolderSuccess}
-          autoFocus={isCreateSheetOpen}
-        />
-      </CommonBottomSheet>
+        <BottomSheetScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <CreateFolderForm
+            userId={userId}
+            onClose={handleCreateFolderClose}
+            onSuccess={handleCreateFolderSuccess}
+            autoFocus={isCreateSheetOpen}
+          />
+        </BottomSheetScrollView>
+      </BottomSheet>
+
       <FolderOptionsModal
         bottomSheetRef={folderOptionsSheetRef}
         folder={optionsFolder}
@@ -514,11 +568,11 @@ const styles = StyleSheet.create({
     color: "#000000",
     textAlign: "center",
   },
-  listDrawerContent: {
+  scrollContent: {
     paddingVertical: 8,
     backgroundColor: "#FFFFFF",
-    flex: 1, // Make sure the content fills the available space
-    minHeight: 200, // Ensure a minimum height
+    minHeight: 200,
+    paddingBottom: 30,
   },
   createFolderButton: {
     flexDirection: "row",
@@ -570,7 +624,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 20,
     backgroundColor: "#FFFFFF",
-    minHeight: 150, // Ensure minimum height for content
+    minHeight: 150,
   },
   modalOption: {
     flexDirection: "row",
