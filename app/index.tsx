@@ -5,6 +5,13 @@ import LoadingScreen from "../components/LoadingScreen";
 export default function Index() {
   const { user, loading } = useUser();
 
+  console.log(
+    "ROOT INDEX: User state:",
+    user ? "User exists" : "No user",
+    "Loading:",
+    loading
+  );
+
   // While we're checking if the user is logged in, show a loading screen
   if (loading) {
     return <LoadingScreen />;

@@ -13,6 +13,7 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Typography, FONTS } from "../../constants/Typography";
 import { useUser } from "../context/UserContext";
+import { router, Redirect } from "expo-router";
 
 GoogleSignin.configure({
   webClientId:
@@ -21,12 +22,24 @@ GoogleSignin.configure({
 });
 
 export default function AuthScreen() {
-  const [loading, setLoading] = useState(false);
+  const { user, loading } = useUser();
+  const [loginInitiated, setLoginInitiated] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fadeAnim = new Animated.Value(0);
   const slideAnim = new Animated.Value(50);
 
-  console.log("Auth screen rendered");
+  console.log(
+    "AUTH SCREEN: user:",
+    user ? "exists" : "null",
+    "loading:",
+    loading
+  );
+
+  // If user is already logged in, redirect to the app
+  if (user && !loginInitiated) {
+    console.log("User already logged in, redirecting to app");
+    return <Redirect href="/(app)" />;
+  }
 
   useEffect(() => {
     Animated.parallel([
@@ -46,7 +59,7 @@ export default function AuthScreen() {
   async function onGoogleButtonPress() {
     try {
       console.log("Starting Google sign-in flow");
-      setLoading(true);
+      setLoginInitiated(true);
       setError(null);
 
       await GoogleSignin.signOut();
@@ -61,8 +74,12 @@ export default function AuthScreen() {
       );
       await auth().signInWithCredential(googleCredential);
       console.log("Firebase auth successful");
+
+      // After successful login, redirect programmatically
+      router.replace("/(app)");
     } catch (error: any) {
       console.error("Auth error:", error);
+      setLoginInitiated(false);
       if (error.code === "auth/network-request-failed") {
         setError("Network error. Please check your connection.");
       } else if (error.code === "auth/user-disabled") {
@@ -70,8 +87,6 @@ export default function AuthScreen() {
       } else {
         setError("Failed to sign in. Please try again.");
       }
-    } finally {
-      setLoading(false);
     }
   }
 

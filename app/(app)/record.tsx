@@ -22,11 +22,12 @@ import { Audio } from "expo-av";
 import { useRouter, useNavigation } from "expo-router";
 import { PermissionsAndroid } from "react-native";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createNote } from "../lib/services";
-import { CreateNoteDto, NoteType, Note } from "../lib/types/note";
-import ProcessingModal from "../components/ProcessingModal";
+import { createNote } from "../../lib/services";
+import { CreateNoteDto, NoteType, Note } from "../../lib/types/note";
+import ProcessingModal from "../../components/ProcessingModal";
 import { LinearGradient } from "expo-linear-gradient";
-import { Typography, FONTS } from "../constants/Typography";
+import { Typography, FONTS } from "../../constants/Typography";
+import { Colors } from "../../constants/Colors";
 
 interface CreateNoteResponse {
   data?: Note;

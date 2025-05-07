@@ -50,12 +50,24 @@ export default function RootLayout() {
 function RootLayoutNav() {
   const { user, loading } = useUser();
 
+  console.log(
+    "ROOT LAYOUT NAV: user:",
+    user ? "exists" : "null",
+    "loading:",
+    loading
+  );
+
   // While we're checking if the user is logged in, show a loading screen
   if (loading) {
+    console.log("ROOT LAYOUT: Loading auth state, showing LoadingScreen");
     return <LoadingScreen />;
   }
 
   // Return a slot that will render the correct route based on the auth state
+  console.log(
+    "ROOT LAYOUT: Setting up route structure, showing",
+    user ? "(app)" : "(auth)"
+  );
   return (
     <Stack screenOptions={{ headerShown: false }}>
       {/* If not authenticated, only the auth stack is accessible */}
@@ -65,6 +77,8 @@ function RootLayoutNav() {
         // If authenticated, only the main app stack is accessible
         <Stack.Screen name="(app)" options={{ headerShown: false }} />
       )}
+      {/* Always render index for redirecting */}
+      <Stack.Screen name="index" options={{ headerShown: false }} />
     </Stack>
   );
 }
