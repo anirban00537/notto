@@ -11,14 +11,20 @@ const UserContext = createContext<UserContextType>({
   loading: true,
 });
 
-export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
+// Define the component first as a separate const
+const UserProviderComponent: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log("Setting up auth state listener");
     const subscriber = auth().onAuthStateChanged((user) => {
+      console.log(
+        "Auth state changed:",
+        user ? "User authenticated" : "No user"
+      );
       setUser(user);
       setLoading(false);
     });
@@ -33,4 +39,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
+// Export the hook as a named export
 export const useUser = () => useContext(UserContext);
+
+// Export the provider both ways for backward compatibility
+export const UserProvider = UserProviderComponent;
+
+// This is the default export
+export default UserProviderComponent;

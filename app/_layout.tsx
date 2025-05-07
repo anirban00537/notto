@@ -1,9 +1,10 @@
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
 import "react-native-reanimated";
-import { UserProvider, useUser } from "./context/UserContext";
+import UserProvider, { useUser } from "./context/UserContext";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "../lib/queryClient";
@@ -12,7 +13,6 @@ import { setAuthToken } from "../lib/services";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { FONTS } from "@/constants/Typography";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -20,16 +20,24 @@ SplashScreen.preventAutoHideAsync();
 function AuthLayout({ children }: { children: React.ReactNode }) {
   const { user } = useUser();
   const [isTokenSet, setIsTokenSet] = useState(false);
+  console.log(
+    "AuthLayout: user:",
+    user ? "exists" : "null",
+    "isTokenSet:",
+    isTokenSet
+  );
 
   useEffect(() => {
     const setupAuth = async () => {
       try {
+        console.log("setupAuth running, user:", user ? "exists" : "null");
         if (user) {
           const token = await user.getIdToken(true);
           await setAuthToken(token);
         } else {
           await setAuthToken(null);
         }
+        console.log("Setting isTokenSet to true");
         setIsTokenSet(true);
       } catch (error) {
         console.error("Error setting up auth:", error);
@@ -62,9 +70,6 @@ function AuthLayout({ children }: { children: React.ReactNode }) {
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
-    [FONTS.regular]: require("../assets/fonts/Inter/Inter-Regular.ttf"),
-    [FONTS.medium]: require("../assets/fonts/Inter/Inter-Medium.ttf"),
-    [FONTS.semiBold]: require("../assets/fonts/Inter/Inter-SemiBold.ttf"),
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
 

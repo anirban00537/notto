@@ -36,6 +36,19 @@ import { Colors } from "../constants/Colors";
 
 export default function Note() {
   const { user, loading } = useUser();
+  console.log(
+    "User state:",
+    user ? "User exists" : "No user",
+    "Loading:",
+    loading
+  );
+
+  // Return auth component if no user - add special debug logging
+  if (!user) {
+    console.log("No user detected, showing AuthComponent");
+    return <AuthComponent />;
+  }
+
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const router = useRouter();
   const [selectedFolderId, setSelectedFolderId] = useState<string>("all");
@@ -139,11 +152,6 @@ export default function Note() {
       }, 100);
     }
   }, [isNotesLoading]);
-
-  // Return auth component if no user
-  if (!user) {
-    return <AuthComponent />;
-  }
 
   // Show skeleton for initial loading or during folder changes
   const showSkeleton =
