@@ -5,15 +5,13 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Animated,
-  LayoutChangeEvent,
   Dimensions,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Typography, FONTS } from "../constants/Typography";
 import { Colors } from "@/constants/Colors";
 
-type TabName = "note" | "transcript" | "summary" | "quiz" | "flashcards";
+type TabName = "note" | "transcript" | "summary";
 
 const TABS: {
   name: TabName;
@@ -21,10 +19,8 @@ const TABS: {
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
 }[] = [
   { name: "note", label: "Note", icon: "note-text-outline" },
-  { name: "transcript", label: "Transcript", icon: "script-text-outline" },
   { name: "summary", label: "Summary", icon: "text-box-outline" },
-  { name: "quiz", label: "Quiz", icon: "help-circle-outline" },
-  { name: "flashcards", label: "Flashcards", icon: "card-text-outline" },
+  { name: "transcript", label: "Transcript", icon: "script-text-outline" },
 ];
 
 export type { TabName };
@@ -45,30 +41,12 @@ export default function ContentTabs({
   children,
   onSwipeChange,
 }: ContentTabsProps) {
-  const scrollRef = useRef<ScrollView>(null);
   const contentScrollViewRef = useRef<ScrollView>(null);
-  const [tabLayouts, setTabLayouts] = useState<{ x: number; width: number }[]>(
-    []
-  );
-  const [containerWidth, setContainerWidth] = useState(
-    Dimensions.get("window").width
-  );
 
   // Keep track of the last programmatic scroll to avoid feedback loops
   const isScrollingRef = useRef(false);
 
   useEffect(() => {
-    if (tabLayouts.length !== TABS.length) return;
-    const idx = TABS.findIndex((tab) => tab.name === activeTab);
-    if (idx === -1) return;
-    const { x, width } = tabLayouts[idx];
-
-    // Auto-scroll to center active tab
-    if (scrollRef.current) {
-      const scrollTo = x + width / 2 - containerWidth / 2;
-      scrollRef.current.scrollTo({ x: Math.max(scrollTo, 0), animated: true });
-    }
-
     // Scroll content to the active tab
     if (contentScrollViewRef.current) {
       isScrollingRef.current = true;
@@ -81,16 +59,7 @@ export default function ContentTabs({
         isScrollingRef.current = false;
       }, 500); // Reset after animation completes
     }
-  }, [activeTab, tabLayouts, containerWidth]);
-
-  const onTabLayout = (idx: number, e: LayoutChangeEvent) => {
-    const { x, width } = e.nativeEvent.layout;
-    setTabLayouts((prev) => {
-      const next = [...prev];
-      next[idx] = { x, width };
-      return next;
-    });
-  };
+  }, [activeTab]);
 
   const handleScroll = (event: any) => {
     // Skip if the scroll was triggered programmatically
@@ -132,53 +101,37 @@ export default function ContentTabs({
 
   return (
     <View style={styles.rootContainer}>
-      <View
-        style={styles.container}
-        onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
-      >
-        <ScrollView
-          ref={scrollRef}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-          bounces={false}
-        >
-          <View style={styles.tabsContainer}>
-            {TABS.map((tab) => {
-              const isActive = activeTab === tab.name;
-              return (
-                <TouchableOpacity
-                  key={tab.name}
-                  style={[styles.tab, isActive && styles.activeTab]}
-                  onPress={() => handleTabPress(tab.name)}
-                  activeOpacity={0.6}
-                  onLayout={(e) =>
-                    onTabLayout(
-                      TABS.findIndex((t) => t.name === tab.name),
-                      e
-                    )
+      <View style={styles.container}>
+        <View style={styles.tabsContainer}>
+          {TABS.map((tab) => {
+            const isActive = activeTab === tab.name;
+            return (
+              <TouchableOpacity
+                key={tab.name}
+                style={[styles.tab, isActive && styles.activeTab]}
+                onPress={() => handleTabPress(tab.name)}
+                activeOpacity={0.6}
+              >
+                <MaterialCommunityIcons
+                  name={tab.icon}
+                  size={22}
+                  color={
+                    isActive ? Colors.light.text : Colors.light.secondaryText
                   }
+                  style={styles.tabIcon}
+                />
+                <Text
+                  style={[
+                    styles.tabText,
+                    isActive ? styles.activeTabText : styles.inactiveTabText,
+                  ]}
                 >
-                  <MaterialCommunityIcons
-                    name={tab.icon}
-                    size={24}
-                    color={isActive ? "#000000" : "#757575"}
-                    style={styles.tabIcon}
-                  />
-                  <Text
-                    style={[
-                      isActive
-                        ? Typography.tabLabelActive
-                        : Typography.tabLabel,
-                    ]}
-                  >
-                    {tab.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </ScrollView>
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
 
       {children ? (
@@ -191,9 +144,9 @@ export default function ContentTabs({
           scrollEventThrottle={16}
           style={styles.contentContainer}
         >
-          {React.Children.map(children, (child) => (
+          {React.Children.map(children, (child, index) => (
             <View style={[styles.tabPage, { width: SCREEN_WIDTH }]}>
-              {child}
+              {index < 3 && child}
             </View>
           ))}
         </ScrollView>
@@ -215,41 +168,42 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.light.border,
     marginBottom: 2,
   },
-  scrollContent: {
-    paddingHorizontal: 10,
-  },
   tabsContainer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 5,
-    paddingHorizontal: 5,
+    justifyContent: "space-between",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
   },
   tab: {
-    flexDirection: "row",
+    flex: 1,
+    flexDirection: "column",
     alignItems: "center",
-    marginHorizontal: 4,
+    justifyContent: "center",
     paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 30,
+    paddingHorizontal: 4,
   },
   activeTab: {
-    backgroundColor: Colors.light.tintBackground,
-    elevation: 0,
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.light.tint,
   },
   tabIcon: {
-    marginRight: 8,
+    marginBottom: 4,
+  },
+  tabText: {
+    fontSize: 12,
+    fontFamily: FONTS.medium,
+  },
+  activeTabText: {
+    color: Colors.light.text,
+  },
+  inactiveTabText: {
+    color: Colors.light.secondaryText,
   },
   contentContainer: {
     flex: 1,
   },
   tabPage: {
     flex: 1,
-  },
-  indicator: {
-    position: "absolute",
-    height: 3,
-    backgroundColor: "#111",
-    bottom: 0,
-    borderRadius: 2,
   },
 });

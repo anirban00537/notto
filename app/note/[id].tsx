@@ -1,11 +1,20 @@
-import React from "react";
-import { View, Text, StyleSheet, ScrollView, Dimensions } from "react-native";
-import { Stack, useLocalSearchParams } from "expo-router";
+import React, { useRef } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Dimensions,
+  TouchableOpacity,
+} from "react-native";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNoteDetail } from "../../hooks/useNoteDetail";
 import { format } from "date-fns";
 import Animated, { FadeIn, ZoomIn } from "react-native-reanimated";
 import { Typography, FONTS } from "@/constants/Typography";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import BottomSheet, { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
 
 // Import the components
 import AudioPreview from "../../components/AudioPreview";
@@ -15,17 +24,17 @@ import YouTubePreview from "../../components/YouTubePreview";
 import NoteTitleSection from "../../components/NoteTitleSection";
 import TranscriptContent from "../../components/TranscriptContent";
 import LoadingScreen from "@/components/LoadingScreen";
-import QuizComponent from "@/components/QuizComponent";
-import FlashcardComponent from "@/components/FlashcardComponent";
 import EmptyState from "../../components/EmptyState";
 import NoteContent from "../../components/NoteContent";
 import SummaryContent from "../../components/SummaryContent";
 import ContentTabs from "../../components/ContentTabs";
-import { mapNoteFlashcardsToUIFlashcards } from "../../lib/utils/flashcardMapper";
+import TemplateModals from "@/components/TemplateModals";
 import { Colors } from "@/constants/Colors";
 
 export default function NoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
+
   const {
     note,
     loading,
@@ -34,14 +43,36 @@ export default function NoteDetailScreen() {
     handleSwipeChange,
     handleOptionsPress,
     handleBackPress,
-    isGenerating,
-    handleGenerateMaterials,
-    onDelete,
   } = useNoteDetail(id);
+
+  // Template bottom sheet reference
+  const templateBottomSheetRef = useRef<BottomSheet>(null);
+
+  // Functions for template bottom sheet
+  const openTemplatesSheet = () => {
+    templateBottomSheetRef.current?.snapToIndex(0);
+  };
+
+  // Navigation functions
+  const navigateToQuiz = () => {
+    templateBottomSheetRef.current?.close();
+    router.push({
+      pathname: "/quiz",
+      params: { noteId: id, title: note?.title || "Untitled" },
+    });
+  };
+
+  const navigateToFlashcards = () => {
+    templateBottomSheetRef.current?.close();
+    router.push({
+      pathname: "/flashcards",
+      params: { noteId: id, title: note?.title || "Untitled" },
+    });
+  };
 
   if (loading) return <LoadingScreen />;
   if (!note) return <Text style={Typography.body1}>Note not found</Text>;
-  console.log("note", note);
+
   const getFormattedTitle = () => {
     return note?.title?.trim() || "Untitled Note";
   };
@@ -58,7 +89,6 @@ export default function NoteDetailScreen() {
         title={getFormattedTitle()}
         onBackPress={handleBackPress}
         onOptionsPress={handleOptionsPress}
-        onDelete={onDelete}
       />
 
       <ContentTabs
@@ -104,25 +134,6 @@ export default function NoteDetailScreen() {
           </View>
         </ScrollView>
 
-        {/* Transcript Tab */}
-        <ScrollView
-          style={styles.scene}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContentContainer}
-        >
-          <View style={styles.noteContainer}>
-            {note?.fullText ? (
-              <View style={{ ...styles.contentCard, marginTop: 10 }}>
-                <TranscriptContent transcript={note.fullText} />
-              </View>
-            ) : (
-              <View style={styles.emptyContainer}>
-                <Text style={Typography.body1}>No transcript available</Text>
-              </View>
-            )}
-          </View>
-        </ScrollView>
-
         {/* Summary Tab */}
         <ScrollView
           style={styles.scene}
@@ -142,91 +153,46 @@ export default function NoteDetailScreen() {
           </View>
         </ScrollView>
 
-        {/* Quiz Tab */}
+        {/* Transcript Tab */}
         <ScrollView
           style={styles.scene}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContentContainer}
         >
           <View style={styles.noteContainer}>
-            {isGenerating ? (
-              <View style={styles.loadingContainer}>
-                <LoadingScreen />
-              </View>
-            ) : note?.quizzes && note.quizzes.length > 0 ? (
-              <View style={styles.quizContainer}>
-                <QuizComponent
-                  quiz={{
-                    ...note.quizzes[0],
-                    title: note.title || "Quiz",
-                  }}
-                />
+            {note?.fullText ? (
+              <View style={{ ...styles.contentCard, marginTop: 10 }}>
+                <TranscriptContent transcript={note.fullText} />
               </View>
             ) : (
-              <Animated.View
-                style={styles.emptyStateContainer}
-                entering={FadeIn.duration(400)}
-              >
-                <Animated.View
-                  style={styles.emptyStateCard}
-                  entering={ZoomIn.delay(300).duration(500)}
-                >
-                  <EmptyState
-                    iconName="clipboard-edit-outline"
-                    message="No quiz available yet."
-                    description="Generate quiz questions and flashcards based on your note content to help you study more effectively."
-                    buttonText="Generate Quiz & Flashcards"
-                    onPress={handleGenerateMaterials}
-                    loading={isGenerating}
-                    disabled={isGenerating}
-                  />
-                </Animated.View>
-              </Animated.View>
-            )}
-          </View>
-        </ScrollView>
-
-        {/* Flashcards Tab */}
-        <ScrollView
-          style={styles.scene}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContentContainer}
-        >
-          <View style={styles.noteContainer}>
-            {isGenerating ? (
-              <View style={styles.loadingContainer}>
-                <LoadingScreen />
+              <View style={styles.emptyContainer}>
+                <Text style={Typography.body1}>No transcript available</Text>
               </View>
-            ) : note?.flashcards && note.flashcards.length > 0 ? (
-              <View style={styles.flashcardsContainer}>
-                <FlashcardComponent
-                  flashcards={mapNoteFlashcardsToUIFlashcards(note.flashcards)}
-                />
-              </View>
-            ) : (
-              <Animated.View
-                style={styles.emptyStateContainer}
-                entering={FadeIn.duration(400)}
-              >
-                <Animated.View
-                  style={styles.emptyStateCard}
-                  entering={ZoomIn.delay(300).duration(500)}
-                >
-                  <EmptyState
-                    iconName="cards-outline"
-                    message="No flashcards available yet."
-                    description="Create flashcards to test your knowledge and help reinforce what you've learned from your notes."
-                    buttonText="Generate Quiz & Flashcards"
-                    onPress={handleGenerateMaterials}
-                    loading={isGenerating}
-                    disabled={isGenerating}
-                  />
-                </Animated.View>
-              </Animated.View>
             )}
           </View>
         </ScrollView>
       </ContentTabs>
+
+      {/* Floating Template Button */}
+      <TouchableOpacity
+        style={styles.floatingButton}
+        activeOpacity={0.8}
+        onPress={openTemplatesSheet}
+      >
+        <MaterialCommunityIcons
+          name="shape-plus"
+          size={22}
+          color={Colors.light.background}
+        />
+        <Text style={styles.floatingButtonText}>Template</Text>
+      </TouchableOpacity>
+
+      {/* Templates Bottom Sheet */}
+      <TemplateModals
+        bottomSheetRef={templateBottomSheetRef}
+        noteId={id}
+        noteTitle={note?.title}
+      />
     </SafeAreaView>
   );
 }
@@ -290,29 +256,26 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
     minHeight: 150,
   },
-  quizContainer: {
-    backgroundColor: "transparent",
-    padding: 0,
-    marginHorizontal: 20,
-  },
-  flashcardsContainer: {
-    backgroundColor: "transparent",
-    padding: 0,
-    marginHorizontal: 20,
-  },
-  emptyStateContainer: {
-    flex: 1,
-    justifyContent: "center",
+  floatingButton: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    backgroundColor: Colors.light.tint,
+    borderRadius: 50,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: "row",
     alignItems: "center",
-    minHeight: Dimensions.get("window").height - 250,
-    paddingVertical: 40,
-    paddingHorizontal: 20,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
-  emptyStateCard: {
-    width: "100%",
-    backgroundColor: "transparent",
-    padding: 0,
-    minHeight: 450,
-    justifyContent: "center",
+  floatingButtonText: {
+    color: Colors.light.background,
+    marginLeft: 6,
+    fontFamily: FONTS.medium,
+    fontSize: 14,
   },
 });
