@@ -19,6 +19,7 @@ export const Colors = {
     secondaryText: "#4B5563", // gray-600
     tertiaryText: "#9CA3AF", // gray-400
     background: "#F5F5F5",
+    deepBackground: "#F9F9F9",
     tint: tealPrimary,
     tintLight: tealLight,
     tintBackground: tealLighter,
@@ -27,7 +28,7 @@ export const Colors = {
     tabIconDefault: "#9CA3AF",
     tabIconSelected: tealPrimary,
     // Specific UI element colors
-    cardBackground: "#FFFFFF",
+    cardBackground: "#F9F9F9",
     deleteButton: "#F87171", // red-400 (softer than pure red)
     recordButton: "#111827", // gray-900 (softer black)
     recordIconColor: "#F87171", // red-400 (for microphone icon)

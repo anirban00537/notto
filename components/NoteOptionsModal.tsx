@@ -514,12 +514,12 @@ const styles = StyleSheet.create({
     zIndex: 100,
   },
   bottomSheetBackground: {
-    backgroundColor: Colors.light.background,
+    backgroundColor: Colors.light.deepBackground,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
   },
   handleIndicator: {
-    backgroundColor: Colors.light.background,
+    backgroundColor: Colors.light.deepBackground,
     width: 40,
     height: 4,
     borderRadius: 2,
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.light.border,
     alignItems: "center",
-    backgroundColor: Colors.light.background,
+    backgroundColor: Colors.light.deepBackground,
   },
   modalHeaderText: {
     color: "#1A1A1A",
@@ -542,7 +542,7 @@ const styles = StyleSheet.create({
   modalContent: {
     paddingHorizontal: 24,
     paddingVertical: 20,
-    backgroundColor: Colors.light.background,
+    backgroundColor: Colors.light.deepBackground,
   },
   modalOption: {
     flexDirection: "row",

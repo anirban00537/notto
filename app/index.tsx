@@ -165,18 +165,21 @@ export default function Note() {
   // If showing skeleton, return the skeleton loader
   if (shouldShowSkeleton) {
     return (
-      <SafeAreaView style={styles.container}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
         <StatusBar
-          barStyle="light-content"
+          barStyle="dark-content"
           backgroundColor={Colors.light.background}
+          translucent={false}
         />
-        <HomeHeader />
-        <FolderSelector
-          selectedFolder={selectedFolder}
-          onFolderPress={openFolderDrawer}
-        />
-        <NotesSkeleton />
-      </SafeAreaView>
+        <SafeAreaView style={styles.container}>
+          <HomeHeader />
+          <FolderSelector
+            selectedFolder={selectedFolder}
+            onFolderPress={openFolderDrawer}
+          />
+          <NotesSkeleton />
+        </SafeAreaView>
+      </GestureHandlerRootView>
     );
   }
 
@@ -238,16 +241,19 @@ export default function Note() {
     if (!isFetchingNextPage) return null;
     return (
       <View style={styles.footerLoadingContainer}>
-        <ActivityIndicator size="small" color="#000000" />
+        <ActivityIndicator size="small" color={Colors.light.text} />
       </View>
     );
   };
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor={Colors.light.background}
+        translucent={false}
+      />
       <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-
         <HomeHeader />
         <FolderSelector
           selectedFolder={selectedFolder}
@@ -273,7 +279,7 @@ export default function Note() {
                   (isNotesLoading && !isInitialLoad && !isFolderChanging)
                 }
                 onRefresh={onRefresh}
-                tintColor="#000000"
+                tintColor={Colors.light.tint}
               />
             }
           />
@@ -294,7 +300,7 @@ export default function Note() {
               style={[
                 Typography.buttonText,
                 styles.actionButtonText,
-                { color: "#FFFFFF" },
+                { color: Colors.light.background },
               ]}
             >
               Record
@@ -309,13 +315,13 @@ export default function Note() {
             <MaterialCommunityIcons
               name="pencil-plus"
               size={24}
-              color={Colors.light.tint}
+              color={Colors.light.background}
             />
             <Text
               style={[
                 Typography.buttonText,
                 styles.actionButtonText,
-                { color: Colors.light.tint },
+                { color: Colors.light.background },
               ]}
             >
               New Note
@@ -380,7 +386,7 @@ const styles = StyleSheet.create({
   },
   folderName: {
     flex: 1,
-    color: "#111",
+    color: Colors.light.text,
     marginLeft: 10,
     fontFamily: FONTS.medium,
   },
@@ -449,7 +455,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: Colors.light.background,
+    backgroundColor: Colors.light.tint,
     borderRadius: 25,
     paddingVertical: 12,
     paddingHorizontal: 20,
