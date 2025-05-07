@@ -1,5 +1,5 @@
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState } from "react";
@@ -11,64 +11,16 @@ import { queryClient } from "../lib/queryClient";
 import auth from "@react-native-firebase/auth";
 import { setAuthToken } from "../lib/services";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import LoadingScreen from "../components/LoadingScreen";
+import { View } from "react-native";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-function AuthLayout({ children }: { children: React.ReactNode }) {
-  const { user } = useUser();
-  const [isTokenSet, setIsTokenSet] = useState(false);
-  console.log(
-    "AuthLayout: user:",
-    user ? "exists" : "null",
-    "isTokenSet:",
-    isTokenSet
-  );
-
-  useEffect(() => {
-    const setupAuth = async () => {
-      try {
-        console.log("setupAuth running, user:", user ? "exists" : "null");
-        if (user) {
-          const token = await user.getIdToken(true);
-          await setAuthToken(token);
-        } else {
-          await setAuthToken(null);
-        }
-        console.log("Setting isTokenSet to true");
-        setIsTokenSet(true);
-      } catch (error) {
-        console.error("Error setting up auth:", error);
-        setIsTokenSet(true); // Still set to true to prevent infinite loading
-      }
-    };
-
-    setupAuth();
-
-    // Set up token refresh listener
-    const unsubscribe = auth().onIdTokenChanged(async (user) => {
-      if (user) {
-        const token = await user.getIdToken(true);
-        await setAuthToken(token);
-      } else {
-        await setAuthToken(null);
-      }
-    });
-
-    return () => unsubscribe();
-  }, [user]);
-
-  if (!isTokenSet) {
-    return null;
-  }
-
-  return children;
-}
-
+// Root layout that sets up providers
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
@@ -87,32 +39,32 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
         <UserProvider>
-          <AuthLayout>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: "#f0f7ff" },
-              }}
-            >
-              <Stack.Screen name="index" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="note/[id]"
-                options={{
-                  headerShown: false,
-                }}
-              />
-              <Stack.Screen
-                name="settings"
-                options={{
-                  headerShown: false,
-                  presentation: "modal",
-                }}
-              />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-          </AuthLayout>
+          <RootLayoutNav />
         </UserProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>
+  );
+}
+
+// This component handles the authentication state and routing
+function RootLayoutNav() {
+  const { user, loading } = useUser();
+
+  // While we're checking if the user is logged in, show a loading screen
+  if (loading) {
+    return <LoadingScreen />;
+  }
+
+  // Return a slot that will render the correct route based on the auth state
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      {/* If not authenticated, only the auth stack is accessible */}
+      {!user ? (
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+      ) : (
+        // If authenticated, only the main app stack is accessible
+        <Stack.Screen name="(app)" options={{ headerShown: false }} />
+      )}
+    </Stack>
   );
 }

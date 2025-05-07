@@ -11,7 +11,8 @@ import {
 import auth from "@react-native-firebase/auth";
 import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Typography, FONTS } from "../constants/Typography";
+import { Typography, FONTS } from "../../constants/Typography";
+import { useUser } from "../context/UserContext";
 
 GoogleSignin.configure({
   webClientId:
@@ -19,11 +20,13 @@ GoogleSignin.configure({
   scopes: ["profile", "email"],
 });
 
-const AuthComponent = () => {
+export default function AuthScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fadeAnim = new Animated.Value(0);
   const slideAnim = new Animated.Value(50);
+
+  console.log("Auth screen rendered");
 
   useEffect(() => {
     Animated.parallel([
@@ -42,6 +45,7 @@ const AuthComponent = () => {
 
   async function onGoogleButtonPress() {
     try {
+      console.log("Starting Google sign-in flow");
       setLoading(true);
       setError(null);
 
@@ -51,10 +55,12 @@ const AuthComponent = () => {
       });
 
       const googleSignInResult = await GoogleSignin.signIn();
+      console.log("Google Sign-in successful, getting credential");
       const googleCredential = auth.GoogleAuthProvider.credential(
         googleSignInResult.data?.idToken ?? null
       );
       await auth().signInWithCredential(googleCredential);
+      console.log("Firebase auth successful");
     } catch (error: any) {
       console.error("Auth error:", error);
       if (error.code === "auth/network-request-failed") {
@@ -126,7 +132,7 @@ const AuthComponent = () => {
       </Animated.View>
     </View>
   );
-};
+}
 
 const { width } = Dimensions.get("window");
 
@@ -193,5 +199,3 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
 });
-
-export default AuthComponent;

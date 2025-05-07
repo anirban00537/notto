@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNoteDetail } from "../../hooks/useNoteDetail";
+import { useNoteDetail } from "../../../hooks/useNoteDetail";
 import { format } from "date-fns";
 import Animated, { FadeIn, ZoomIn } from "react-native-reanimated";
 import { Typography, FONTS } from "@/constants/Typography";
@@ -17,17 +17,17 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import BottomSheet, { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
 
 // Import the components
-import AudioPreview from "../../components/AudioPreview";
-import PDFPreview from "../../components/PDFPreview";
-import NoteDetailHeader from "../../components/NoteDetailHeader";
-import YouTubePreview from "../../components/YouTubePreview";
-import NoteTitleSection from "../../components/NoteTitleSection";
-import TranscriptContent from "../../components/TranscriptContent";
+import AudioPreview from "../../../components/AudioPreview";
+import PDFPreview from "../../../components/PDFPreview";
+import NoteDetailHeader from "../../../components/NoteDetailHeader";
+import YouTubePreview from "../../../components/YouTubePreview";
+import NoteTitleSection from "../../../components/NoteTitleSection";
+import TranscriptContent from "../../../components/TranscriptContent";
 import LoadingScreen from "@/components/LoadingScreen";
-import EmptyState from "../../components/EmptyState";
-import NoteContent from "../../components/NoteContent";
-import SummaryContent from "../../components/SummaryContent";
-import ContentTabs from "../../components/ContentTabs";
+import EmptyState from "../../../components/EmptyState";
+import NoteContent from "../../../components/NoteContent";
+import SummaryContent from "../../../components/SummaryContent";
+import ContentTabs from "../../../components/ContentTabs";
 import TemplateModals from "@/components/TemplateModals";
 import { Colors } from "@/constants/Colors";
 

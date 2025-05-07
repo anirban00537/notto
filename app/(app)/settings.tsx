@@ -10,7 +10,7 @@ import {
   StatusBar,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useUser } from "./context/UserContext";
+import { useUser } from "../context/UserContext";
 import { router } from "expo-router";
 import auth from "@react-native-firebase/auth";
 import Animated, {
@@ -23,8 +23,8 @@ import Animated, {
   interpolateColor,
   Easing,
 } from "react-native-reanimated";
-import { Typography, FONTS } from "../constants/Typography";
-import { Colors } from "../constants/Colors";
+import { Typography, FONTS } from "../../constants/Typography";
+import { Colors } from "../../constants/Colors";
 
 const AnimatedIcon = Animated.createAnimatedComponent(MaterialCommunityIcons);
 

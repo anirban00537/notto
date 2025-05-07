@@ -40,7 +40,19 @@ const UserProviderComponent: React.FC<{ children: React.ReactNode }> = ({
 };
 
 // Export the hook as a named export
-export const useUser = () => useContext(UserContext);
+export const useUser = () => {
+  const context = useContext(UserContext);
+  console.log(
+    "useUser hook called, user:",
+    context.user ? "exists" : "null",
+    "loading:",
+    context.loading
+  );
+  if (context === undefined) {
+    throw new Error("useUser must be used within a UserProvider");
+  }
+  return context;
+};
 
 // Export the provider both ways for backward compatibility
 export const UserProvider = UserProviderComponent;
