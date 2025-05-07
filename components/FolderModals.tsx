@@ -9,6 +9,7 @@ import {
   Alert,
   TextInput,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import CommonBottomSheet from "./CommonBottomSheet";
@@ -184,7 +185,7 @@ const FolderModals: React.FC<FolderModalsProps> = ({
   const [loadingFolders, setLoadingFolders] = useState(false);
 
   // Use the useFolders hook to get folders directly
-  const { folders: hookFolders, refetchFolders } = useFolders(userId);
+  const { folders: hookFolders, refetchFolders } = useFolders();
 
   // Also add a direct query for more control
   const { data: foldersResponse, isLoading: isFoldersLoading } = useQuery({
@@ -380,7 +381,7 @@ const FolderModals: React.FC<FolderModalsProps> = ({
       <CommonBottomSheet
         ref={bottomSheetRef}
         visible={isFolderSheetOpen}
-        snapPoints={[1, 320]}
+        snapPoints={[1, 500]}
         backgroundStyle={styles.bottomSheetBackground}
         handleIndicatorStyle={styles.handleIndicator}
         onClose={() => setIsFolderSheetOpen(false)}

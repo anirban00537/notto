@@ -4,10 +4,13 @@ import { useState } from "react";
 import { Keyboard } from "react-native";
 import { ApiResponse } from "../lib/types/response";
 import { Folder } from "../lib/types/folder";
+import { useUser } from "../app/context/UserContext";
 
-export const useFolders = (userId: string) => {
+export const useFolders = () => {
+  const { user } = useUser();
   const [newFolderName, setNewFolderName] = useState<string>("");
   const queryClient = useQueryClient();
+  const userId = user?.uid ?? "";
 
   const { data: foldersResponse, refetch: refetchFolders } = useQuery<
     ApiResponse<Folder[]>
