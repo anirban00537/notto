@@ -98,7 +98,7 @@ const FolderOptionsModal: React.FC<{
   isLoading,
 }) => {
   const [newName, setNewName] = useState(folder?.name || "");
-  const snapPoints = React.useMemo(() => [1, 260], []);
+  const snapPoints = React.useMemo(() => [1, 280], []);
 
   useEffect(() => {
     setNewName(folder?.name || "");
@@ -143,14 +143,14 @@ const FolderOptionsModal: React.FC<{
               autoFocus
             />
             <TouchableOpacity
-              style={styles.saveFolderButton}
+              style={styles.blackButton}
               onPress={() => onRename(newName)}
               disabled={isLoading || !newName.trim()}
             >
               {isLoading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.saveFolderButtonText}>Save</Text>
+                <Text style={styles.blackButtonText}>Save</Text>
               )}
             </TouchableOpacity>
           </View>
@@ -204,10 +204,10 @@ const FolderModals: React.FC<FolderModalsProps> = ({
   const [loadingFolders, setLoadingFolders] = useState(false);
 
   // Main folder list snap points
-  const folderSnapPoints = React.useMemo(() => [1, 500], []);
+  const folderSnapPoints = React.useMemo(() => [1, 520], []);
 
   // Create folder snap points
-  const createFolderSnapPoints = React.useMemo(() => [1, 320], []);
+  const createFolderSnapPoints = React.useMemo(() => [1, 330], []);
 
   // Use the useFolders hook to get folders directly
   const { folders: hookFolders, refetchFolders } = useFolders();
@@ -352,10 +352,10 @@ const FolderModals: React.FC<FolderModalsProps> = ({
           bottomSheetCreateRef.current?.expand();
         }, 150);
       }}
-      activeOpacity={0.7}
+      activeOpacity={0.8}
     >
       <View style={styles.createFolderIconContainer}>
-        <MaterialCommunityIcons name="folder-plus" size={22} color="#fff" />
+        <MaterialCommunityIcons name="folder-plus" size={20} color="#fff" />
       </View>
       <Text style={styles.createFolderButtonText}>Create New Folder</Text>
     </TouchableOpacity>
@@ -435,22 +435,24 @@ const FolderModals: React.FC<FolderModalsProps> = ({
               <Text style={styles.loadingText}>Loading folders...</Text>
             </View>
           ) : folderItems.length > 1 ? ( // Check if we have more than just "All Notes"
-            folderItems.map((item) => (
-              <FolderListItem
-                key={item.id}
-                item={item}
-                isSelected={selectedFolderId === item.id}
-                onSelect={handleFolderSelect}
-                onDelete={handleFolderDelete}
-                onOptions={() => {
-                  if (item.id !== "all") {
-                    setOptionsFolder(item as Folder);
-                    setIsRenaming(false);
-                    folderOptionsSheetRef.current?.expand();
-                  }
-                }}
-              />
-            ))
+            <View style={styles.folderListContainer}>
+              {folderItems.map((item) => (
+                <FolderListItem
+                  key={item.id}
+                  item={item}
+                  isSelected={selectedFolderId === item.id}
+                  onSelect={handleFolderSelect}
+                  onDelete={handleFolderDelete}
+                  onOptions={() => {
+                    if (item.id !== "all") {
+                      setOptionsFolder(item as Folder);
+                      setIsRenaming(false);
+                      folderOptionsSheetRef.current?.expand();
+                    }
+                  }}
+                />
+              ))}
+            </View>
           ) : (
             <Text style={styles.emptyMessage}>
               No folders found. Create a new folder to get started.
@@ -540,8 +542,8 @@ const FolderModals: React.FC<FolderModalsProps> = ({
 const styles = StyleSheet.create({
   bottomSheetBackground: {
     backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -3 },
     shadowOpacity: 0.1,
@@ -549,16 +551,16 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   handleIndicator: {
-    backgroundColor: "#E0E0E0",
-    width: 40,
+    backgroundColor: "#C7C7CC",
+    width: 36,
     height: 4,
     borderRadius: 2,
     marginTop: 10,
   },
   drawerHeader: {
-    padding: 20,
+    padding: 18,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: "#F2F2F7",
     backgroundColor: "#FFFFFF",
     alignItems: "center",
   },
@@ -567,51 +569,57 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#000000",
     textAlign: "center",
+    letterSpacing: 0.1,
   },
   scrollContent: {
-    paddingVertical: 8,
+    paddingVertical: 12,
     backgroundColor: "#FFFFFF",
     minHeight: 200,
     paddingBottom: 30,
+  },
+  folderListContainer: {
+    marginHorizontal: 16,
   },
   createFolderButton: {
     flexDirection: "row",
     alignItems: "center",
     marginHorizontal: 16,
-    marginVertical: 12,
-    padding: 14,
-    backgroundColor: "#f8f8f8",
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: "#f0f0f0",
+    marginBottom: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    backgroundColor: "#000000",
+    borderRadius: 10,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   createFolderIconContainer: {
-    backgroundColor: "#000",
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
   },
   createFolderButtonText: {
     fontSize: 16,
-    color: "#333",
-    fontWeight: "500",
+    color: "#FFFFFF",
+    fontWeight: "600",
+    letterSpacing: 0.1,
+    textAlign: "center",
+    
   },
   pressed: {
     opacity: 0.8,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#F2F2F7",
   },
   modalHeader: {
-    paddingVertical: 16,
+    paddingVertical: 18,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: "#F2F2F7",
     alignItems: "center",
     backgroundColor: "#FFFFFF",
   },
@@ -619,9 +627,10 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     color: "#000",
+    letterSpacing: 0.1,
   },
   modalContent: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingVertical: 20,
     backgroundColor: "#FFFFFF",
     minHeight: 150,
@@ -629,20 +638,20 @@ const styles = StyleSheet.create({
   modalOption: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 16,
-    marginVertical: 6,
-    backgroundColor: "#f8f8f8",
-    borderRadius: 14,
+    paddingVertical: 14,
+    marginVertical: 5,
+    backgroundColor: "#F9F9F9",
+    borderRadius: 10,
     paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: "#EFEFEF",
   },
   modalOptionIcon: {
     marginRight: 16,
-    width: 28,
-    height: 28,
+    width: 24,
+    height: 24,
     textAlign: "center",
-    lineHeight: 28,
+    lineHeight: 24,
   },
   modalOptionText: {
     fontSize: 16,
@@ -652,17 +661,17 @@ const styles = StyleSheet.create({
   renameInput: {
     fontSize: 16,
     padding: 16,
-    backgroundColor: "#f8f8f8",
-    borderColor: "#e5e5e5",
+    backgroundColor: "#F9F9F9",
+    borderColor: "#EFEFEF",
     borderWidth: 1,
-    borderRadius: 14,
+    borderRadius: 10,
     marginBottom: 16,
     color: "#333",
   },
-  saveFolderButton: {
-    backgroundColor: "#000",
+  blackButton: {
+    backgroundColor: "#000000",
     paddingVertical: 16,
-    borderRadius: 14,
+    borderRadius: 10,
     alignItems: "center",
     marginBottom: 10,
     shadowColor: "#000",
@@ -670,6 +679,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 3,
+  },
+  blackButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
+    letterSpacing: 0.1,
   },
   saveFolderButtonText: {
     color: "#FFFFFF",
@@ -679,13 +694,14 @@ const styles = StyleSheet.create({
   emptyMessage: {
     textAlign: "center",
     padding: 20,
-    color: "#666",
+    color: "#8E8E93",
     fontSize: 16,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    paddingVertical: 40,
   },
   loadingText: {
     marginTop: 10,
