@@ -1,5 +1,11 @@
 import React, { RefObject, useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+} from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import BottomSheet, {
   BottomSheetBackdrop,
@@ -15,6 +21,8 @@ interface TemplateModalsProps {
   noteTitle?: string;
 }
 
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+
 const TemplateModals: React.FC<TemplateModalsProps> = ({
   bottomSheetRef,
   noteId,
@@ -23,8 +31,8 @@ const TemplateModals: React.FC<TemplateModalsProps> = ({
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const router = useRouter();
 
-  // Modal snap points
-  const snapPoints = React.useMemo(() => ["35%"], []);
+  // Modal snap points - only one point to ensure it always opens to the right height
+  const snapPoints = React.useMemo(() => ["280"], []);
 
   // Navigation functions
   const navigateToQuiz = () => {
@@ -66,11 +74,7 @@ const TemplateModals: React.FC<TemplateModalsProps> = ({
       <View style={styles.drawerHeader}>
         <Text style={styles.drawerTitle}>Select Template</Text>
       </View>
-      <BottomSheetScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
+      <View style={styles.contentContainer}>
         <TouchableOpacity
           style={styles.templateOption}
           onPress={navigateToQuiz}
@@ -79,7 +83,7 @@ const TemplateModals: React.FC<TemplateModalsProps> = ({
           <View style={styles.templateIconContainer}>
             <MaterialCommunityIcons
               name="help-circle-outline"
-              size={28}
+              size={32}
               color={Colors.light.tint}
             />
           </View>
@@ -97,14 +101,14 @@ const TemplateModals: React.FC<TemplateModalsProps> = ({
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={styles.templateOption}
+          style={[styles.templateOption, styles.lastTemplateOption]}
           onPress={navigateToFlashcards}
           activeOpacity={0.7}
         >
           <View style={styles.templateIconContainer}>
             <MaterialCommunityIcons
               name="card-text-outline"
-              size={28}
+              size={32}
               color={Colors.light.tint}
             />
           </View>
@@ -120,7 +124,7 @@ const TemplateModals: React.FC<TemplateModalsProps> = ({
             color={Colors.light.icon}
           />
         </TouchableOpacity>
-      </BottomSheetScrollView>
+      </View>
     </BottomSheet>
   );
 };
@@ -144,7 +148,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   drawerHeader: {
-    padding: 18,
+    padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: Colors.light.border,
     backgroundColor: Colors.light.background,
@@ -157,25 +161,27 @@ const styles = StyleSheet.create({
     textAlign: "center",
     letterSpacing: 0.1,
   },
-  scrollContent: {
-    paddingVertical: 12,
+  contentContainer: {
+    paddingVertical: 16,
     paddingHorizontal: 16,
-    paddingBottom: 30,
   },
   templateOption: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.light.cardBackground,
     padding: 16,
-    borderRadius: 10,
+    borderRadius: 12,
     marginBottom: 16,
     borderWidth: 1,
     borderColor: Colors.light.border,
   },
+  lastTemplateOption: {
+    marginBottom: 0,
+  },
   templateIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
+    width: 50,
+    height: 50,
+    borderRadius: 12,
     backgroundColor: Colors.light.tintBackground,
     justifyContent: "center",
     alignItems: "center",
@@ -191,9 +197,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   templateOptionDesc: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: FONTS.regular,
     color: Colors.light.secondaryText,
+    lineHeight: 18,
   },
 });
 
