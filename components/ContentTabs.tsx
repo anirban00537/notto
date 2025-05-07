@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
+  Animated,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Typography, FONTS } from "../constants/Typography";
@@ -34,6 +35,7 @@ interface ContentTabsProps {
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const TAB_WIDTH = SCREEN_WIDTH / 3;
 
 export default function ContentTabs({
   activeTab,
@@ -46,11 +48,16 @@ export default function ContentTabs({
   // Keep track of the last programmatic scroll to avoid feedback loops
   const isScrollingRef = useRef(false);
 
+  // Get the active tab index
+  const getTabIndex = () => {
+    return TABS.findIndex((tab) => tab.name === activeTab);
+  };
+
   useEffect(() => {
     // Scroll content to the active tab
     if (contentScrollViewRef.current) {
       isScrollingRef.current = true;
-      const tabIndex = TABS.findIndex((tab) => tab.name === activeTab);
+      const tabIndex = getTabIndex();
       contentScrollViewRef.current.scrollTo({
         x: tabIndex * SCREEN_WIDTH,
         animated: true,
@@ -103,31 +110,37 @@ export default function ContentTabs({
     <View style={styles.rootContainer}>
       <View style={styles.container}>
         <View style={styles.tabsContainer}>
-          {TABS.map((tab) => {
+          {TABS.map((tab, index) => {
             const isActive = activeTab === tab.name;
+
             return (
               <TouchableOpacity
                 key={tab.name}
                 style={[styles.tab, isActive && styles.activeTab]}
                 onPress={() => handleTabPress(tab.name)}
-                activeOpacity={0.6}
+                activeOpacity={0.8}
               >
-                <MaterialCommunityIcons
-                  name={tab.icon}
-                  size={22}
-                  color={
-                    isActive ? Colors.light.text : Colors.light.secondaryText
-                  }
-                  style={styles.tabIcon}
-                />
-                <Text
-                  style={[
-                    styles.tabText,
-                    isActive ? styles.activeTabText : styles.inactiveTabText,
-                  ]}
-                >
-                  {tab.label}
-                </Text>
+                <View style={styles.tabContent}>
+                  <MaterialCommunityIcons
+                    name={tab.icon}
+                    size={19}
+                    color={
+                      isActive
+                        ? Colors.light.background
+                        : Colors.light.secondaryText
+                    }
+                    style={styles.tabIcon}
+                  />
+                  <Text
+                    style={[
+                      styles.tabText,
+                      isActive ? styles.activeTabText : styles.inactiveTabText,
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {tab.label}
+                  </Text>
+                </View>
               </TouchableOpacity>
             );
           })}
@@ -160,45 +173,51 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
-    backgroundColor: Colors.light.deepBackground,
-    paddingTop: 4,
-    paddingBottom: 0,
+    backgroundColor: Colors.light.background,
     position: "relative",
     borderBottomWidth: 1,
     borderBottomColor: Colors.light.border,
-    marginBottom: 2,
+    paddingTop: 8,
+    paddingBottom: 8,
+    paddingHorizontal: 5,
   },
   tabsContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    height: 40,
+    paddingHorizontal: 10,
   },
   tab: {
     flex: 1,
-    flexDirection: "column",
-    alignItems: "center",
+    height: "100%",
     justifyContent: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 4,
+    marginHorizontal: 3,
+    borderRadius: 8,
+    backgroundColor: Colors.light.tintBackground + "20", // Very light version of tint color
   },
   activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.light.tint,
+    backgroundColor: Colors.light.tint,
+  },
+  tabContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 8,
   },
   tabIcon: {
-    marginBottom: 4,
+    marginRight: 6,
   },
   tabText: {
     fontSize: 12,
     fontFamily: FONTS.medium,
   },
   activeTabText: {
-    color: Colors.light.text,
+    color: Colors.light.background,
+    fontWeight: "600",
   },
   inactiveTabText: {
-    color: Colors.light.secondaryText,
+    color: Colors.light.text,
   },
   contentContainer: {
     flex: 1,
