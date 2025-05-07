@@ -51,6 +51,7 @@ export default function FlashcardsScreen() {
   const translateX = useSharedValue(0);
   const rotateZ = useSharedValue(0);
   const progressAnim = useSharedValue(0);
+  const iconRotate = useSharedValue(0);
 
   const handleBackPress = () => {
     router.back();
@@ -66,6 +67,25 @@ export default function FlashcardsScreen() {
   React.useEffect(() => {
     progressAnim.value = withTiming(progress / 100, { duration: 600 });
   }, [currentIndex, flashcards]);
+
+  // Animation for flip indicator - simplified to avoid worklet issues
+  const animateFlipIcon = () => {
+    iconRotate.value = 0;
+    iconRotate.value = withTiming(1, { duration: 1500 });
+  };
+
+  // Trigger the animation when isFlipped changes
+  React.useEffect(() => {
+    // Set up a listener to react to flipped state changes
+    const listener = () => {
+      animateFlipIcon();
+    };
+
+    // Clean up on unmount
+    return () => {
+      iconRotate.value = 0;
+    };
+  }, []);
 
   const progressAnimatedStyle = useAnimatedStyle(() => {
     return {
@@ -90,12 +110,35 @@ export default function FlashcardsScreen() {
       position: isFlipped.value ? "relative" : "absolute",
       opacity: interpolate(flipAnim.value, [0, 0.5, 0.5, 1], [0, 0, 1, 1]),
       zIndex: isFlipped.value ? 1 : 0,
+      backgroundColor: isFlipped.value ? Colors.light.tintLight + "20" : "#fff",
+    };
+  });
+
+  const iconAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          rotateY: `${interpolate(
+            iconRotate.value,
+            [0, 0.5, 1],
+            [0, 180, 360]
+          )}deg`,
+        },
+      ],
     };
   });
 
   const handleFlip = () => {
     isFlipped.value = !isFlipped.value;
     flipAnim.value = withTiming(isFlipped.value ? 1 : 0, { duration: 400 });
+
+    // Animate flip icon when flipping
+    animateFlipIcon();
+
+    // Reset visible hint count when flipping back to question side
+    if (!isFlipped.value) {
+      setVisibleHintCount(1);
+    }
   };
 
   const cardAnimatedStyle = useAnimatedStyle(() => {
@@ -176,6 +219,16 @@ export default function FlashcardsScreen() {
     if (text.length > 120) return 18;
     return 20;
   };
+
+  // Create a dynamic style for the back of the card to avoid errors
+  const backCardStyle = React.useMemo(() => {
+    return [
+      styles.flashcardContainer,
+      styles.flashcardBack,
+      isFlipped.value ? styles.flashcardBackActive : {},
+      animatedBackStyle,
+    ];
+  }, [animatedBackStyle]); // We don't need isFlipped.value in dependencies as it's automatically tracked by animatedBackStyle
 
   if (loading) return <LoadingScreen />;
   if (!note) {
@@ -277,22 +330,18 @@ export default function FlashcardsScreen() {
                           </Text>
                         </View>
                         <View style={styles.flipIndicatorContainer}>
-                          <MaterialCommunityIcons
-                            name="rotate-3d-variant"
-                            size={20}
-                            color="#666"
-                          />
+                          <Reanimated.View style={iconAnimatedStyle}>
+                            <MaterialCommunityIcons
+                              name="rotate-3d-variant"
+                              size={20}
+                              color="#666"
+                            />
+                          </Reanimated.View>
                           <Text style={styles.tapToFlip}>Tap to flip</Text>
                         </View>
                       </Reanimated.View>
 
-                      <Reanimated.View
-                        style={[
-                          styles.flashcardContainer,
-                          styles.flashcardBack,
-                          animatedBackStyle,
-                        ]}
-                      >
+                      <Reanimated.View style={backCardStyle}>
                         <View style={styles.cardContentContainer}>
                           <Text style={styles.answerLabel}>Answer</Text>
                           <Text
@@ -310,12 +359,21 @@ export default function FlashcardsScreen() {
                           </Text>
                         </View>
                         <View style={styles.flipIndicatorContainer}>
-                          <MaterialCommunityIcons
-                            name="rotate-3d-variant"
-                            size={20}
-                            color="#666"
-                          />
-                          <Text style={styles.tapToFlip}>Tap to flip back</Text>
+                          <Reanimated.View style={iconAnimatedStyle}>
+                            <MaterialCommunityIcons
+                              name="rotate-3d-variant"
+                              size={20}
+                              color={Colors.light.tint}
+                            />
+                          </Reanimated.View>
+                          <Text
+                            style={[
+                              styles.tapToFlip,
+                              { color: Colors.light.tint },
+                            ]}
+                          >
+                            Tap to flip back
+                          </Text>
                         </View>
                       </Reanimated.View>
                     </View>
@@ -498,7 +556,7 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: Colors.light.background,
   },
   scrollContent: {
     minHeight: SCREEN_HEIGHT - 220,
@@ -567,7 +625,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   flashcardBack: {
-    backgroundColor: "#fff",
+    borderColor: Colors.light.tintLight,
+  },
+  flashcardBackActive: {
+    shadowColor: Colors.light.tint,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 3,
   },
   questionLabel: {
     fontSize: 13,
@@ -584,8 +649,9 @@ const styles = StyleSheet.create({
   },
   flipIndicatorContainer: {
     alignItems: "center",
-    marginTop: 20,
+    marginTop: 16,
     flexDirection: "row",
+    paddingVertical: 4,
   },
   flipIndicator: {
     marginRight: 6,
@@ -598,15 +664,16 @@ const styles = StyleSheet.create({
   answerLabel: {
     fontSize: 13,
     fontWeight: "500",
-    color: "#666",
+    color: Colors.light.tint,
     marginBottom: 16,
     textTransform: "uppercase",
     letterSpacing: 1,
   },
   answer: {
-    color: "#111",
+    color: Colors.light.text,
     textAlign: "center",
     lineHeight: 26,
+    fontFamily: FONTS.medium,
   },
   navigationContainer: {
     flexDirection: "row",
